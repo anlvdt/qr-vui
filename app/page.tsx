@@ -7,7 +7,7 @@ type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
-type ArtCategory = "hai" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien";
+type ArtCategory = "hai" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string };
 
 const palettes = [
@@ -62,6 +62,42 @@ const artLibrary: LibraryArt[] = [
   { id: "du-lich", name: "Xách ba lô lên", mood: "Du lịch", category: "su-kien", src: "/art-library/su-kien/du-lich.png", x: 70, y: 68, size: 41, caption: "QUÉT MÃ, LÊN ĐƯỜNG" },
   { id: "chay-bo", name: "Chạy là có hội", mood: "Thể thao", category: "su-kien", src: "/art-library/su-kien/chay-bo.png", x: 72, y: 69, size: 40, caption: "QUÉT MÃ, CHẠY THÔI" },
   { id: "thien-nguyen", name: "Góp vui góp sức", mood: "Cộng đồng", category: "su-kien", src: "/art-library/su-kien/thien-nguyen.png", x: 71, y: 73, size: 38, caption: "QUÉT MÃ, GÓP NIỀM VUI" },
+  { id: "lua-gao", name: "Mùa lúa chín", mood: "Trồng trọt", category: "nong-nghiep", src: "/art-library/nong-nghiep/lua-gao.png", x: 74, y: 64, size: 44, caption: "QUÉT MÃ, GẶT NIỀM VUI" },
+  { id: "ca-phe", name: "Vườn cà phê", mood: "Nông sản", category: "nong-nghiep", src: "/art-library/nong-nghiep/ca-phe.png", x: 73, y: 64, size: 44, caption: "CÀ PHÊ THƠM, MÃ GỌN" },
+  { id: "vuon-trai-cay", name: "Vườn trái ngọt", mood: "Nhà vườn", category: "nong-nghiep", src: "/art-library/nong-nghiep/vuon-trai-cay.png", x: 73, y: 64, size: 44, caption: "TRÁI TƯƠI, MÃ TỚI" },
+  { id: "danh-ca", name: "Chuyến cá đầy khoang", mood: "Thủy sản", category: "nong-nghiep", src: "/art-library/nong-nghiep/danh-ca.png", x: 76, y: 69, size: 40, caption: "CÁ TƯƠI, QUÉT THÔI" },
+  { id: "dam-sen", name: "Đầm sen sáng sớm", mood: "Trồng hoa", category: "nong-nghiep", src: "/art-library/nong-nghiep/dam-sen.png", x: 73, y: 69, size: 42, caption: "SEN NỞ, MÃ CHỜ" },
+  { id: "bo-sua", name: "Trang trại bò sữa", mood: "Chăn nuôi", category: "nong-nghiep", src: "/art-library/nong-nghiep/bo-sua.png", x: 69, y: 71, size: 43, caption: "SỮA NGON, MÃ GỌN" },
+  { id: "ganh-hang", name: "Gánh hàng rong", mood: "Phố quen", category: "hang-rong", src: "/art-library/hang-rong/ganh-hang.png", x: 58, y: 69, size: 38, caption: "GÁNH NHẸ, QUÉT NHANH" },
+  { id: "tra-da", name: "Trà đá vỉa hè", mood: "Giải khát", category: "hang-rong", src: "/art-library/hang-rong/tra-da.png", x: 42, y: 70, size: 38, caption: "TRÀ MÁT, MÃ NÉT" },
+  { id: "xe-hoa", name: "Xe hoa đầu phố", mood: "Hoa tươi", category: "hang-rong", src: "/art-library/hang-rong/xe-hoa.png", x: 42, y: 69, size: 36, caption: "HOA XINH, MÃ XỊN" },
+  { id: "xe-trai-cay", name: "Xe trái cây", mood: "Hoa quả", category: "hang-rong", src: "/art-library/hang-rong/xe-trai-cay.png", x: 53, y: 73, size: 35, caption: "TRÁI TƯƠI, QUÉT THÔI" },
+  { id: "bap-nuong", name: "Bắp nướng thơm lừng", mood: "Ăn vặt", category: "hang-rong", src: "/art-library/hang-rong/bap-nuong.png", x: 39, y: 75, size: 36, caption: "BẮP NÓNG, MÃ XONG" },
+  { id: "xe-mi", name: "Xe mì ven đường", mood: "Món nóng", category: "hang-rong", src: "/art-library/hang-rong/xe-mi.png", x: 37, y: 74, size: 37, caption: "MÌ NGON, MÃ GỌN" },
+  { id: "ruong-bac-thang", name: "Ruộng bậc thang", mood: "Miền núi", category: "phong-canh", src: "/art-library/phong-canh/ruong-bac-thang.png", x: 53, y: 65, size: 42, caption: "NÚI ĐỒI, QUÉT THÔI" },
+  { id: "bien-xanh", name: "Biển xanh cát trắng", mood: "Miền biển", category: "phong-canh", src: "/art-library/phong-canh/bien-xanh.png", x: 43, y: 65, size: 36, caption: "BIỂN XANH, MÃ LÀNH" },
+  { id: "song-nui", name: "Sông giữa núi", mood: "Non nước", category: "phong-canh", src: "/art-library/phong-canh/song-nui.png", x: 53, y: 69, size: 35, caption: "NON NƯỚC, MÃ THÔNG" },
+  { id: "doi-thong", name: "Đồi thông sương sớm", mood: "Cao nguyên", category: "phong-canh", src: "/art-library/phong-canh/doi-thong.png", x: 53, y: 65, size: 40, caption: "THÔNG REO, MÃ THEO" },
+  { id: "ho-sen", name: "Hồ sen bình minh", mood: "Đồng quê", category: "phong-canh", src: "/art-library/phong-canh/ho-sen.png", x: 59, y: 69, size: 35, caption: "SEN HỒNG, MÃ THÔNG" },
+  { id: "deo-nui", name: "Đèo cao lộng gió", mood: "Đường núi", category: "phong-canh", src: "/art-library/phong-canh/deo-nui.png", x: 43, y: 68, size: 34, caption: "QUA ĐÈO, QUÉT THEO" },
+  { id: "trekking", name: "Đi bộ đường dài", mood: "Khám phá", category: "du-lich", src: "/art-library/du-lich/trekking.png", x: 69, y: 52, size: 42, caption: "QUÉT BẢN ĐỒ, ĐI THÔI" },
+  { id: "gia-dinh-bien", name: "Cả nhà đi biển", mood: "Nghỉ dưỡng", category: "du-lich", src: "/art-library/du-lich/gia-dinh-bien.png", x: 73, y: 65, size: 40, caption: "CẢ NHÀ, CÙNG QUÉT" },
+  { id: "dap-xe", name: "Đạp xe ngắm lúa", mood: "Trải nghiệm", category: "du-lich", src: "/art-library/du-lich/dap-xe.png", x: 70, y: 69, size: 40, caption: "ĐẠP XE, QUÉT NHẸ" },
+  { id: "cam-trai", name: "Cắm trại rừng thông", mood: "Ngoài trời", category: "du-lich", src: "/art-library/du-lich/cam-trai.png", x: 71, y: 49, size: 47, caption: "DỰNG LỀU, DỰNG MÃ" },
+  { id: "du-thuyen", name: "Thuyền trôi non nước", mood: "Đường sông", category: "du-lich", src: "/art-library/du-lich/du-thuyen.png", x: 54, y: 73, size: 36, caption: "LÊN THUYỀN, QUÉT LIỀN" },
+  { id: "check-in", name: "Hội bạn check-in", mood: "Kỷ niệm", category: "du-lich", src: "/art-library/du-lich/check-in.png", x: 68, y: 42, size: 45, caption: "QUÉT MÃ, LƯU KỶ NIỆM" },
+  { id: "ha-noi", name: "Hà Nội · Hồ Gươm", mood: "Thủ đô", category: "bac-trung", src: "/art-library/mien-bac-trung/ha-noi.png", x: 75, y: 76, size: 36, caption: "HÀ NỘI, QUÉT RỒI ĐI" },
+  { id: "quang-ninh", name: "Quảng Ninh · Hạ Long", mood: "Vịnh biển", category: "bac-trung", src: "/art-library/mien-bac-trung/quang-ninh.png", x: 75, y: 76, size: 36, caption: "VỊNH XANH, MÃ LÀNH" },
+  { id: "ninh-binh", name: "Ninh Bình · Tràng An", mood: "Non nước", category: "bac-trung", src: "/art-library/mien-bac-trung/ninh-binh.png", x: 75, y: 76, size: 36, caption: "TRÀNG AN, QUÉT NHANH" },
+  { id: "ha-giang", name: "Hà Giang · Đường đèo", mood: "Cực Bắc", category: "bac-trung", src: "/art-library/mien-bac-trung/ha-giang.png", x: 74, y: 74, size: 36, caption: "HÀ GIANG, MÃ SẴN SÀNG" },
+  { id: "lao-cai", name: "Lào Cai · Sa Pa", mood: "Ruộng núi", category: "bac-trung", src: "/art-library/mien-bac-trung/lao-cai.png", x: 74, y: 74, size: 36, caption: "SA PA, QUÉT LÀ RA" },
+  { id: "hue", name: "Huế · Kinh thành", mood: "Di sản", category: "bac-trung", src: "/art-library/mien-bac-trung/hue.png", x: 75, y: 74, size: 36, caption: "HUẾ THƯƠNG, MÃ VƯƠNG" },
+  { id: "tp-hcm", name: "TP.HCM · Chợ Bến Thành", mood: "Đô thị", category: "nam-bien", src: "/art-library/mien-nam-bien/tp-hcm.png", x: 36, y: 72, size: 36, caption: "SÀI GÒN, QUÉT GỌN" },
+  { id: "da-nang", name: "Đà Nẵng · Cầu Rồng", mood: "Sông biển", category: "nam-bien", src: "/art-library/mien-nam-bien/da-nang.png", x: 33, y: 72, size: 36, caption: "ĐÀ NẴNG, QUÉT THẲNG" },
+  { id: "hoi-an", name: "Quảng Nam · Hội An", mood: "Phố cổ", category: "nam-bien", src: "/art-library/mien-nam-bien/hoi-an.png", x: 32, y: 72, size: 36, caption: "HỘI AN, MÃ SẴN" },
+  { id: "da-lat", name: "Lâm Đồng · Đà Lạt", mood: "Cao nguyên", category: "nam-bien", src: "/art-library/mien-nam-bien/da-lat.png", x: 35, y: 75, size: 35, caption: "ĐÀ LẠT, QUÉT PHÁT" },
+  { id: "can-tho", name: "Cần Thơ · Chợ nổi", mood: "Miền sông", category: "nam-bien", src: "/art-library/mien-nam-bien/can-tho.png", x: 75, y: 68, size: 36, caption: "CẦN THƠ, MÃ ĐỢI" },
+  { id: "phu-quoc", name: "Kiên Giang · Phú Quốc", mood: "Đảo ngọc", category: "nam-bien", src: "/art-library/mien-nam-bien/phu-quoc.png", x: 75, y: 75, size: 35, caption: "ĐẢO XANH, MÃ LÀNH" },
 ];
 
 const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
@@ -70,6 +106,12 @@ const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
   { id: "giai-tri", label: "Phim & vui", icon: "▶" },
   { id: "kinh-doanh", label: "Bán & ăn", icon: "₫" },
   { id: "su-kien", label: "Dịp đặc biệt", icon: "★" },
+  { id: "nong-nghiep", label: "Nông nghiệp", icon: "♧" },
+  { id: "hang-rong", label: "Hàng rong", icon: "☕" },
+  { id: "phong-canh", label: "Phong cảnh", icon: "⌁" },
+  { id: "du-lich", label: "Du lịch", icon: "↗" },
+  { id: "bac-trung", label: "Bắc & Trung", icon: "△" },
+  { id: "nam-bien", label: "Nam & Biển", icon: "◉" },
 ];
 
 const fallbackBanks: Bank[] = [

@@ -61,6 +61,13 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /Vùng mã đã căn sẵn/);
   assert.match(page, /Math\.max\(options\.size, 30\)/);
   assert.match(page, /min="30" max="68"/);
+  assert.match(page, /Nông nghiệp/);
+  assert.match(page, /Hàng rong/);
+  assert.match(page, /Phong cảnh/);
+  assert.match(page, /Bắc & Trung/);
+  assert.match(page, /nong-nghiep\/lua-gao\.png/);
+  assert.match(page, /hang-rong\/ganh-hang\.png/);
+  assert.match(page, /mien-nam-bien\/can-tho\.png/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-v3\.png/);
