@@ -78,7 +78,9 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /hai-doi-thuong\/san-wifi\.png/);
   assert.match(page, /Xoay cả cụm/);
   assert.match(page, /rotation: -2/);
-  assert.match(page, /context\.fillText\(caption, 0, captionY\)/);
+  assert.match(page, /context\.fillText\(caption, 0, badgeSize \* 0\.39\)/);
+  assert.match(page, /const labelTop = badgeSize \* 0\.33/);
+  assert.match(page, /#DFFF45/);
   assert.match(page, /setArtRotation\(item\.rotation \?\? 0\)/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
   assert.match(layout, /lang="vi"/);

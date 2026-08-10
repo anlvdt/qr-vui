@@ -34,7 +34,7 @@ const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] =
 const artLibrary: LibraryArt[] = [
   { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", category: "hai", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ", rotation: -2 },
   { id: "capy", name: "Capy tan ca", mood: "Hài nhẹ", category: "hai", src: "/art-library/capybara-tan-ca.png", x: 76, y: 37, size: 40, caption: "QUÉT XONG RỒI NGHỈ" },
-  { id: "ech", name: "Ếch trà đá", mood: "Dễ thương", category: "hai", src: "/art-library/ech-tra-da.png", x: 81, y: 35, size: 35, caption: "TRÀ ĐÁ CÓ MÃ" },
+  { id: "ech", name: "Ếch trà đá", mood: "Dễ thương", category: "hai", src: "/art-library/ech-tra-da.png", x: 81, y: 35, size: 30, caption: "TRÀ ĐÁ CÓ MÃ" },
   { id: "cun", name: "Cún nón lá", mood: "Dễ thương", category: "hai", src: "/art-library/cun-non-la.png", x: 50, y: 73, size: 32, caption: "QUÉT NHẸ TAY NHA" },
   { id: "vit", name: "Vịt chạy đơn", mood: "Bựa vừa", category: "hai", src: "/art-library/vit-chay-don.png", x: 78, y: 57, size: 30, caption: "ĐƠN TỚI, QUÉT THÔI" },
   { id: "noi", name: "Nồi cơm chào hàng", mood: "Hài nhẹ", category: "hai", src: "/art-library/noi-com-chao-hang.png", x: 81, y: 57, size: 38, caption: "CƠM CHÍN, MÃ XONG" },
@@ -396,20 +396,17 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   if (options.image) drawImageContained(context, options.image, canvasSize);
   else drawWorkshopDoodle(context, canvasSize, accent);
 
-  const qrSize = canvasSize * Math.max(options.size, 30) / 100;
+  const badgeSize = canvasSize * Math.max(options.size, 30) / 100;
+  const qrSize = badgeSize * 0.8;
   const angle = options.rotation * Math.PI / 180;
   const caption = options.caption.trim().toUpperCase();
   const subcaption = options.subcaption.trim();
-  const captionFont = caption ? Math.min(canvasSize * 0.038, qrSize / Math.max(12, caption.length * 0.58)) : 0;
-  const subcaptionFont = subcaption ? Math.min(canvasSize * 0.023, qrSize / Math.max(18, subcaption.length * 0.52)) : 0;
-  const captionY = qrSize * 0.54 + qrSize * 0.035 + captionFont / 2;
-  const subcaptionY = captionY + captionFont * 0.7 + subcaptionFont * 1.05;
-  const localLeft = -qrSize * 0.54;
-  const localRight = qrSize * 0.54;
-  const localTop = -qrSize * 0.54;
-  const localBottom = caption
-    ? (subcaption ? subcaptionY + subcaptionFont * 0.7 : captionY + captionFont * 0.7) + qrSize * 0.025
-    : qrSize * 0.54;
+  const captionFont = caption ? Math.min(canvasSize * 0.029, badgeSize / Math.max(14, caption.length * 0.6)) : 0;
+  const subcaptionFont = subcaption ? Math.min(canvasSize * 0.014, badgeSize / Math.max(24, subcaption.length * 0.52)) : 0;
+  const localLeft = -badgeSize / 2;
+  const localRight = badgeSize / 2;
+  const localTop = -badgeSize / 2;
+  const localBottom = badgeSize / 2;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const rotatedCorners = [
@@ -425,25 +422,34 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   context.save();
   context.translate(qrX, qrY);
   context.rotate(angle);
+  context.fillStyle = "#fff";
   if (options.paper) {
     context.shadowColor = "rgba(23,34,31,.28)";
     context.shadowBlur = canvasSize * 0.018;
     context.shadowOffsetX = canvasSize * 0.012;
     context.shadowOffsetY = canvasSize * 0.016;
-    context.fillStyle = "#fff";
-    context.fillRect(localLeft, localTop, localRight - localLeft, localBottom - localTop);
-    context.shadowColor = "transparent";
   }
-  drawQR(context, payload, ink, style, -qrSize / 2, -qrSize / 2, qrSize);
+  context.fillRect(localLeft, localTop, badgeSize, badgeSize);
+  context.shadowColor = "transparent";
+  context.strokeStyle = "rgba(23,34,31,.72)";
+  context.lineWidth = Math.max(2, badgeSize * 0.012);
+  context.strokeRect(localLeft, localTop, badgeSize, badgeSize);
+  drawQR(context, payload, ink, style, -qrSize / 2, -badgeSize * 0.47, qrSize);
+  const labelTop = badgeSize * 0.33;
+  context.fillStyle = "#17221f";
+  context.fillRect(localLeft, labelTop, badgeSize, badgeSize * 0.17);
+  context.fillStyle = "#DFFF45";
+  context.fillRect(localLeft, labelTop, badgeSize, Math.max(2, badgeSize * 0.012));
   if (caption) {
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = "#17221f";
+    context.fillStyle = "#fff";
     context.font = `800 ${captionFont}px Arial, sans-serif`;
-    context.fillText(caption, 0, captionY);
+    context.fillText(caption, 0, badgeSize * 0.39);
     if (subcaption) {
+      context.fillStyle = "#DFFF45";
       context.font = `600 ${subcaptionFont}px Arial, sans-serif`;
-      context.fillText(subcaption, 0, subcaptionY);
+      context.fillText(subcaption, 0, badgeSize * 0.46);
     }
   }
   context.restore();
