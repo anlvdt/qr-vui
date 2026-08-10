@@ -31,8 +31,9 @@ test("server-renders the QRồi Xong product", async () => {
 });
 
 test("keeps QR reliability guardrails in source", async () => {
-  const [page, layout, packageJson] = await Promise.all([
+  const [page, frames, layout, packageJson] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/art-frames.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
@@ -60,9 +61,9 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /kinh-doanh\/banh-mi\.png/);
   assert.match(page, /giai-tri\/rap-chieu\.png/);
   assert.match(page, /su-kien\/dam-cuoi\.png/);
-  assert.match(page, /Vùng QR đã được căn sẵn/);
-  assert.match(page, /Math\.max\(options\.size, 30\)/);
-  assert.match(page, /min="30" max="68"/);
+  assert.match(page, /Khung QR riêng cho từng mẫu/);
+  assert.match(page, /Math\.max\(options\.width, 18\)/);
+  assert.match(page, /Math\.max\(options\.height, 18\)/);
   assert.match(page, /Nông nghiệp/);
   assert.match(page, /Hàng rong/);
   assert.match(page, /Phong cảnh/);
@@ -80,10 +81,15 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /hai-doi-thuong\/san-wifi\.png/);
   assert.match(page, /Xoay cả cụm/);
   assert.match(page, /rotation: -2/);
-  assert.match(page, /context\.fillText\(caption, 0, badgeSize \* 0\.39\)/);
-  assert.match(page, /const labelTop = badgeSize \* 0\.33/);
+  assert.match(page, /context\.transform\(1, skewY, skewX, 1, 0, 0\)/);
+  assert.match(page, /const labelTop = localBottom - labelHeight/);
+  assert.match(page, /Rộng khung/);
+  assert.match(page, /Nghiêng ngang/);
   assert.match(page, /#DFFF45/);
-  assert.match(page, /setArtRotation\(item\.rotation \?\? 0\)/);
+  assert.match(page, /setArtRotation\(frame\.rotation\)/);
+  assert.match(frames, /export const artFrames/);
+  assert.match(frames, /"thoi-trang"/);
+  assert.match(frames, /"ninh-binh"/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-v3\.png/);

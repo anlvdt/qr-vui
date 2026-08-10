@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
+import { artFrames } from "./art-frames";
 
 type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
@@ -385,8 +386,11 @@ type ArtboardOptions = {
   image: HTMLImageElement | null;
   x: number;
   y: number;
-  size: number;
+  width: number;
+  height: number;
   rotation: number;
+  skewX: number;
+  skewY: number;
   paper: boolean;
   caption: string;
   subcaption: string;
@@ -396,22 +400,28 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   if (options.image) drawImageContained(context, options.image, canvasSize);
   else drawWorkshopDoodle(context, canvasSize, accent);
 
-  const badgeSize = canvasSize * Math.max(options.size, 30) / 100;
-  const qrSize = badgeSize * 0.8;
+  const badgeWidth = canvasSize * Math.max(options.width, 18) / 100;
+  const badgeHeight = canvasSize * Math.max(options.height, 18) / 100;
   const angle = options.rotation * Math.PI / 180;
+  const skewX = Math.tan(options.skewX * Math.PI / 180);
+  const skewY = Math.tan(options.skewY * Math.PI / 180);
   const caption = options.caption.trim().toUpperCase();
   const subcaption = options.subcaption.trim();
-  const captionFont = caption ? Math.min(canvasSize * 0.029, badgeSize / Math.max(14, caption.length * 0.6)) : 0;
-  const subcaptionFont = subcaption ? Math.min(canvasSize * 0.014, badgeSize / Math.max(24, subcaption.length * 0.52)) : 0;
-  const localLeft = -badgeSize / 2;
-  const localRight = badgeSize / 2;
-  const localTop = -badgeSize / 2;
-  const localBottom = badgeSize / 2;
+  const captionFont = caption ? Math.min(canvasSize * 0.026, badgeWidth / Math.max(14, caption.length * 0.6)) : 0;
+  const subcaptionFont = subcaption ? Math.min(canvasSize * 0.012, badgeWidth / Math.max(24, subcaption.length * 0.52)) : 0;
+  const localLeft = -badgeWidth / 2;
+  const localRight = badgeWidth / 2;
+  const localTop = -badgeHeight / 2;
+  const localBottom = badgeHeight / 2;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const rotatedCorners = [
     [localLeft, localTop], [localRight, localTop], [localRight, localBottom], [localLeft, localBottom],
-  ].map(([x, y]) => ({ x: x * cos - y * sin, y: x * sin + y * cos }));
+  ].map(([x, y]) => {
+    const skewedX = x + skewX * y;
+    const skewedY = skewY * x + y;
+    return { x: skewedX * cos - skewedY * sin, y: skewedX * sin + skewedY * cos };
+  });
   const minX = Math.min(...rotatedCorners.map((point) => point.x));
   const maxX = Math.max(...rotatedCorners.map((point) => point.x));
   const minY = Math.min(...rotatedCorners.map((point) => point.y));
@@ -422,34 +432,39 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   context.save();
   context.translate(qrX, qrY);
   context.rotate(angle);
+  context.transform(1, skewY, skewX, 1, 0, 0);
   context.fillStyle = "#fff";
   if (options.paper) {
     context.shadowColor = "rgba(23,34,31,.28)";
-    context.shadowBlur = canvasSize * 0.018;
-    context.shadowOffsetX = canvasSize * 0.012;
-    context.shadowOffsetY = canvasSize * 0.016;
+    context.shadowBlur = canvasSize * 0.014;
+    context.shadowOffsetX = canvasSize * 0.009;
+    context.shadowOffsetY = canvasSize * 0.011;
   }
-  context.fillRect(localLeft, localTop, badgeSize, badgeSize);
+  context.fillRect(localLeft, localTop, badgeWidth, badgeHeight);
   context.shadowColor = "transparent";
   context.strokeStyle = "rgba(23,34,31,.72)";
-  context.lineWidth = Math.max(2, badgeSize * 0.012);
-  context.strokeRect(localLeft, localTop, badgeSize, badgeSize);
-  drawQR(context, payload, ink, style, -qrSize / 2, -badgeSize * 0.47, qrSize);
-  const labelTop = badgeSize * 0.33;
+  context.lineWidth = Math.max(2, Math.min(badgeWidth, badgeHeight) * 0.012);
+  context.strokeRect(localLeft, localTop, badgeWidth, badgeHeight);
+  const labelHeight = caption ? Math.min(badgeHeight * 0.2, canvasSize * 0.09) : 0;
+  const labelTop = localBottom - labelHeight;
+  const qrAreaHeight = labelTop - localTop;
+  const qrSize = Math.min(badgeWidth * 0.9, qrAreaHeight * 0.94);
+  const qrTop = localTop + (qrAreaHeight - qrSize) / 2;
+  drawQR(context, payload, ink, style, -qrSize / 2, qrTop, qrSize);
   context.fillStyle = "#17221f";
-  context.fillRect(localLeft, labelTop, badgeSize, badgeSize * 0.17);
+  context.fillRect(localLeft, labelTop, badgeWidth, labelHeight);
   context.fillStyle = "#DFFF45";
-  context.fillRect(localLeft, labelTop, badgeSize, Math.max(2, badgeSize * 0.012));
+  context.fillRect(localLeft, labelTop, badgeWidth, Math.max(2, badgeHeight * 0.012));
   if (caption) {
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillStyle = "#fff";
     context.font = `800 ${captionFont}px Arial, sans-serif`;
-    context.fillText(caption, 0, badgeSize * 0.39);
+    context.fillText(caption, 0, labelTop + labelHeight * (subcaption ? 0.4 : 0.54));
     if (subcaption) {
       context.fillStyle = "#DFFF45";
       context.font = `600 ${subcaptionFont}px Arial, sans-serif`;
-      context.fillText(subcaption, 0, badgeSize * 0.46);
+      context.fillText(subcaption, 0, labelTop + labelHeight * 0.74);
     }
   }
   context.restore();
@@ -499,8 +514,11 @@ export default function Home() {
   const [artCategory, setArtCategory] = useState<ArtCategory>("hai");
   const [artX, setArtX] = useState(65);
   const [artY, setArtY] = useState(38);
-  const [artSize, setArtSize] = useState(45);
+  const [artWidth, setArtWidth] = useState(45);
+  const [artHeight, setArtHeight] = useState(45);
   const [artRotation, setArtRotation] = useState(0);
+  const [artSkewX, setArtSkewX] = useState(0);
+  const [artSkewY, setArtSkewY] = useState(0);
   const [artPaper, setArtPaper] = useState(true);
   const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
   const [artSubcaption, setArtSubcaption] = useState("Mã riêng của bạn · Nét riêng của bạn");
@@ -509,13 +527,17 @@ export default function Home() {
   const chooseLibraryArt = (item: LibraryArt) => {
     const image = new Image();
     image.onload = () => {
+      const frame = artFrames[item.id] ?? { x: item.x, y: item.y, width: item.size, height: item.size, rotation: item.rotation ?? 0, skewX: 0, skewY: 0 };
       setArtImage(image);
       setSelectedArt(item.id);
       setArtCategory(item.category);
-      setArtX(item.x);
-      setArtY(item.y);
-      setArtSize(item.size);
-      setArtRotation(item.rotation ?? 0);
+      setArtX(frame.x);
+      setArtY(frame.y);
+      setArtWidth(frame.width);
+      setArtHeight(frame.height);
+      setArtRotation(frame.rotation);
+      setArtSkewX(frame.skewX ?? 0);
+      setArtSkewY(frame.skewY ?? 0);
       setArtPaper(false);
       setArtCaption(item.caption);
       setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
@@ -580,8 +602,11 @@ export default function Home() {
     image: artImage,
     x: artX,
     y: artY,
-    size: artSize,
+    width: artWidth,
+    height: artHeight,
     rotation: artRotation,
+    skewX: artSkewX,
+    skewY: artSkewY,
     paper: artPaper,
     caption: artCaption,
     subcaption: artSubcaption,
@@ -597,7 +622,7 @@ export default function Home() {
     } catch {
       setNotice("Nội dung quá dài. Hãy rút gọn để mã dễ quét hơn.");
     }
-  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artSize, artRotation, artPaper, artCaption, artSubcaption]);
+  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artPaper, artCaption, artSubcaption]);
 
   useEffect(() => {
     setNotice(
@@ -631,6 +656,13 @@ export default function Home() {
         setArtImage(image);
         setSelectedArt("custom");
         setLayoutMode("art");
+        setArtX(50);
+        setArtY(50);
+        setArtWidth(45);
+        setArtHeight(52);
+        setArtRotation(0);
+        setArtSkewX(0);
+        setArtSkewY(0);
         setArtPaper(true);
         setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí QR.");
       };
@@ -789,7 +821,7 @@ export default function Home() {
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
-            <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? artSize >= 36 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
+            <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? Math.min(artWidth, artHeight) >= 32 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
           </div>
           {layoutMode === "art" && <div className="art-controls">
             <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn chủ đề và mẫu phù hợp với mục đích sử dụng.</span></div><em>{artLibrary.length} mẫu</em></div>
@@ -801,7 +833,7 @@ export default function Home() {
                 <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
-            <p className="safe-note"><b>◎ Vùng QR đã được căn sẵn:</b> nền sáng, không che chủ thể và có đủ khoảng trắng để quét ổn định.</p>
+            <p className="safe-note"><b>◎ Khung QR riêng cho từng mẫu:</b> tự khớp vị trí, chiều rộng, chiều cao và góc xoay của ô có sẵn trên tranh.</p>
             <div className="custom-divider"><span>HOẶC SỬ DỤNG ẢNH CỦA BẠN</span></div>
             <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Tải ảnh lên<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
             <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
@@ -813,10 +845,13 @@ export default function Home() {
               </div>
             </details>
             <div className="slider-grid">
-              <label>Ngang <output>{artX}%</output><input type="range" min="15" max="85" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
-              <label>Dọc <output>{artY}%</output><input type="range" min="15" max="82" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
-              <label>Kích thước <output>{artSize}%</output><input type="range" min="30" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
-              <label>Xoay cả cụm <output>{artRotation}°</output><input type="range" min="-15" max="15" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
+              <label>Vị trí ngang <output>{artX}%</output><input type="range" min="8" max="92" step="0.5" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
+              <label>Vị trí dọc <output>{artY}%</output><input type="range" min="8" max="92" step="0.5" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
+              <label>Rộng khung <output>{artWidth}%</output><input type="range" min="16" max="72" step="0.5" value={artWidth} onChange={(e) => setArtWidth(Number(e.target.value))} /></label>
+              <label>Cao khung <output>{artHeight}%</output><input type="range" min="16" max="78" step="0.5" value={artHeight} onChange={(e) => setArtHeight(Number(e.target.value))} /></label>
+              <label>Xoay cả cụm <output>{artRotation}°</output><input type="range" min="-18" max="18" step="0.5" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
+              <label>Nghiêng ngang <output>{artSkewX}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewX} onChange={(e) => setArtSkewX(Number(e.target.value))} /></label>
+              <label>Nghiêng dọc <output>{artSkewY}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewY} onChange={(e) => setArtSkewY(Number(e.target.value))} /></label>
             </div>
             <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Thêm nền trắng và bóng đổ cho cụm QR</label>
             <div className="caption-grid"><label>Tiêu đề<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Dòng mô tả<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
