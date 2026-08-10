@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
-import { artFrames } from "./art-frames";
+import { artFrames, type ArtFrame } from "./art-frames";
 
 type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
@@ -10,6 +10,12 @@ type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
 type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string; rotation?: number };
+
+const customArtFrame: ArtFrame = {
+  x: 50, y: 50, width: 45, height: 52, rotation: 0, skewX: 0, skewY: 0,
+  qr: { x: 50, y: 38, size: 74 },
+  copy: { x: 50, y: 83, width: 88, titleScale: 5.3, subtitleScale: 2.25, showSubtitle: false },
+};
 
 const palettes = [
   { name: "Đen", value: "#171717", accent: "#FFD338" },
@@ -241,6 +247,11 @@ function renderPreview(canvas: HTMLCanvasElement, payload: string, color: string
   drawQR(context, payload, color, style, 0, 0, size);
 }
 
+function canvasFontFamily() {
+  if (typeof window === "undefined") return '"Be Vietnam Pro", Arial, sans-serif';
+  return window.getComputedStyle(document.body).fontFamily || '"Be Vietnam Pro", Arial, sans-serif';
+}
+
 function downloadStyledPNG(payload: string, color: string, accent: string, style: QRStyle, caption: string, filename: string) {
   const canvas = document.createElement("canvas");
   canvas.width = 1400;
@@ -255,7 +266,7 @@ function downloadStyledPNG(payload: string, color: string, accent: string, style
   context.fillStyle = "#171717";
   context.fillRect(110, 1370, 1180, 104);
   context.fillStyle = "#FFFFFF";
-  context.font = "700 38px Arial, sans-serif";
+  context.font = `700 38px ${canvasFontFamily()}`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText(caption, 700, 1422);
@@ -284,7 +295,7 @@ function styledSVG(payload: string, color: string, accent: string, style: QRStyl
     }
   }
   const safeCaption = caption.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  pieces.push(`<rect x="110" y="1370" width="1180" height="104" fill="#171717"/><text x="700" y="1434" fill="#fff" font-family="Arial,sans-serif" font-size="38" font-weight="700" text-anchor="middle">${safeCaption}</text>`);
+  pieces.push(`<rect x="110" y="1370" width="1180" height="104" fill="#171717"/><text x="700" y="1434" fill="#fff" font-family="Be Vietnam Pro,Arial,sans-serif" font-size="38" font-weight="700" text-anchor="middle">${safeCaption}</text>`);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1540" viewBox="0 0 1400 1540">${pieces.join("")}</svg>`;
 }
 
@@ -326,9 +337,9 @@ function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, acc
   context.fillRect(size * 0.2, size * 0.26, size * 0.6, size * 0.42);
   context.fillStyle = "#17221f";
   context.textAlign = "center";
-  context.font = `800 ${size * 0.038}px Arial, sans-serif`;
+  context.font = `800 ${size * 0.038}px ${canvasFontFamily()}`;
   context.fillText("CHỌN TRANH HOẶC TẢI ẢNH", size / 2, size * 0.46);
-  context.font = `600 ${size * 0.022}px Arial, sans-serif`;
+  context.font = `600 ${size * 0.022}px ${canvasFontFamily()}`;
   context.fillText("Mã sẽ tự tìm một chỗ đẹp", size / 2, size * 0.52);
 }
 
@@ -429,15 +440,16 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   }
   const shortestSide = Math.min(badgeWidth, badgeHeight);
   const qrSize = shortestSide * Math.max(42, Math.min(84, options.qrScale)) / 100;
-  const qrCenterX = localLeft + badgeWidth * options.qrX / 100;
-  const qrCenterY = localTop + badgeHeight * options.qrY / 100;
+  const clampLocal = (raw: number, min: number, max: number) => Math.max(min, Math.min(max, raw));
+  const qrCenterX = clampLocal(localLeft + badgeWidth * options.qrX / 100, localLeft + qrSize / 2, localRight - qrSize / 2);
+  const qrCenterY = clampLocal(localTop + badgeHeight * options.qrY / 100, localTop + qrSize / 2, localBottom - qrSize / 2);
   drawQR(context, payload, ink, style, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize, embeddedSurface);
-  const copyCenterX = localLeft + badgeWidth * options.copyX / 100;
-  const copyCenterY = localTop + badgeHeight * options.copyY / 100;
-  const copyWidth = badgeWidth * options.copyWidth / 100;
+  const copyWidth = Math.min(badgeWidth, badgeWidth * options.copyWidth / 100);
+  const copyCenterX = clampLocal(localLeft + badgeWidth * options.copyX / 100, localLeft + copyWidth / 2, localRight - copyWidth / 2);
   const captionFont = caption ? Math.min(badgeHeight * options.titleScale / 100, copyWidth / Math.max(8, caption.length * 0.58)) : 0;
   const subcaptionFont = subcaption ? Math.min(badgeHeight * options.subtitleScale / 100, copyWidth / Math.max(18, subcaption.length * 0.52)) : 0;
   const labelHeight = caption ? Math.max(captionFont * (subcaption ? 3.05 : 1.8), badgeHeight * 0.12) : 0;
+  const copyCenterY = clampLocal(localTop + badgeHeight * options.copyY / 100, localTop + labelHeight / 2, localBottom - labelHeight / 2);
   const labelTop = copyCenterY - labelHeight / 2;
   if (options.paper) {
     context.fillStyle = "#17221f";
@@ -449,11 +461,11 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillStyle = options.paper ? "#fff" : "#17221f";
-    context.font = `800 ${captionFont}px Arial, sans-serif`;
+    context.font = `800 ${captionFont}px ${canvasFontFamily()}`;
     context.fillText(caption, copyCenterX, copyCenterY - (subcaption ? labelHeight * 0.14 : 0), copyWidth);
     if (subcaption) {
       context.fillStyle = options.paper ? "#DFFF45" : "rgba(23,34,31,.72)";
-      context.font = `600 ${subcaptionFont}px Arial, sans-serif`;
+      context.font = `600 ${subcaptionFont}px ${canvasFontFamily()}`;
       context.fillText(subcaption, copyCenterX, copyCenterY + labelHeight * 0.24, copyWidth);
     }
   }
@@ -511,58 +523,70 @@ export default function Home() {
   const [artSkewY, setArtSkewY] = useState(0);
   const [artQrX, setArtQrX] = useState(50);
   const [artQrY, setArtQrY] = useState(39);
-  const [artQrScale, setArtQrScale] = useState(70);
+  const [artQrScale, setArtQrScale] = useState(74);
   const [artCopyX, setArtCopyX] = useState(50);
   const [artCopyY, setArtCopyY] = useState(83);
   const [artCopyWidth, setArtCopyWidth] = useState(88);
   const [artTitleScale, setArtTitleScale] = useState(5.3);
   const [artSubtitleScale, setArtSubtitleScale] = useState(2.25);
-  const [artShowSubtitle, setArtShowSubtitle] = useState(true);
+  const [artShowSubtitle, setArtShowSubtitle] = useState(false);
   const [artPaper, setArtPaper] = useState(true);
   const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
-  const [artSubcaption, setArtSubcaption] = useState("Mã riêng của bạn · Nét riêng của bạn");
+  const [artSubcaption, setArtSubcaption] = useState("");
   const [notice, setNotice] = useState("Mã QR đã sẵn sàng để tải xuống");
 
-  const chooseLibraryArt = (item: LibraryArt) => {
+  const applyArtFrame = useCallback((frame: ArtFrame) => {
+    setArtX(frame.x);
+    setArtY(frame.y);
+    setArtWidth(frame.width);
+    setArtHeight(frame.height);
+    setArtRotation(frame.rotation);
+    setArtSkewX(frame.skewX ?? 0);
+    setArtSkewY(frame.skewY ?? 0);
+    setArtQrX(frame.qr.x);
+    setArtQrY(frame.qr.y);
+    setArtQrScale(frame.qr.size);
+    setArtCopyX(frame.copy.x);
+    setArtCopyY(frame.copy.y);
+    setArtCopyWidth(frame.copy.width);
+    setArtTitleScale(frame.copy.titleScale);
+    setArtSubtitleScale(frame.copy.subtitleScale);
+    setArtShowSubtitle(frame.copy.showSubtitle);
+  }, []);
+
+  const chooseLibraryArt = useCallback((item: LibraryArt) => {
     const image = new Image();
     image.onload = () => {
       const frame = artFrames[item.id] ?? {
         x: item.x, y: item.y, width: item.size, height: item.size, rotation: item.rotation ?? 0, skewX: 0, skewY: 0,
-        qr: { x: 50, y: 39, size: 70 },
-        copy: { x: 50, y: 83, width: 88, titleScale: 5.3, subtitleScale: 2.25, showSubtitle: true },
+        qr: { x: 50, y: 39, size: 74 },
+        copy: { x: 50, y: 83, width: 88, titleScale: 5.3, subtitleScale: 2.25, showSubtitle: false },
       };
       setArtImage(image);
       setSelectedArt(item.id);
       setArtCategory(item.category);
-      setArtX(frame.x);
-      setArtY(frame.y);
-      setArtWidth(frame.width);
-      setArtHeight(frame.height);
-      setArtRotation(frame.rotation);
-      setArtSkewX(frame.skewX ?? 0);
-      setArtSkewY(frame.skewY ?? 0);
-      setArtQrX(frame.qr.x);
-      setArtQrY(frame.qr.y);
-      setArtQrScale(frame.qr.size);
-      setArtCopyX(frame.copy.x);
-      setArtCopyY(frame.copy.y);
-      setArtCopyWidth(frame.copy.width);
-      setArtTitleScale(frame.copy.titleScale);
-      setArtSubtitleScale(frame.copy.subtitleScale);
-      setArtShowSubtitle(frame.copy.showSubtitle);
+      applyArtFrame(frame);
       setArtPaper(false);
       setArtCaption(item.caption);
-      setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
+      setArtSubcaption("");
       setLayoutMode("art");
       setNotice(`Đã chọn ${item.name}. Mã QR đã được căn vào vùng an toàn.`);
     };
     image.onerror = () => setNotice(`Không thể tải mẫu ${item.name}. Hãy chọn mẫu khác.`);
     image.src = item.src;
+  }, [applyArtFrame]);
+
+  const resetArtLayout = () => {
+    const frame = selectedArt === "custom" ? customArtFrame : artFrames[selectedArt];
+    if (!frame) return;
+    applyArtFrame(frame);
+    setArtPaper(selectedArt === "custom");
+    setNotice(selectedArt === "custom" ? "Đã đặt lại vùng QR cho ảnh của bạn." : "Đã khôi phục bố cục chuẩn của mẫu.");
   };
 
   useEffect(() => {
     chooseLibraryArt(artLibrary[0]);
-  }, []);
+  }, [chooseLibraryArt]);
 
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
@@ -680,23 +704,10 @@ export default function Home() {
         setArtImage(image);
         setSelectedArt("custom");
         setLayoutMode("art");
-        setArtX(50);
-        setArtY(50);
-        setArtWidth(45);
-        setArtHeight(52);
-        setArtRotation(0);
-        setArtSkewX(0);
-        setArtSkewY(0);
-        setArtQrX(50);
-        setArtQrY(38);
-        setArtQrScale(70);
-        setArtCopyX(50);
-        setArtCopyY(83);
-        setArtCopyWidth(88);
-        setArtTitleScale(5.3);
-        setArtSubtitleScale(2.25);
-        setArtShowSubtitle(true);
+        applyArtFrame(customArtFrame);
         setArtPaper(true);
+        setArtCaption("QUÉT ĐỂ XEM");
+        setArtSubcaption("");
         setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí mã QR.");
       };
       image.onerror = () => setNotice("Không thể đọc ảnh này. Hãy thử một ảnh JPG, PNG hoặc WEBP khác.");
@@ -881,6 +892,7 @@ export default function Home() {
               </div>
             </details>
             <div className="caption-grid"><label>Tiêu đề<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Dòng mô tả<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
+            <button type="button" className="text-button reset-layout" onClick={resetArtLayout}>Khôi phục bố cục chuẩn của {selectedArt === "custom" ? "ảnh" : "mẫu"} ↺</button>
             <details className="layout-editor" key={selectedArt}>
               <summary><span>Tinh chỉnh bố cục</span><small>Vị trí, kích thước và độ nghiêng</small></summary>
               <div className="control-title"><b>Khung đặt mã</b><span>Khớp với mặt bảng trong tranh</span></div>

@@ -136,7 +136,7 @@ function buildLayout(id: string, frame: ArtFrameGeometry): ArtFrame {
   const landscape = ratio > 1.22;
   const base: ArtFrame = {
     ...frame,
-    qr: { x: landscape ? 33 : 50, y: landscape ? 50 : portrait ? 36 : 39, size: portrait ? 76 : landscape ? 80 : 70 },
+    qr: { x: landscape ? 33 : 50, y: landscape ? 50 : portrait ? 36 : 39, size: portrait ? 80 : landscape ? 82 : 74 },
     copy: {
       x: landscape ? 73 : 50,
       y: landscape ? 49 : portrait ? 81 : 83,

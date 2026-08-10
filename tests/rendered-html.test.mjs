@@ -88,6 +88,9 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /const embeddedSurface = options\.paper \? "#FFFFFF" : sampleLightSurface/);
   assert.match(page, /if \(options\.paper\)/);
   assert.match(page, /const labelTop = copyCenterY - labelHeight/);
+  assert.match(page, /const qrCenterX = clampLocal/);
+  assert.match(page, /canvasFontFamily\(\)/);
+  assert.match(page, /Khôi phục bố cục chuẩn/);
   assert.match(page, /Kích thước QR/);
   assert.match(page, /Chữ theo chiều dọc/);
   assert.match(page, /Chiều rộng/);
@@ -97,7 +100,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(frames, /export const artFrames/);
   assert.match(frames, /function buildLayout/);
   assert.match(frames, /x: landscape \? 33 : 50/);
-  assert.match(frames, /size: portrait \? 76 : landscape \? 80 : 70/);
+  assert.match(frames, /size: portrait \? 80 : landscape \? 82 : 74/);
   assert.match(frames, /qr: \{ x:/);
   assert.match(frames, /copy: \{ x:/);
   assert.match(frames, /"thoi-trang"/);
