@@ -9,8 +9,8 @@ type QRStyle = "square" | "round" | "dots";
 
 const palettes = [
   { name: "Đen đá", value: "#171717", accent: "#FFD338" },
-  { name: "Ổi hồng", value: "#9F1239", accent: "#FDA4AF" },
-  { name: "Rong biển", value: "#075E54", accent: "#6EE7B7" },
+  { name: "Hồng bồng", value: "#9F1239", accent: "#FDA4AF" },
+  { name: "Xanh lành", value: "#075E54", accent: "#6EE7B7" },
   { name: "Tím lịm", value: "#4C1D95", accent: "#C4B5FD" },
 ];
 
@@ -23,9 +23,9 @@ const modes: { id: Mode; label: string; icon: string }[] = [
 ];
 
 const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] = [
-  { id: "square", name: "Vuông mà vương", note: "Rõ ràng, cứng cáp", caption: "QUÉT PHÁT, ĂN NGAY" },
-  { id: "round", name: "Bo tròn lon ton", note: "Mềm mắt, vẫn chắc", caption: "ĐƯA MÁY LẠI, QUÉT MỘT CÁI" },
-  { id: "dots", name: "Chấm bi lí nhí", note: "Nhí nhảnh, dễ nhìn", caption: "CHẤM CHẤM, QUÉT CHẮC" },
+  { id: "square", name: "Vuông vức, quét cực", note: "Thẳng hàng, rõ ràng", caption: "VUÔNG VỨC, QUÉT CỰC" },
+  { id: "round", name: "Bo tròn, quét giòn", note: "Mềm mắt, bắt nét", caption: "BO TRÒN, QUÉT GIÒN" },
+  { id: "dots", name: "Chấm bi, quét đi", note: "Nhỏ xinh, quét nhanh", caption: "CHẤM BI, QUÉT ĐI" },
 ];
 
 const fallbackBanks: Bank[] = [
@@ -185,7 +185,7 @@ export default function Home() {
   const [bankNote, setBankNote] = useState("");
   const [palette, setPalette] = useState(palettes[0]);
   const [qrStyle, setQrStyle] = useState<QRStyle>("round");
-  const [notice, setNotice] = useState("Mã ngon, quét giòn");
+  const [notice, setNotice] = useState("Mã lên nét, quét là kết");
 
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
@@ -237,19 +237,19 @@ export default function Home() {
     try {
       renderPreview(canvasRef.current, payload, palette.value, qrStyle);
     } catch {
-      setNotice("Chữ dài như sớ, bớt một mớ nhé");
+      setNotice("Chữ dài lắm lời, bớt đi bạn ơi");
     }
   }, [payload, palette, qrStyle, inputIsValid]);
 
   useEffect(() => {
     setNotice(
       !payload
-        ? "Thiếu nguyên liệu, bếp chưa lên lửa"
+        ? "Chưa có đầu vào, mã biết làm sao"
         : !inputIsValid
-          ? "Dữ liệu hơi lạ, xem lại nha"
+          ? "Chưa đúng chưa êm, xem lại rồi thêm"
           : payload.length > 500
-            ? "Chữ nhiều như sớ — quét xa hơi khó"
-            : "Mã ngon, quét giòn",
+            ? "Chữ dài lê thê, quét xa dễ chê"
+            : "Mã lên nét, quét là kết",
     );
   }, [payload, inputIsValid]);
 
@@ -268,7 +268,7 @@ export default function Home() {
       link.click();
       URL.revokeObjectURL(url);
     }
-    setNotice(`${format.toUpperCase()} về máy — đẹp trai, hết sẩy ✨`);
+    setNotice(`${format.toUpperCase()} về máy gọn ghẽ — đem khoe lẹ làng ✨`);
   };
 
   const switchMode = (nextMode: Mode) => {
@@ -285,19 +285,19 @@ export default function Home() {
           <span>QRồi Xong!</span>
         </a>
         <div className="nav-links"><a href="#about">Giới thiệu</a><a href="#tech">Đồ nghề</a></div>
-        <div className="nav-note"><span /> Mã tĩnh · Kín mít · Không gài phí</div>
+        <div className="nav-note"><span /> Mã tĩnh · Kín thinh · Không gài phí</div>
       </nav>
 
       <section className="hero wrap" id="top">
         <div className="hero-copy">
-          <div className="eyebrow">Máy làm mã bớt nghiêm số 1 vũ trụ*</div>
-          <h1>Mã chuẩn chỉnh.<br /><em>Tính tình hơi nhây.</em></h1>
-          <p>Quét phát ăn ngay — chẳng cần tài khoản, chẳng lo hết hạn, chẳng sợ nửa đường đòi tiền.</p>
-          <small>*Vũ trụ tính từ bàn làm việc của tụi mình.</small>
+          <div className="eyebrow">LÀM MÃ ĐÚNG CHUẨN · NÓI CHUYỆN CÓ DUYÊN</div>
+          <h1>Mã quét thật nét.<br /><em>Tính nết thật nhây.</em></h1>
+          <p>Không cần ghi danh. Không lo hết hạn. Không sợ nửa đường chìa tay tính toán.</p>
+          <small>*Danh hiệu tự phong, mong bạn đừng trông.</small>
         </div>
         <div className="doodle" aria-hidden="true">
           <span className="arrow">↳</span>
-          <span className="doodle-copy">Đưa máy lên.<br />Quét một nhịp. Xong.</span>
+          <span className="doodle-copy">Giơ máy lên.<br />Quét một phen. Xong liền.</span>
         </div>
       </section>
 
@@ -305,7 +305,7 @@ export default function Home() {
         <div className="panel form-panel">
           <div className="panel-heading">
             <span className="step">01</span>
-            <div><h2>Bạn muốn nhét gì vào mã?</h2><p>Cứ điền đi, tụi mình không ngó nghiêng.</p></div>
+            <div><h2>Mã này chứa gì?</h2><p>Bạn cứ điền đi, tụi mình chẳng nhìn gì.</p></div>
           </div>
 
           <div className="mode-tabs" role="tablist" aria-label="Loại nội dung QR">
@@ -321,7 +321,7 @@ export default function Home() {
               <>
                 <label>Tên mạng Wi-Fi<input value={wifiName} onChange={(e) => setWifiName(e.target.value)} placeholder="Ví dụ: NhaNayCoWifi" /></label>
                 <div className="two-fields">
-                  <label>Mật khẩu<input type="password" value={wifiPassword} onChange={(e) => setWifiPassword(e.target.value)} placeholder="Không ai nhìn đâu" /></label>
+                  <label>Mật khẩu<input type="password" value={wifiPassword} onChange={(e) => setWifiPassword(e.target.value)} placeholder="Điền cho kín, chẳng ai nhìn" /></label>
                   <label>Bảo mật<select value={wifiSecurity} onChange={(e) => setWifiSecurity(e.target.value)}><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Không mật khẩu</option></select></label>
                 </div>
               </>
@@ -341,17 +341,17 @@ export default function Home() {
                     {bankAmount && <small className="amount-readout">{Number(bankAmount).toLocaleString("vi-VN")} ₫</small>}
                   </label>
                   <label>Nội dung chuyển khoản
-                    <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CAFE" />
+                    <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CA PHE" />
                   </label>
                 </div>
-                <div className="bank-warning"><b>Nhắc nhẹ mà quan trọng:</b> Mã chỉ điền sẵn lệnh chuyển. Hãy kiểm tra tên người nhận, số tiền và lời nhắn trong ứng dụng ngân hàng trước khi xác nhận.</div>
+                <div className="bank-warning"><b>Nhắc cho kỹ, khỏi phí tiền:</b> Mã chỉ điền hộ, không chuyển tiền hộ. Tên đúng, tiền đủ, lời nhắn rõ rồi mới xác nhận.</div>
               </>
             ) : (
               <>
                 <label>
                   {mode === "link" ? "Dán đường dẫn vào đây" : mode === "email" ? "Địa chỉ thư điện tử" : "Lời nhắn kín (hoặc chẳng kín)"}
                   {mode === "text" ? (
-                    <textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Ví dụ: Nhớ mua rau. Thiệt đó." rows={4} />
+                    <textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Ví dụ: Nhớ mua rau. Quên là đau." rows={4} />
                   ) : (
                     <input type={mode === "email" ? "email" : "text"} value={value} onChange={(e) => setValue(e.target.value)} placeholder={mode === "email" ? "hello@congty.vn" : "tenmien.vn/mon-ngon"} />
                   )}
@@ -359,11 +359,11 @@ export default function Home() {
                 {mode === "email" && <label>Tiêu đề (không bắt buộc)<input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Ví dụ: Em gửi file rồi ạ" /></label>}
               </>
             )}
-            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Tài khoản và số tiền chỉ được ghép mã ngay trên máy bạn." : "Dữ liệu nằm yên trên máy. Máy chủ không hỏi, chẳng ai dòm ngó."}</div>
+            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Tài khoản với số tiền chỉ ghép liền trên máy." : "Dữ liệu nằm yên, máy chủ làm thinh."}</div>
           </div>
 
           <div className="palette-section">
-            <div className="label-row"><span>Chọn một sắc chất</span><span>Độ tương phản đã canh sẵn ✓</span></div>
+            <div className="label-row"><span>Chọn màu cho ngầu</span><span>Đậm nhạt đã chuẩn, quét khỏi lăn tăn ✓</span></div>
             <div className="palettes">
               {palettes.map((item) => (
                 <button key={item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
@@ -374,7 +374,7 @@ export default function Home() {
           </div>
 
           <div className="shape-section">
-            <div className="label-row"><span>Chọn một dáng nhây</span><span>Mắt định vị luôn vuông vức ✓</span></div>
+            <div className="label-row"><span>Chọn dáng cho đáng</span><span>Mắt mã vuông, đường quét thông ✓</span></div>
             <div className="shape-options">
               {qrStyles.map((item) => (
                 <button key={item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
@@ -387,55 +387,55 @@ export default function Home() {
         </div>
 
         <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
-          <div className="tape">MÃ NÓNG VỪA RA LÒ</div>
+          <div className="tape">MÃ VỪA CHÍN TỚI</div>
           <div className={`qr-costume ${qrStyle}`}>
           <div className="qr-shell">
-            {inputIsValid ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>QR đang ngồi chờ<br />nội dung của bạn</p></div>}
+            {inputIsValid ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Mã đang ngồi chờ<br />bạn cho chút chữ</p></div>}
           </div>
           <div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div>
           </div>
           <div className={`health ${inputIsValid ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
-            <span>Sửa lỗi H · 30%</span><span>Viền an toàn · 4 ô</span><span>{mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Bền dai"}</span>
+            <span>Sửa lỗi H · Chịu va</span><span>Viền 4 ô · Dễ dò</span><span>{mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Kín thinh"}</span>
           </div>
           <div className="download-row">
-            <button className="primary" disabled={!inputIsValid} onClick={() => download("png")}>Tải PNG <span>↓</span></button>
-            <button className="secondary" disabled={!inputIsValid} onClick={() => download("svg")}>SVG nét, in phết</button>
+            <button className="primary" disabled={!inputIsValid} onClick={() => download("png")}>Tải PNG, đem khoe <span>↓</span></button>
+            <button className="secondary" disabled={!inputIsValid} onClick={() => download("svg")}>SVG, in mê</button>
           </div>
-          <p className="scan-tip">Mẹo nhỏ: quét thử trên màn hình trước khi in cả nghìn tờ. Chắc tay, khỏi ngẩn ngơ.</p>
+          <p className="scan-tip">Quét thử trước khi in. Chắc ăn, khỏi đứng hình.</p>
         </aside>
       </section>
 
       <section className="why wrap">
-        <div className="why-title"><span>KHÔNG CHỈ VUI</span><h2>Mã này có nghề.</h2></div>
+        <div className="why-title"><span>VỪA VUI VỪA XÀI</span><h2>Mã có duyên, quét phát liền.</h2></div>
         <div className="proof-grid">
-          <article><b>4 ô</b><h3>Khoảng thở đàng hoàng</h3><p>Giữ nguyên vùng trắng chuẩn quanh mã để camera tìm thấy nó nhanh hơn.</p></article>
-          <article><b>H</b><h3>Sửa lỗi cấp cao nhất</h3><p>Chịu được khoảng 30% hư hại dữ liệu. Cứng cáp, không liều mạng.</p></article>
-          <article><b>0</b><h3>Không chuyển hướng lén</h3><p>Thông tin nằm thẳng trong mã. Không tài khoản, không giới hạn lượt quét.</p></article>
+          <article><b>4 ô</b><h3>Chừa bốn ô, máy dễ dò</h3><p>Khoảng trắng đủ bốn bề giúp máy bắt hình nhanh, quét xong khỏi giật mình.</p></article>
+          <article><b>H</b><h3>Chịu xước, chịu va</h3><p>Sửa lỗi mức H giúp mã bền bỉ khi dính bẩn hoặc sứt mẻ đôi phần.</p></article>
+          <article><b>0</b><h3>Không vòng, không vo</h3><p>Dữ liệu nằm thẳng trong mã: không chuyển hướng, không giới hạn, không hẹn ngày tan.</p></article>
         </div>
       </section>
 
       <section className="about wrap" id="about">
-        <div className="section-kicker">CHUYỆN NHÀ LÀM MÃ</div>
+        <div className="section-kicker">CHUYỆN LÀM MÃ · NÓI CHO ĐÃ</div>
         <div className="about-grid">
-          <div><h2>Sinh ra vì mã QR<br />không cần phải <em>buồn ngủ.</em></h2></div>
+          <div><h2>Sinh ra để mã bớt nhạt,<br />người quét <em>bớt ngáp.</em></h2></div>
           <div className="about-copy">
-            <p><b>QRồi Xong!</b> là một món đồ nhỏ làm đúng một việc: biến nội dung thành mã dễ quét, nhanh tải, tiện chuyền tay — rồi rắc chút duyên cho việc kỹ thuật bớt khô như bánh mì để quên.</p>
-            <p>Tụi mình không rút gọn đường dẫn, không giữ nội dung, không biến mã tĩnh thành chiếc vé thu tiền dài hạn. Với mã ngân hàng, dữ liệu được tạo ngay trên máy theo cấu trúc VietQR; ứng dụng ngân hàng mới là nơi kiểm tra người nhận và xác nhận giao dịch.</p>
-            <div className="about-sign">Làm nghiêm túc. Nói chuyện bớt nghiêm túc. ↗</div>
+            <p><b>QRồi Xong!</b> làm đúng một việc: biến nội dung thành mã dễ quét, dễ tải, dễ chuyền tay — rồi rắc chút duyên để việc kỹ thuật bớt khô như bánh mì để quên.</p>
+            <p>Không rút gọn đường dẫn. Không giữ lại nội dung. Không biến mã tĩnh thành chiếc vé thu tiền dài hạn. Mã ngân hàng được ghép ngay trên máy; ứng dụng ngân hàng mới là nơi kiểm tra và xác nhận.</p>
+            <div className="about-sign">Làm cho chuẩn. Nói cho duyên. Quét phát liền. ↗</div>
           </div>
         </div>
       </section>
 
       <section className="stack-section" id="tech">
         <div className="wrap">
-          <div className="why-title"><span>MỞ NẮP MÁY</span><h2>Đồ nghề bên trong.</h2></div>
+          <div className="why-title"><span>KÊ ĐỒ NGHỀ · NÓI GỌN GHẼ</span><h2>Máy chạy bằng gì?</h2></div>
           <div className="stack-grid">
-            <article><span>01</span><h3>React 19</h3><p>Giao diện phản hồi tức thì. Bạn gõ tới đâu, mã được nấu tới đó.</p></article>
-            <article><span>02</span><h3>TypeScript</h3><p>Giữ dữ liệu ngay hàng thẳng lối, giảm những cú “ủa sao vậy ta”.</p></article>
-            <article><span>03</span><h3>node-qrcode</h3><p>Bộ máy mã hóa trưởng thành, xuất PNG và SVG với sửa lỗi mức H.</p></article>
-            <article><span>04</span><h3>VietQR · CRC16</h3><p>Payload chuyển khoản tạo tại máy theo cấu trúc VietQR/NAPAS, có số tiền tùy chọn.</p></article>
-            <article><span>05</span><h3>Cloudflare Edge</h3><p>Trang tĩnh nhẹ tênh, phục vụ gần người dùng và không cần cơ sở dữ liệu.</p></article>
+            <article><span>01</span><h3>React 19</h3><p>Bạn vừa gõ xong, mã đã nấu xong.</p></article>
+            <article><span>02</span><h3>TypeScript</h3><p>Dữ liệu ngay hàng, bớt lỗi lang thang.</p></article>
+            <article><span>03</span><h3>node-qrcode</h3><p>Lõi tạo mã lâu năm, làm PNG lẫn SVG, sửa lỗi mức H.</p></article>
+            <article><span>04</span><h3>VietQR · CRC16</h3><p>Chuỗi chuyển khoản ghép tại máy, có thể điền sẵn số tiền.</p></article>
+            <article><span>05</span><h3>Cloudflare Edge</h3><p>Trang nhẹ, tải lẹ, chẳng cần kho dữ liệu cồng kềnh.</p></article>
           </div>
           <p className="stack-footnote">Không chuỗi khối cho kêu. Không trí tuệ nhân tạo cho sang. Cần gì, dùng nấy.</p>
         </div>
@@ -443,7 +443,7 @@ export default function Home() {
 
       <footer className="wrap">
         <div className="brand"><span className="brand-mark">QR!</span><span>QRồi Xong!</span></div>
-        <p>Làm mã QR nghiêm túc, nói chuyện bớt nghiêm túc.</p>
+        <p>Làm mã cho chuẩn. Nói chữ cho duyên.</p>
         <a href="#top">Lên đầu trang ↑</a>
       </footer>
     </main>

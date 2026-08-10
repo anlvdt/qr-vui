@@ -19,12 +19,12 @@ test("server-renders the QRồi Xong product", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /QRồi Xong!/);
-  assert.match(html, /Mã chuẩn chỉnh/);
-  assert.match(html, /Không đăng nhập/);
+  assert.match(html, /Mã quét thật nét/);
+  assert.match(html, /Không cần ghi danh/);
   assert.match(html, /Tải PNG/);
   assert.match(html, /Ngân hàng/);
   assert.match(html, /Đồ nghề/);
-  assert.match(html, /Bo tròn lon ton/);
+  assert.match(html, /Bo tròn, quét giòn/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);
 });
 
