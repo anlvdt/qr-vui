@@ -890,7 +890,7 @@ export default function Home() {
                 <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
-            <p className="safe-note"><b>◎ Bản đồ bố cục riêng cho từng mẫu:</b> khung tranh, vùng QR và vùng chữ được căn độc lập rồi biến đổi cùng một mặt bảng.</p>
+            <p className="safe-note"><b>◎ Bản đồ bố cục riêng cho từng mẫu:</b> khung ngang tự dùng bố cục hai cột để QR lớn và cân đối; khung dọc giữ chữ bên dưới.</p>
             <div className="custom-divider"><span>HOẶC SỬ DỤNG ẢNH CỦA BẠN</span></div>
             <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Tải ảnh lên<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
             <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>

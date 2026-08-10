@@ -120,13 +120,13 @@ const layoutOverrides: Record<string, LayoutOverride> = {
   ech: { qr: { y: 36, size: 78 }, copy: { y: 80, titleScale: 5.1, subtitleScale: 2.2 } },
   vit: { qr: { y: 39, size: 66 }, copy: { y: 82, titleScale: 5.6, showSubtitle: false } },
   "rap-chieu": { qr: { y: 36, size: 76 }, copy: { y: 81, titleScale: 5.1 } },
-  "tra-da": { qr: { y: 38, size: 70 }, copy: { y: 83, titleScale: 5.2 } },
-  "xe-trai-cay": { qr: { y: 36, size: 65 }, copy: { y: 82, titleScale: 5.1, showSubtitle: false } },
-  "bap-nuong": { qr: { y: 36, size: 63 }, copy: { y: 82, titleScale: 5, showSubtitle: false } },
+  "tra-da": { qr: { x: 33, y: 50, size: 82 }, copy: { x: 73, y: 49, width: 38, titleScale: 7, showSubtitle: false } },
+  "xe-trai-cay": { qr: { x: 34, y: 50, size: 80 }, copy: { x: 74, y: 49, width: 36, titleScale: 6.8, showSubtitle: false } },
+  "bap-nuong": { qr: { x: 32, y: 50, size: 82 }, copy: { x: 72, y: 49, width: 40, titleScale: 6.7, showSubtitle: false } },
   "ninh-binh": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
   "ha-noi": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
   "quang-ninh": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
-  "hop-om-goi": { qr: { x: 66, y: 43, size: 58 }, copy: { x: 22, y: 44, width: 34, titleScale: 5.1, showSubtitle: false } },
+  "hop-om-goi": { qr: { x: 70, y: 50, size: 76 }, copy: { x: 25, y: 49, width: 36, titleScale: 6.8, showSubtitle: false } },
   "selfie-dai-gia-dinh": { qr: { y: 35, size: 78 }, copy: { y: 81, titleScale: 5, subtitleScale: 2.2 } },
 };
 
@@ -136,14 +136,14 @@ function buildLayout(id: string, frame: ArtFrameGeometry): ArtFrame {
   const landscape = ratio > 1.22;
   const base: ArtFrame = {
     ...frame,
-    qr: { x: 50, y: portrait ? 36 : 39, size: portrait ? 76 : landscape ? 64 : 70 },
+    qr: { x: landscape ? 33 : 50, y: landscape ? 50 : portrait ? 36 : 39, size: portrait ? 76 : landscape ? 80 : 70 },
     copy: {
-      x: 50,
-      y: portrait ? 81 : 83,
-      width: landscape ? 82 : 88,
-      titleScale: portrait ? 5 : 5.3,
+      x: landscape ? 73 : 50,
+      y: landscape ? 49 : portrait ? 81 : 83,
+      width: landscape ? 38 : 88,
+      titleScale: landscape ? 6.8 : portrait ? 5 : 5.3,
       subtitleScale: 2.25,
-      showSubtitle: Math.min(frame.width, frame.height) >= 28,
+      showSubtitle: !landscape && Math.min(frame.width, frame.height) >= 28,
     },
   };
   const override = layoutOverrides[id];

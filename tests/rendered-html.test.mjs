@@ -93,6 +93,8 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /setArtRotation\(frame\.rotation\)/);
   assert.match(frames, /export const artFrames/);
   assert.match(frames, /function buildLayout/);
+  assert.match(frames, /x: landscape \? 33 : 50/);
+  assert.match(frames, /size: portrait \? 76 : landscape \? 80 : 70/);
   assert.match(frames, /qr: \{ x:/);
   assert.match(frames, /copy: \{ x:/);
   assert.match(frames, /"thoi-trang"/);
