@@ -61,7 +61,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /kinh-doanh\/banh-mi\.png/);
   assert.match(page, /giai-tri\/rap-chieu\.png/);
   assert.match(page, /su-kien\/dam-cuoi\.png/);
-  assert.match(page, /Khung QR riêng cho từng mẫu/);
+  assert.match(page, /Bản đồ bố cục riêng cho từng mẫu/);
   assert.match(page, /Math\.max\(options\.width, 18\)/);
   assert.match(page, /Math\.max\(options\.height, 18\)/);
   assert.match(page, /Nông nghiệp/);
@@ -84,12 +84,17 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /context\.transform\(1, skewY, skewX, 1, 0, 0\)/);
   assert.match(page, /options\.paper \? "#FFFFFF" : null/);
   assert.match(page, /if \(options\.paper\)/);
-  assert.match(page, /const labelTop = localBottom - labelHeight/);
+  assert.match(page, /const labelTop = copyCenterY - labelHeight/);
+  assert.match(page, /Cỡ QR/);
+  assert.match(page, /Chữ dọc/);
   assert.match(page, /Rộng khung/);
   assert.match(page, /Nghiêng ngang/);
   assert.match(page, /#DFFF45/);
   assert.match(page, /setArtRotation\(frame\.rotation\)/);
   assert.match(frames, /export const artFrames/);
+  assert.match(frames, /function buildLayout/);
+  assert.match(frames, /qr: \{ x:/);
+  assert.match(frames, /copy: \{ x:/);
   assert.match(frames, /"thoi-trang"/);
   assert.match(frames, /"ninh-binh"/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);

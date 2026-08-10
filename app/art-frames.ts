@@ -1,4 +1,4 @@
-export type ArtFrame = {
+type ArtFrameGeometry = {
   x: number;
   y: number;
   width: number;
@@ -8,9 +8,14 @@ export type ArtFrame = {
   skewY?: number;
 };
 
+export type ArtFrame = ArtFrameGeometry & {
+  qr: { x: number; y: number; size: number };
+  copy: { x: number; y: number; width: number; titleScale: number; subtitleScale: number; showSubtitle: boolean };
+};
+
 // Khung trắng trong từng tranh được đo riêng theo phần trăm khổ ảnh.
 // QR, tiêu đề và mô tả cùng dùng một phép biến đổi nên luôn đi theo khung.
-export const artFrames: Record<string, ArtFrame> = {
+const rawArtFrames: Record<string, ArtFrameGeometry> = {
   meo: { x: 55.4, y: 68.8, width: 49.4, height: 41.6, rotation: -3.5 },
   capy: { x: 73.6, y: 38.8, width: 38.4, height: 49, rotation: 0 },
   ech: { x: 75.9, y: 33.1, width: 29.3, height: 39.9, rotation: 0.5 },
@@ -102,3 +107,53 @@ export const artFrames: Record<string, ArtFrame> = {
   "soi-cong-to": { x: 68.2, y: 60.6, width: 45.6, height: 47.9, rotation: 0 },
   "selfie-dai-gia-dinh": { x: 74, y: 48.5, width: 35, height: 57.3, rotation: 0.5 },
 };
+
+type LayoutOverride = {
+  qr?: Partial<ArtFrame["qr"]>;
+  copy?: Partial<ArtFrame["copy"]>;
+};
+
+// Các mẫu có tỷ lệ hoặc diện tích bảng đặc biệt được tinh chỉnh riêng.
+const layoutOverrides: Record<string, LayoutOverride> = {
+  meo: { qr: { y: 39, size: 65 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.4 } },
+  cun: { qr: { y: 38, size: 74 }, copy: { y: 84, titleScale: 5.7, showSubtitle: false } },
+  ech: { qr: { y: 36, size: 78 }, copy: { y: 80, titleScale: 5.1, subtitleScale: 2.2 } },
+  vit: { qr: { y: 39, size: 66 }, copy: { y: 82, titleScale: 5.6, showSubtitle: false } },
+  "rap-chieu": { qr: { y: 36, size: 76 }, copy: { y: 81, titleScale: 5.1 } },
+  "tra-da": { qr: { y: 38, size: 70 }, copy: { y: 83, titleScale: 5.2 } },
+  "xe-trai-cay": { qr: { y: 36, size: 65 }, copy: { y: 82, titleScale: 5.1, showSubtitle: false } },
+  "bap-nuong": { qr: { y: 36, size: 63 }, copy: { y: 82, titleScale: 5, showSubtitle: false } },
+  "ninh-binh": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
+  "ha-noi": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
+  "quang-ninh": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
+  "hop-om-goi": { qr: { x: 66, y: 43, size: 58 }, copy: { x: 22, y: 44, width: 34, titleScale: 5.1, showSubtitle: false } },
+  "selfie-dai-gia-dinh": { qr: { y: 35, size: 78 }, copy: { y: 81, titleScale: 5, subtitleScale: 2.2 } },
+};
+
+function buildLayout(id: string, frame: ArtFrameGeometry): ArtFrame {
+  const ratio = frame.width / frame.height;
+  const portrait = ratio < 0.88;
+  const landscape = ratio > 1.22;
+  const base: ArtFrame = {
+    ...frame,
+    qr: { x: 50, y: portrait ? 36 : 39, size: portrait ? 76 : landscape ? 64 : 70 },
+    copy: {
+      x: 50,
+      y: portrait ? 81 : 83,
+      width: landscape ? 82 : 88,
+      titleScale: portrait ? 5 : 5.3,
+      subtitleScale: 2.25,
+      showSubtitle: Math.min(frame.width, frame.height) >= 28,
+    },
+  };
+  const override = layoutOverrides[id];
+  return {
+    ...base,
+    qr: { ...base.qr, ...override?.qr },
+    copy: { ...base.copy, ...override?.copy },
+  };
+}
+
+export const artFrames: Record<string, ArtFrame> = Object.fromEntries(
+  Object.entries(rawArtFrames).map(([id, frame]) => [id, buildLayout(id, frame)]),
+);

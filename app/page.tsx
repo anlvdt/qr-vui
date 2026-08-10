@@ -393,6 +393,15 @@ type ArtboardOptions = {
   rotation: number;
   skewX: number;
   skewY: number;
+  qrX: number;
+  qrY: number;
+  qrScale: number;
+  copyX: number;
+  copyY: number;
+  copyWidth: number;
+  titleScale: number;
+  subtitleScale: number;
+  showSubtitle: boolean;
   paper: boolean;
   caption: string;
   subcaption: string;
@@ -408,9 +417,7 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   const skewX = Math.tan(options.skewX * Math.PI / 180);
   const skewY = Math.tan(options.skewY * Math.PI / 180);
   const caption = options.caption.trim().toUpperCase();
-  const subcaption = options.subcaption.trim();
-  const captionFont = caption ? Math.min(canvasSize * 0.026, badgeWidth / Math.max(14, caption.length * 0.6)) : 0;
-  const subcaptionFont = subcaption ? Math.min(canvasSize * 0.012, badgeWidth / Math.max(24, subcaption.length * 0.52)) : 0;
+  const subcaption = options.showSubtitle ? options.subcaption.trim() : "";
   const localLeft = -badgeWidth / 2;
   const localRight = badgeWidth / 2;
   const localTop = -badgeHeight / 2;
@@ -447,28 +454,34 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
     context.lineWidth = Math.max(2, Math.min(badgeWidth, badgeHeight) * 0.012);
     context.strokeRect(localLeft, localTop, badgeWidth, badgeHeight);
   }
-  const labelHeight = caption ? Math.min(badgeHeight * 0.2, canvasSize * 0.09) : 0;
-  const labelTop = localBottom - labelHeight;
-  const qrAreaHeight = labelTop - localTop;
-  const qrSize = Math.min(badgeWidth * (options.paper ? 0.9 : 0.82), qrAreaHeight * (options.paper ? 0.94 : 0.88));
-  const qrTop = localTop + (qrAreaHeight - qrSize) / 2;
-  drawQR(context, payload, ink, style, -qrSize / 2, qrTop, qrSize, options.paper ? "#FFFFFF" : null);
+  const shortestSide = Math.min(badgeWidth, badgeHeight);
+  const qrSize = shortestSide * Math.max(42, Math.min(84, options.qrScale)) / 100;
+  const qrCenterX = localLeft + badgeWidth * options.qrX / 100;
+  const qrCenterY = localTop + badgeHeight * options.qrY / 100;
+  drawQR(context, payload, ink, style, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize, options.paper ? "#FFFFFF" : null);
+  const copyCenterX = localLeft + badgeWidth * options.copyX / 100;
+  const copyCenterY = localTop + badgeHeight * options.copyY / 100;
+  const copyWidth = badgeWidth * options.copyWidth / 100;
+  const captionFont = caption ? Math.min(badgeHeight * options.titleScale / 100, copyWidth / Math.max(8, caption.length * 0.58)) : 0;
+  const subcaptionFont = subcaption ? Math.min(badgeHeight * options.subtitleScale / 100, copyWidth / Math.max(18, subcaption.length * 0.52)) : 0;
+  const labelHeight = caption ? Math.max(captionFont * (subcaption ? 3.05 : 1.8), badgeHeight * 0.12) : 0;
+  const labelTop = copyCenterY - labelHeight / 2;
   if (options.paper) {
     context.fillStyle = "#17221f";
-    context.fillRect(localLeft, labelTop, badgeWidth, labelHeight);
+    context.fillRect(copyCenterX - copyWidth / 2, labelTop, copyWidth, labelHeight);
     context.fillStyle = "#DFFF45";
-    context.fillRect(localLeft, labelTop, badgeWidth, Math.max(2, badgeHeight * 0.012));
+    context.fillRect(copyCenterX - copyWidth / 2, labelTop, copyWidth, Math.max(2, badgeHeight * 0.012));
   }
   if (caption) {
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillStyle = options.paper ? "#fff" : "#17221f";
     context.font = `800 ${captionFont}px Arial, sans-serif`;
-    context.fillText(caption, 0, labelTop + labelHeight * (subcaption ? 0.4 : 0.54));
+    context.fillText(caption, copyCenterX, copyCenterY - (subcaption ? labelHeight * 0.14 : 0), copyWidth);
     if (subcaption) {
       context.fillStyle = options.paper ? "#DFFF45" : "rgba(23,34,31,.72)";
       context.font = `600 ${subcaptionFont}px Arial, sans-serif`;
-      context.fillText(subcaption, 0, labelTop + labelHeight * 0.74);
+      context.fillText(subcaption, copyCenterX, copyCenterY + labelHeight * 0.24, copyWidth);
     }
   }
   context.restore();
@@ -523,6 +536,15 @@ export default function Home() {
   const [artRotation, setArtRotation] = useState(0);
   const [artSkewX, setArtSkewX] = useState(0);
   const [artSkewY, setArtSkewY] = useState(0);
+  const [artQrX, setArtQrX] = useState(50);
+  const [artQrY, setArtQrY] = useState(39);
+  const [artQrScale, setArtQrScale] = useState(70);
+  const [artCopyX, setArtCopyX] = useState(50);
+  const [artCopyY, setArtCopyY] = useState(83);
+  const [artCopyWidth, setArtCopyWidth] = useState(88);
+  const [artTitleScale, setArtTitleScale] = useState(5.3);
+  const [artSubtitleScale, setArtSubtitleScale] = useState(2.25);
+  const [artShowSubtitle, setArtShowSubtitle] = useState(true);
   const [artPaper, setArtPaper] = useState(true);
   const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
   const [artSubcaption, setArtSubcaption] = useState("Mã riêng của bạn · Nét riêng của bạn");
@@ -531,7 +553,11 @@ export default function Home() {
   const chooseLibraryArt = (item: LibraryArt) => {
     const image = new Image();
     image.onload = () => {
-      const frame = artFrames[item.id] ?? { x: item.x, y: item.y, width: item.size, height: item.size, rotation: item.rotation ?? 0, skewX: 0, skewY: 0 };
+      const frame = artFrames[item.id] ?? {
+        x: item.x, y: item.y, width: item.size, height: item.size, rotation: item.rotation ?? 0, skewX: 0, skewY: 0,
+        qr: { x: 50, y: 39, size: 70 },
+        copy: { x: 50, y: 83, width: 88, titleScale: 5.3, subtitleScale: 2.25, showSubtitle: true },
+      };
       setArtImage(image);
       setSelectedArt(item.id);
       setArtCategory(item.category);
@@ -542,6 +568,15 @@ export default function Home() {
       setArtRotation(frame.rotation);
       setArtSkewX(frame.skewX ?? 0);
       setArtSkewY(frame.skewY ?? 0);
+      setArtQrX(frame.qr.x);
+      setArtQrY(frame.qr.y);
+      setArtQrScale(frame.qr.size);
+      setArtCopyX(frame.copy.x);
+      setArtCopyY(frame.copy.y);
+      setArtCopyWidth(frame.copy.width);
+      setArtTitleScale(frame.copy.titleScale);
+      setArtSubtitleScale(frame.copy.subtitleScale);
+      setArtShowSubtitle(frame.copy.showSubtitle);
       setArtPaper(false);
       setArtCaption(item.caption);
       setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
@@ -611,6 +646,15 @@ export default function Home() {
     rotation: artRotation,
     skewX: artSkewX,
     skewY: artSkewY,
+    qrX: artQrX,
+    qrY: artQrY,
+    qrScale: artQrScale,
+    copyX: artCopyX,
+    copyY: artCopyY,
+    copyWidth: artCopyWidth,
+    titleScale: artTitleScale,
+    subtitleScale: artSubtitleScale,
+    showSubtitle: artShowSubtitle,
     paper: artPaper,
     caption: artCaption,
     subcaption: artSubcaption,
@@ -626,7 +670,7 @@ export default function Home() {
     } catch {
       setNotice("Nội dung quá dài. Hãy rút gọn để mã dễ quét hơn.");
     }
-  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artPaper, artCaption, artSubcaption]);
+  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
 
   useEffect(() => {
     setNotice(
@@ -667,6 +711,15 @@ export default function Home() {
         setArtRotation(0);
         setArtSkewX(0);
         setArtSkewY(0);
+        setArtQrX(50);
+        setArtQrY(38);
+        setArtQrScale(70);
+        setArtCopyX(50);
+        setArtCopyY(83);
+        setArtCopyWidth(88);
+        setArtTitleScale(5.3);
+        setArtSubtitleScale(2.25);
+        setArtShowSubtitle(true);
         setArtPaper(true);
         setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí QR.");
       };
@@ -825,7 +878,7 @@ export default function Home() {
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
-            <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? Math.min(artWidth, artHeight) >= 32 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
+            <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? Math.min(artWidth, artHeight) * artQrScale / 100 >= 18 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
           </div>
           {layoutMode === "art" && <div className="art-controls">
             <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn chủ đề và mẫu phù hợp với mục đích sử dụng.</span></div><em>{artLibrary.length} mẫu</em></div>
@@ -837,7 +890,7 @@ export default function Home() {
                 <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
-            <p className="safe-note"><b>◎ Khung QR riêng cho từng mẫu:</b> tự khớp vị trí, chiều rộng, chiều cao và góc xoay của ô có sẵn trên tranh.</p>
+            <p className="safe-note"><b>◎ Bản đồ bố cục riêng cho từng mẫu:</b> khung tranh, vùng QR và vùng chữ được căn độc lập rồi biến đổi cùng một mặt bảng.</p>
             <div className="custom-divider"><span>HOẶC SỬ DỤNG ẢNH CỦA BẠN</span></div>
             <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Tải ảnh lên<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
             <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
@@ -848,6 +901,7 @@ export default function Home() {
                 <ul><li><b>Chừa một mảng trống 35–50%</b> để mã không che mặt người hay món đồ chính.</li><li><b>Ít chi tiết phía sau mã.</b> Ảnh càng rối, nên bật “lót giấy trắng”.</li><li><b>Ảnh vuông hoặc dọc, từ 800 px.</b> Tránh ảnh mờ, chụp quá tối hoặc cắt sát chủ thể.</li></ul>
               </div>
             </details>
+            <div className="control-title"><b>Khung trên tranh</b><span>Di chuyển và khớp mặt bảng</span></div>
             <div className="slider-grid">
               <label>Vị trí ngang <output>{artX}%</output><input type="range" min="8" max="92" step="0.5" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
               <label>Vị trí dọc <output>{artY}%</output><input type="range" min="8" max="92" step="0.5" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
@@ -857,7 +911,17 @@ export default function Home() {
               <label>Nghiêng ngang <output>{artSkewX}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewX} onChange={(e) => setArtSkewX(Number(e.target.value))} /></label>
               <label>Nghiêng dọc <output>{artSkewY}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewY} onChange={(e) => setArtSkewY(Number(e.target.value))} /></label>
             </div>
+            <div className="control-title"><b>Bố cục bên trong</b><span>QR và chữ được chỉnh độc lập</span></div>
+            <div className="slider-grid">
+              <label>QR ngang <output>{artQrX}%</output><input type="range" min="18" max="82" step="0.5" value={artQrX} onChange={(e) => setArtQrX(Number(e.target.value))} /></label>
+              <label>QR dọc <output>{artQrY}%</output><input type="range" min="18" max="70" step="0.5" value={artQrY} onChange={(e) => setArtQrY(Number(e.target.value))} /></label>
+              <label>Cỡ QR <output>{artQrScale}%</output><input type="range" min="42" max="84" step="0.5" value={artQrScale} onChange={(e) => setArtQrScale(Number(e.target.value))} /></label>
+              <label>Chữ ngang <output>{artCopyX}%</output><input type="range" min="18" max="82" step="0.5" value={artCopyX} onChange={(e) => setArtCopyX(Number(e.target.value))} /></label>
+              <label>Chữ dọc <output>{artCopyY}%</output><input type="range" min="65" max="94" step="0.5" value={artCopyY} onChange={(e) => setArtCopyY(Number(e.target.value))} /></label>
+              <label>Cỡ tiêu đề <output>{artTitleScale}%</output><input type="range" min="3" max="8" step="0.1" value={artTitleScale} onChange={(e) => setArtTitleScale(Number(e.target.value))} /></label>
+            </div>
             <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Dùng thẻ nổi có nền và bóng đổ</label>
+            <label className="paper-check"><input type="checkbox" checked={artShowSubtitle} onChange={(e) => setArtShowSubtitle(e.target.checked)} /> Hiện dòng mô tả nhỏ</label>
             <div className="caption-grid"><label>Tiêu đề<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Dòng mô tả<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
             {selectedArt === "custom" && <button className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
           </div>}
