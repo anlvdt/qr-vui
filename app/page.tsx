@@ -22,8 +22,8 @@ const modes: { id: Mode; label: string; icon: string }[] = [
   { id: "link", label: "Đường dẫn", icon: "↗" },
   { id: "wifi", label: "Wi-Fi", icon: "⌁" },
   { id: "bank", label: "Ngân hàng", icon: "₫" },
-  { id: "text", label: "Lời nhắn", icon: "✎" },
-  { id: "email", label: "Thư điện tử", icon: "@" },
+  { id: "text", label: "Văn bản", icon: "✎" },
+  { id: "email", label: "Email", icon: "@" },
 ];
 
 const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] = [
@@ -56,7 +56,7 @@ const artLibrary: LibraryArt[] = [
   { id: "tiem-hoa", name: "Tiệm hoa nở rộ", mood: "Bán lẻ", category: "kinh-doanh", src: "/art-library/kinh-doanh/tiem-hoa.png", x: 72, y: 72, size: 36, caption: "QUÉT MÃ, GỬI HOA" },
   { id: "thoi-trang", name: "Tiệm đồ có gu", mood: "Thời trang", category: "kinh-doanh", src: "/art-library/kinh-doanh/thoi-trang.png", x: 70, y: 73, size: 36, caption: "QUÉT MÃ, LÊN ĐỒ" },
   { id: "sua-xe", name: "Thợ máy chắc tay", mood: "Dịch vụ", category: "kinh-doanh", src: "/art-library/kinh-doanh/sua-xe.png", x: 70, y: 70, size: 43, caption: "QUÉT MÃ, SỬA NGAY" },
-  { id: "cho-que", name: "Sạp chợ tươi vui", mood: "Bán lẻ", category: "kinh-doanh", src: "/art-library/kinh-doanh/cho-que.png", x: 71, y: 69, size: 35, caption: "CHỢ VUI, MÃ TỚI" },
+  { id: "cho-que", name: "Sạp chợ tươi vui", mood: "Bán lẻ", category: "kinh-doanh", src: "/art-library/kinh-doanh/cho-que.png", x: 71, y: 69, size: 35, caption: "QUÉT MÃ, GHÉ SẠP" },
   { id: "dam-cuoi", name: "Ngày vui có đôi", mood: "Cưới hỏi", category: "su-kien", src: "/art-library/su-kien/dam-cuoi.png", x: 68, y: 71, size: 38, caption: "QUÉT MÃ, CHUNG VUI" },
   { id: "sinh-nhat", name: "Bánh sinh nhật", mood: "Tiệc vui", category: "su-kien", src: "/art-library/su-kien/sinh-nhat.png", x: 74, y: 69, size: 38, caption: "QUÉT MÃ, THỔI NẾN" },
   { id: "tot-nghiep", name: "Tân khoa rạng rỡ", mood: "Tốt nghiệp", category: "su-kien", src: "/art-library/su-kien/tot-nghiep.png", x: 70, y: 69, size: 39, caption: "QUÉT MÃ, XEM THÀNH QUẢ" },
@@ -64,41 +64,41 @@ const artLibrary: LibraryArt[] = [
   { id: "chay-bo", name: "Chạy là có hội", mood: "Thể thao", category: "su-kien", src: "/art-library/su-kien/chay-bo.png", x: 72, y: 69, size: 40, caption: "QUÉT MÃ, CHẠY THÔI" },
   { id: "thien-nguyen", name: "Góp vui góp sức", mood: "Cộng đồng", category: "su-kien", src: "/art-library/su-kien/thien-nguyen.png", x: 71, y: 73, size: 38, caption: "QUÉT MÃ, GÓP NIỀM VUI" },
   { id: "lua-gao", name: "Mùa lúa chín", mood: "Trồng trọt", category: "nong-nghiep", src: "/art-library/nong-nghiep/lua-gao.png", x: 74, y: 64, size: 44, caption: "QUÉT MÃ, GẶT NIỀM VUI" },
-  { id: "ca-phe", name: "Vườn cà phê", mood: "Nông sản", category: "nong-nghiep", src: "/art-library/nong-nghiep/ca-phe.png", x: 73, y: 64, size: 44, caption: "CÀ PHÊ THƠM, MÃ GỌN" },
-  { id: "vuon-trai-cay", name: "Vườn trái ngọt", mood: "Nhà vườn", category: "nong-nghiep", src: "/art-library/nong-nghiep/vuon-trai-cay.png", x: 73, y: 64, size: 44, caption: "TRÁI TƯƠI, MÃ TỚI" },
+  { id: "ca-phe", name: "Vườn cà phê", mood: "Nông sản", category: "nong-nghiep", src: "/art-library/nong-nghiep/ca-phe.png", x: 73, y: 64, size: 44, caption: "QUÉT MÃ, XEM VƯỜN" },
+  { id: "vuon-trai-cay", name: "Vườn trái ngọt", mood: "Nhà vườn", category: "nong-nghiep", src: "/art-library/nong-nghiep/vuon-trai-cay.png", x: 73, y: 64, size: 44, caption: "QUÉT MÃ, CHỌN TRÁI" },
   { id: "danh-ca", name: "Chuyến cá đầy khoang", mood: "Thủy sản", category: "nong-nghiep", src: "/art-library/nong-nghiep/danh-ca.png", x: 76, y: 69, size: 40, caption: "CÁ TƯƠI, QUÉT THÔI" },
-  { id: "dam-sen", name: "Đầm sen sáng sớm", mood: "Trồng hoa", category: "nong-nghiep", src: "/art-library/nong-nghiep/dam-sen.png", x: 73, y: 69, size: 42, caption: "SEN NỞ, MÃ CHỜ" },
-  { id: "bo-sua", name: "Trang trại bò sữa", mood: "Chăn nuôi", category: "nong-nghiep", src: "/art-library/nong-nghiep/bo-sua.png", x: 69, y: 71, size: 43, caption: "SỮA NGON, MÃ GỌN" },
+  { id: "dam-sen", name: "Đầm sen sáng sớm", mood: "Trồng hoa", category: "nong-nghiep", src: "/art-library/nong-nghiep/dam-sen.png", x: 73, y: 69, size: 42, caption: "QUÉT MÃ, NGẮM SEN" },
+  { id: "bo-sua", name: "Trang trại bò sữa", mood: "Chăn nuôi", category: "nong-nghiep", src: "/art-library/nong-nghiep/bo-sua.png", x: 69, y: 71, size: 43, caption: "QUÉT MÃ, THĂM TRẠI" },
   { id: "ganh-hang", name: "Gánh hàng rong", mood: "Phố quen", category: "hang-rong", src: "/art-library/hang-rong/ganh-hang.png", x: 58, y: 69, size: 38, caption: "GÁNH NHẸ, QUÉT NHANH" },
-  { id: "tra-da", name: "Trà đá vỉa hè", mood: "Giải khát", category: "hang-rong", src: "/art-library/hang-rong/tra-da.png", x: 42, y: 70, size: 38, caption: "TRÀ MÁT, MÃ NÉT" },
-  { id: "xe-hoa", name: "Xe hoa đầu phố", mood: "Hoa tươi", category: "hang-rong", src: "/art-library/hang-rong/xe-hoa.png", x: 42, y: 69, size: 36, caption: "HOA XINH, MÃ XỊN" },
+  { id: "tra-da", name: "Trà đá vỉa hè", mood: "Giải khát", category: "hang-rong", src: "/art-library/hang-rong/tra-da.png", x: 42, y: 70, size: 38, caption: "QUÉT MÃ, GỌI TRÀ" },
+  { id: "xe-hoa", name: "Xe hoa đầu phố", mood: "Hoa tươi", category: "hang-rong", src: "/art-library/hang-rong/xe-hoa.png", x: 42, y: 69, size: 36, caption: "QUÉT MÃ, CHỌN HOA" },
   { id: "xe-trai-cay", name: "Xe trái cây", mood: "Hoa quả", category: "hang-rong", src: "/art-library/hang-rong/xe-trai-cay.png", x: 53, y: 73, size: 35, caption: "TRÁI TƯƠI, QUÉT THÔI" },
   { id: "bap-nuong", name: "Bắp nướng thơm lừng", mood: "Ăn vặt", category: "hang-rong", src: "/art-library/hang-rong/bap-nuong.png", x: 39, y: 75, size: 36, caption: "BẮP NÓNG, MÃ XONG" },
-  { id: "xe-mi", name: "Xe mì ven đường", mood: "Món nóng", category: "hang-rong", src: "/art-library/hang-rong/xe-mi.png", x: 37, y: 74, size: 37, caption: "MÌ NGON, MÃ GỌN" },
+  { id: "xe-mi", name: "Xe mì ven đường", mood: "Món nóng", category: "hang-rong", src: "/art-library/hang-rong/xe-mi.png", x: 37, y: 74, size: 37, caption: "QUÉT MÃ, GỌI MÌ" },
   { id: "ruong-bac-thang", name: "Ruộng bậc thang", mood: "Miền núi", category: "phong-canh", src: "/art-library/phong-canh/ruong-bac-thang.png", x: 53, y: 65, size: 42, caption: "NÚI ĐỒI, QUÉT THÔI" },
-  { id: "bien-xanh", name: "Biển xanh cát trắng", mood: "Miền biển", category: "phong-canh", src: "/art-library/phong-canh/bien-xanh.png", x: 43, y: 65, size: 36, caption: "BIỂN XANH, MÃ LÀNH" },
-  { id: "song-nui", name: "Sông giữa núi", mood: "Non nước", category: "phong-canh", src: "/art-library/phong-canh/song-nui.png", x: 53, y: 69, size: 35, caption: "NON NƯỚC, MÃ THÔNG" },
-  { id: "doi-thong", name: "Đồi thông sương sớm", mood: "Cao nguyên", category: "phong-canh", src: "/art-library/phong-canh/doi-thong.png", x: 53, y: 65, size: 40, caption: "THÔNG REO, MÃ THEO" },
-  { id: "ho-sen", name: "Hồ sen bình minh", mood: "Đồng quê", category: "phong-canh", src: "/art-library/phong-canh/ho-sen.png", x: 59, y: 69, size: 35, caption: "SEN HỒNG, MÃ THÔNG" },
+  { id: "bien-xanh", name: "Biển xanh cát trắng", mood: "Miền biển", category: "phong-canh", src: "/art-library/phong-canh/bien-xanh.png", x: 43, y: 65, size: 36, caption: "QUÉT MÃ, RA BIỂN" },
+  { id: "song-nui", name: "Sông giữa núi", mood: "Non nước", category: "phong-canh", src: "/art-library/phong-canh/song-nui.png", x: 53, y: 69, size: 35, caption: "QUÉT MÃ, XEM NON NƯỚC" },
+  { id: "doi-thong", name: "Đồi thông sương sớm", mood: "Cao nguyên", category: "phong-canh", src: "/art-library/phong-canh/doi-thong.png", x: 53, y: 65, size: 40, caption: "QUÉT MÃ, LÊN ĐỒI THÔNG" },
+  { id: "ho-sen", name: "Hồ sen bình minh", mood: "Đồng quê", category: "phong-canh", src: "/art-library/phong-canh/ho-sen.png", x: 59, y: 69, size: 35, caption: "QUÉT MÃ, NGẮM HỒ SEN" },
   { id: "deo-nui", name: "Đèo cao lộng gió", mood: "Đường núi", category: "phong-canh", src: "/art-library/phong-canh/deo-nui.png", x: 43, y: 68, size: 34, caption: "QUA ĐÈO, QUÉT THEO" },
   { id: "trekking", name: "Đi bộ đường dài", mood: "Khám phá", category: "du-lich", src: "/art-library/du-lich/trekking.png", x: 69, y: 52, size: 42, caption: "QUÉT BẢN ĐỒ, ĐI THÔI" },
   { id: "gia-dinh-bien", name: "Cả nhà đi biển", mood: "Nghỉ dưỡng", category: "du-lich", src: "/art-library/du-lich/gia-dinh-bien.png", x: 73, y: 65, size: 40, caption: "CẢ NHÀ, CÙNG QUÉT" },
-  { id: "dap-xe", name: "Đạp xe ngắm lúa", mood: "Trải nghiệm", category: "du-lich", src: "/art-library/du-lich/dap-xe.png", x: 70, y: 69, size: 40, caption: "ĐẠP XE, QUÉT NHẸ" },
-  { id: "cam-trai", name: "Cắm trại rừng thông", mood: "Ngoài trời", category: "du-lich", src: "/art-library/du-lich/cam-trai.png", x: 71, y: 49, size: 47, caption: "DỰNG LỀU, DỰNG MÃ" },
+  { id: "dap-xe", name: "Đạp xe ngắm lúa", mood: "Trải nghiệm", category: "du-lich", src: "/art-library/du-lich/dap-xe.png", x: 70, y: 69, size: 40, caption: "QUÉT MÃ, ĐẠP XE THÔI" },
+  { id: "cam-trai", name: "Cắm trại rừng thông", mood: "Ngoài trời", category: "du-lich", src: "/art-library/du-lich/cam-trai.png", x: 71, y: 49, size: 47, caption: "QUÉT MÃ, DỰNG LỀU" },
   { id: "du-thuyen", name: "Thuyền trôi non nước", mood: "Đường sông", category: "du-lich", src: "/art-library/du-lich/du-thuyen.png", x: 54, y: 73, size: 36, caption: "LÊN THUYỀN, QUÉT LIỀN" },
   { id: "check-in", name: "Hội bạn check-in", mood: "Kỷ niệm", category: "du-lich", src: "/art-library/du-lich/check-in.png", x: 68, y: 42, size: 45, caption: "QUÉT MÃ, LƯU KỶ NIỆM" },
-  { id: "ha-noi", name: "Hà Nội · Hồ Gươm", mood: "Thủ đô", category: "bac-trung", src: "/art-library/mien-bac-trung/ha-noi.png", x: 75, y: 76, size: 36, caption: "HÀ NỘI, QUÉT RỒI ĐI" },
-  { id: "quang-ninh", name: "Quảng Ninh · Hạ Long", mood: "Vịnh biển", category: "bac-trung", src: "/art-library/mien-bac-trung/quang-ninh.png", x: 75, y: 76, size: 36, caption: "VỊNH XANH, MÃ LÀNH" },
-  { id: "ninh-binh", name: "Ninh Bình · Tràng An", mood: "Non nước", category: "bac-trung", src: "/art-library/mien-bac-trung/ninh-binh.png", x: 75, y: 76, size: 36, caption: "TRÀNG AN, QUÉT NHANH" },
-  { id: "ha-giang", name: "Hà Giang · Đường đèo", mood: "Cực Bắc", category: "bac-trung", src: "/art-library/mien-bac-trung/ha-giang.png", x: 74, y: 74, size: 36, caption: "HÀ GIANG, MÃ SẴN SÀNG" },
-  { id: "lao-cai", name: "Lào Cai · Sa Pa", mood: "Ruộng núi", category: "bac-trung", src: "/art-library/mien-bac-trung/lao-cai.png", x: 74, y: 74, size: 36, caption: "SA PA, QUÉT LÀ RA" },
-  { id: "hue", name: "Huế · Kinh thành", mood: "Di sản", category: "bac-trung", src: "/art-library/mien-bac-trung/hue.png", x: 75, y: 74, size: 36, caption: "HUẾ THƯƠNG, MÃ VƯƠNG" },
-  { id: "tp-hcm", name: "TP.HCM · Chợ Bến Thành", mood: "Đô thị", category: "nam-bien", src: "/art-library/mien-nam-bien/tp-hcm.png", x: 36, y: 72, size: 36, caption: "SÀI GÒN, QUÉT GỌN" },
-  { id: "da-nang", name: "Đà Nẵng · Cầu Rồng", mood: "Sông biển", category: "nam-bien", src: "/art-library/mien-nam-bien/da-nang.png", x: 33, y: 72, size: 36, caption: "ĐÀ NẴNG, QUÉT THẲNG" },
-  { id: "hoi-an", name: "Quảng Nam · Hội An", mood: "Phố cổ", category: "nam-bien", src: "/art-library/mien-nam-bien/hoi-an.png", x: 32, y: 72, size: 36, caption: "HỘI AN, MÃ SẴN" },
-  { id: "da-lat", name: "Lâm Đồng · Đà Lạt", mood: "Cao nguyên", category: "nam-bien", src: "/art-library/mien-nam-bien/da-lat.png", x: 35, y: 75, size: 35, caption: "ĐÀ LẠT, QUÉT PHÁT" },
-  { id: "can-tho", name: "Cần Thơ · Chợ nổi", mood: "Miền sông", category: "nam-bien", src: "/art-library/mien-nam-bien/can-tho.png", x: 75, y: 68, size: 36, caption: "CẦN THƠ, MÃ ĐỢI" },
-  { id: "phu-quoc", name: "Kiên Giang · Phú Quốc", mood: "Đảo ngọc", category: "nam-bien", src: "/art-library/mien-nam-bien/phu-quoc.png", x: 75, y: 75, size: 35, caption: "ĐẢO XANH, MÃ LÀNH" },
+  { id: "ha-noi", name: "Hà Nội · Hồ Gươm", mood: "Thủ đô", category: "bac-trung", src: "/art-library/mien-bac-trung/ha-noi.png", x: 75, y: 76, size: 36, caption: "QUÉT MÃ, GHÉ HỒ GƯƠM" },
+  { id: "quang-ninh", name: "Quảng Ninh · Hạ Long", mood: "Vịnh biển", category: "bac-trung", src: "/art-library/mien-bac-trung/quang-ninh.png", x: 75, y: 76, size: 36, caption: "QUÉT MÃ, NGẮM HẠ LONG" },
+  { id: "ninh-binh", name: "Ninh Bình · Tràng An", mood: "Non nước", category: "bac-trung", src: "/art-library/mien-bac-trung/ninh-binh.png", x: 75, y: 76, size: 36, caption: "QUÉT MÃ, ĐI TRÀNG AN" },
+  { id: "ha-giang", name: "Hà Giang · Đường đèo", mood: "Cực Bắc", category: "bac-trung", src: "/art-library/mien-bac-trung/ha-giang.png", x: 74, y: 74, size: 36, caption: "QUÉT MÃ, LÊN HÀ GIANG" },
+  { id: "lao-cai", name: "Lào Cai · Sa Pa", mood: "Ruộng núi", category: "bac-trung", src: "/art-library/mien-bac-trung/lao-cai.png", x: 74, y: 74, size: 36, caption: "QUÉT MÃ, ĐI SA PA" },
+  { id: "hue", name: "Huế · Kinh thành", mood: "Di sản", category: "bac-trung", src: "/art-library/mien-bac-trung/hue.png", x: 75, y: 74, size: 36, caption: "QUÉT MÃ, GHÉ KINH THÀNH" },
+  { id: "tp-hcm", name: "TP.HCM · Chợ Bến Thành", mood: "Đô thị", category: "nam-bien", src: "/art-library/mien-nam-bien/tp-hcm.png", x: 36, y: 72, size: 36, caption: "QUÉT MÃ, GHÉ BẾN THÀNH" },
+  { id: "da-nang", name: "Đà Nẵng · Cầu Rồng", mood: "Sông biển", category: "nam-bien", src: "/art-library/mien-nam-bien/da-nang.png", x: 33, y: 72, size: 36, caption: "QUÉT MÃ, NGẮM CẦU RỒNG" },
+  { id: "hoi-an", name: "Quảng Nam · Hội An", mood: "Phố cổ", category: "nam-bien", src: "/art-library/mien-nam-bien/hoi-an.png", x: 32, y: 72, size: 36, caption: "QUÉT MÃ, DẠO PHỐ CỔ" },
+  { id: "da-lat", name: "Lâm Đồng · Đà Lạt", mood: "Cao nguyên", category: "nam-bien", src: "/art-library/mien-nam-bien/da-lat.png", x: 35, y: 75, size: 35, caption: "QUÉT MÃ, ĐI ĐÀ LẠT" },
+  { id: "can-tho", name: "Cần Thơ · Chợ nổi", mood: "Miền sông", category: "nam-bien", src: "/art-library/mien-nam-bien/can-tho.png", x: 75, y: 68, size: 36, caption: "QUÉT MÃ, GHÉ CHỢ NỔI" },
+  { id: "phu-quoc", name: "Kiên Giang · Phú Quốc", mood: "Đảo ngọc", category: "nam-bien", src: "/art-library/mien-nam-bien/phu-quoc.png", x: 75, y: 75, size: 35, caption: "QUÉT MÃ, RA PHÚ QUỐC" },
   { id: "meo-sep", name: "Mèo sếp ra chỉ thị", mood: "Lầy cấp cao", category: "hai-thu", src: "/art-library/hai-thu/meo-sep.png", x: 74, y: 61, size: 38, caption: "SẾP BẢO QUÉT ĐI" },
   { id: "capy-tron-bao-thuc", name: "Capy giả điếc", mood: "Lười có nghề", category: "hai-thu", src: "/art-library/hai-thu/capy-tron-bao-thuc.png", x: 50, y: 66, size: 34, caption: "BÁO THỨC KỆ, MÃ QUÉT LẸ" },
   { id: "vit-dieu-phoi", name: "Vịt điều phối giao thông", mood: "Nghiêm mà sai", category: "hai-thu", src: "/art-library/hai-thu/vit-dieu-phoi.png", x: 75, y: 42, size: 38, caption: "DỪNG LẠI, QUÉT CÁI" },
@@ -128,19 +128,19 @@ const artLibrary: LibraryArt[] = [
 const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
   { id: "hai", label: "Tấu hài", icon: "☺" },
   { id: "hai-thu", label: "Thú lầy", icon: "☻" },
-  { id: "hai-cong-so", label: "Công sở lụi", icon: "⌘" },
+  { id: "hai-cong-so", label: "Công sở lầy", icon: "⌘" },
   { id: "hai-do-an", label: "Đồ ăn thành tinh", icon: "♨" },
   { id: "hai-doi-thuong", label: "Đời thường lầy", icon: "※" },
   { id: "nghe", label: "Ngành nghề", icon: "✦" },
-  { id: "giai-tri", label: "Phim & vui", icon: "▶" },
-  { id: "kinh-doanh", label: "Bán & ăn", icon: "₫" },
+  { id: "giai-tri", label: "Phim ảnh & giải trí", icon: "▶" },
+  { id: "kinh-doanh", label: "Kinh doanh & ẩm thực", icon: "₫" },
   { id: "su-kien", label: "Dịp đặc biệt", icon: "★" },
   { id: "nong-nghiep", label: "Nông nghiệp", icon: "♧" },
   { id: "hang-rong", label: "Hàng rong", icon: "☕" },
   { id: "phong-canh", label: "Phong cảnh", icon: "⌁" },
   { id: "du-lich", label: "Du lịch", icon: "↗" },
-  { id: "bac-trung", label: "Bắc & Trung", icon: "△" },
-  { id: "nam-bien", label: "Nam & Biển", icon: "◉" },
+  { id: "bac-trung", label: "Miền Bắc & miền Trung", icon: "△" },
+  { id: "nam-bien", label: "Miền Nam & biển đảo", icon: "◉" },
 ];
 
 const fallbackBanks: Bank[] = [
@@ -156,7 +156,7 @@ const fallbackBanks: Bank[] = [
   { bin: "970405", shortName: "Agribank", name: "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam" },
 ];
 
-const escapeWifi = (value: string) => value.replace(/([\\;,\":])/g, "\\$1");
+const escapeWifi = (value: string) => value.replace(/([\\;,":])/g, "\\$1");
 
 function normalizeUrl(value: string) {
   const trimmed = value.trim();
@@ -181,7 +181,8 @@ function cleanTransferNote(value: string) {
 
 function makeVietQRContent(bankId: string, accountId: string, amount: string, description: string) {
   const consumer = `0010A00000072701${pad2(bankId.length + accountId.length + 8)}00${pad2(bankId.length)}${bankId}01${pad2(accountId.length)}${accountId}0208QRIBFTTA`;
-  let content = `00020101021138${pad2(consumer.length)}${consumer}5303704`;
+  const initiationMethod = amount ? "12" : "11";
+  let content = `0002010102${initiationMethod}38${pad2(consumer.length)}${consumer}5303704`;
   if (amount) content += `54${pad2(amount.length)}${amount}`;
   content += "5802VN";
   if (description) {
@@ -306,59 +307,6 @@ function drawImageContained(context: CanvasRenderingContext2D, image: HTMLImageE
   context.drawImage(image, (size - width) / 2, (size - height) / 2, width, height);
 }
 
-function drawLegacyWorkshopDoodle(context: CanvasRenderingContext2D, size: number, accent: string) {
-  context.fillStyle = "#f4eedf";
-  context.fillRect(0, 0, size, size);
-  context.strokeStyle = "#17221f";
-  context.lineWidth = size * 0.009;
-  context.lineCap = "round";
-  context.lineJoin = "round";
-
-  context.fillStyle = "#fff";
-  context.beginPath();
-  context.moveTo(size * 0.34, size * 0.12);
-  context.lineTo(size * 0.92, size * 0.09);
-  context.lineTo(size * 0.9, size * 0.72);
-  context.lineTo(size * 0.35, size * 0.76);
-  context.closePath();
-  context.fill();
-  context.stroke();
-
-  context.fillStyle = accent;
-  context.beginPath();
-  context.moveTo(size * 0.08, size * 0.57);
-  context.lineTo(size * 0.16, size * 0.45);
-  context.lineTo(size * 0.22, size * 0.57);
-  context.lineTo(size * 0.29, size * 0.47);
-  context.lineTo(size * 0.33, size * 0.62);
-  context.lineTo(size * 0.27, size * 0.73);
-  context.lineTo(size * 0.31, size * 0.92);
-  context.lineTo(size * 0.2, size * 0.82);
-  context.lineTo(size * 0.12, size * 0.91);
-  context.lineTo(size * 0.14, size * 0.72);
-  context.closePath();
-  context.fill();
-  context.stroke();
-
-  context.fillStyle = "#17221f";
-  context.beginPath();
-  context.arc(size * 0.16, size * 0.59, size * 0.035, 0, Math.PI * 2);
-  context.arc(size * 0.25, size * 0.59, size * 0.035, 0, Math.PI * 2);
-  context.fill();
-  context.beginPath();
-  context.moveTo(size * 0.2, size * 0.63);
-  context.lineTo(size * 0.18, size * 0.66);
-  context.lineTo(size * 0.22, size * 0.66);
-  context.closePath();
-  context.fill();
-
-  context.font = `700 ${size * 0.035}px Arial, sans-serif`;
-  context.textAlign = "left";
-  context.fillText("TRANH CỦA BẠN", size * 0.49, size * 0.83);
-  context.font = `500 ${size * 0.02}px Arial, sans-serif`;
-  context.fillText("Tải ảnh lên · Đặt mã vào · Xuất tranh ra", size * 0.49, size * 0.87);
-}
-
 function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, accent: string) {
   context.fillStyle = "#f4eedf";
   context.fillRect(0, 0, size, size);
@@ -379,9 +327,33 @@ function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, acc
   context.fillStyle = "#17221f";
   context.textAlign = "center";
   context.font = `800 ${size * 0.038}px Arial, sans-serif`;
-  context.fillText("CHỌN TRANH HOẶC NẠP ẢNH", size / 2, size * 0.46);
+  context.fillText("CHỌN TRANH HOẶC TẢI ẢNH", size / 2, size * 0.46);
   context.font = `600 ${size * 0.022}px Arial, sans-serif`;
   context.fillText("Mã sẽ tự tìm một chỗ đẹp", size / 2, size * 0.52);
+}
+
+function sampleLightSurface(context: CanvasRenderingContext2D, x: number, y: number, canvasSize: number) {
+  const radius = Math.max(2, Math.round(canvasSize * 0.004));
+  const startX = Math.max(0, Math.min(canvasSize - radius * 2, Math.round(x) - radius));
+  const startY = Math.max(0, Math.min(canvasSize - radius * 2, Math.round(y) - radius));
+  try {
+    const pixels = context.getImageData(startX, startY, radius * 2, radius * 2).data;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      red += pixels[index];
+      green += pixels[index + 1];
+      blue += pixels[index + 2];
+    }
+    const count = pixels.length / 4;
+    const channels = [red / count, green / count, blue / count];
+    const luminance = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    if (luminance < 205) return "#FFFFFF";
+    return `rgb(${channels.map((value) => Math.round(value)).join(",")})`;
+  } catch {
+    return "#FFFFFF";
+  }
 }
 
 type ArtboardOptions = {
@@ -438,6 +410,7 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   const clampCenter = (raw: number, min: number, max: number) => min <= max ? Math.max(min, Math.min(max, raw)) : canvasSize / 2;
   const qrX = clampCenter(canvasSize * options.x / 100, -minX, canvasSize - maxX);
   const qrY = clampCenter(canvasSize * options.y / 100, -minY, canvasSize - maxY);
+  const embeddedSurface = options.paper ? "#FFFFFF" : sampleLightSurface(context, qrX, qrY, canvasSize);
   context.save();
   context.translate(qrX, qrY);
   context.rotate(angle);
@@ -458,7 +431,7 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   const qrSize = shortestSide * Math.max(42, Math.min(84, options.qrScale)) / 100;
   const qrCenterX = localLeft + badgeWidth * options.qrX / 100;
   const qrCenterY = localTop + badgeHeight * options.qrY / 100;
-  drawQR(context, payload, ink, style, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize, options.paper ? "#FFFFFF" : null);
+  drawQR(context, payload, ink, style, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize, embeddedSurface);
   const copyCenterX = localLeft + badgeWidth * options.copyX / 100;
   const copyCenterY = localTop + badgeHeight * options.copyY / 100;
   const copyWidth = badgeWidth * options.copyWidth / 100;
@@ -581,8 +554,9 @@ export default function Home() {
       setArtCaption(item.caption);
       setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
       setLayoutMode("art");
-      setNotice(`Đã chọn ${item.name}. QR được căn vào vùng an toàn.`);
+      setNotice(`Đã chọn ${item.name}. Mã QR đã được căn vào vùng an toàn.`);
     };
+    image.onerror = () => setNotice(`Không thể tải mẫu ${item.name}. Hãy chọn mẫu khác.`);
     image.src = item.src;
   };
 
@@ -592,7 +566,10 @@ export default function Home() {
 
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error("Không thể cập nhật danh sách ngân hàng");
+        return response.json();
+      })
       .then((result: { data?: Bank[] }) => {
         const supported = result.data?.filter((bank) => bank.transferSupported !== 0);
         if (supported?.length) setBanks(supported.sort((a, b) => a.shortName.localeCompare(b.shortName)));
@@ -604,7 +581,8 @@ export default function Home() {
     if (mode === "link") return normalizeUrl(value);
     if (mode === "wifi") {
       if (!wifiName.trim()) return "";
-      return `WIFI:T:${wifiSecurity};S:${escapeWifi(wifiName)};P:${escapeWifi(wifiPassword)};;`;
+      const passwordField = wifiSecurity === "nopass" ? "" : `P:${escapeWifi(wifiPassword)};`;
+      return `WIFI:T:${wifiSecurity};S:${escapeWifi(wifiName)};${passwordField};`;
     }
     if (mode === "email") {
       if (!value.trim()) return "";
@@ -617,8 +595,10 @@ export default function Home() {
     return value.trim();
   }, [mode, value, wifiName, wifiPassword, wifiSecurity, emailSubject, bankId, bankAccount, bankAmount, bankNote]);
 
+  const payloadBytes = useMemo(() => new TextEncoder().encode(payload).length, [payload]);
+
   const inputIsValid = useMemo(() => {
-    if (!payload) return false;
+    if (!payload || payloadBytes > 1200) return false;
     if (mode === "link") {
       try {
         return ["http:", "https:"].includes(new URL(payload).protocol);
@@ -629,15 +609,15 @@ export default function Home() {
     if (mode === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
     if (mode === "bank") {
       const accountOk = /^[A-Za-z0-9]{6,19}$/.test(bankAccount.trim());
-      const amountOk = !bankAmount || (/^[1-9]\d*$/.test(bankAmount) && Number(bankAmount) < 500_000_000);
+      const amountOk = !bankAmount || (/^[1-9]\d{0,12}$/.test(bankAmount) && Number(bankAmount) <= 9_999_999_999_999);
       return accountOk && amountOk;
     }
     return true;
-  }, [payload, mode, value, bankAccount, bankAmount]);
+  }, [payload, payloadBytes, mode, value, bankAccount, bankAmount]);
 
   const colorIsSafe = contrastOnWhite(palette.value) >= 4.5;
 
-  const artOptions: ArtboardOptions = {
+  const artOptions = useMemo<ArtboardOptions>(() => ({
     image: artImage,
     x: artX,
     y: artY,
@@ -658,39 +638,35 @@ export default function Home() {
     paper: artPaper,
     caption: artCaption,
     subcaption: artSubcaption,
-  };
+  }), [artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
 
   const visibleArt = artLibrary.filter((item) => item.category === artCategory);
 
   useEffect(() => {
     if (!inputIsValid || !colorIsSafe) return;
-    try {
-      if (layoutMode === "art" && artCanvasRef.current) renderArtPreview(artCanvasRef.current, payload, palette.value, palette.accent, qrStyle, artOptions);
-      else if (canvasRef.current) renderPreview(canvasRef.current, payload, palette.value, qrStyle);
-    } catch {
-      setNotice("Nội dung quá dài. Hãy rút gọn để mã dễ quét hơn.");
-    }
-  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
+    if (layoutMode === "art" && artCanvasRef.current) renderArtPreview(artCanvasRef.current, payload, palette.value, palette.accent, qrStyle, artOptions);
+    else if (canvasRef.current) renderPreview(canvasRef.current, payload, palette.value, qrStyle);
+  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artOptions]);
 
-  useEffect(() => {
-    setNotice(
-      !colorIsSafe
-        ? "Màu QR chưa đủ tương phản với nền trắng"
-        : !payload
-        ? "Hãy nhập nội dung để tạo mã QR"
+  const displayNotice = !colorIsSafe
+    ? "Màu mã QR chưa đủ tương phản với nền sáng"
+    : !payload
+      ? "Hãy nhập nội dung để tạo mã QR"
+      : payloadBytes > 1200
+        ? "Nội dung quá dài. Hãy rút gọn để mã dễ quét."
         : !inputIsValid
           ? "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
-          : payload.length > 500
-            ? "Nội dung dài có thể làm mã khó quét từ xa"
-            : "Mã QR đã sẵn sàng để tải xuống",
-    );
-  }, [payload, inputIsValid, colorIsSafe]);
+          : payloadBytes > 700
+            ? "Nội dung khá dài; nên quét thử ở khoảng cách sử dụng thực tế."
+            : notice;
 
   const uploadArtwork = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setNotice("Định dạng tệp không được hỗ trợ. Hãy chọn một tệp ảnh.");
+    event.target.value = "";
+    const supportedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+    if (!supportedTypes.has(file.type)) {
+      setNotice("Định dạng ảnh chưa được hỗ trợ. Hãy chọn tệp JPG, PNG hoặc WEBP.");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -721,10 +697,12 @@ export default function Home() {
         setArtSubtitleScale(2.25);
         setArtShowSubtitle(true);
         setArtPaper(true);
-        setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí QR.");
+        setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí mã QR.");
       };
+      image.onerror = () => setNotice("Không thể đọc ảnh này. Hãy thử một ảnh JPG, PNG hoặc WEBP khác.");
       image.src = String(reader.result);
     };
+    reader.onerror = () => setNotice("Không thể mở tệp ảnh. Hãy thử chọn lại.");
     reader.readAsDataURL(file);
   };
 
@@ -755,7 +733,7 @@ export default function Home() {
 
   return (
     <main>
-      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR KÈM SỐ TIỀN · VĂN BẢN · EMAIL · 90 MẪU MINH HỌA</div>
+      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR CÓ SỐ TIỀN · VĂN BẢN · EMAIL · 90 MẪU MINH HỌA</div>
       <nav className="nav wrap" aria-label="Điều hướng chính">
         <a className="brand" href="#top" aria-label="QRồi Xong - trang chủ">
           <span className="brand-mark">QR!</span>
@@ -767,7 +745,7 @@ export default function Home() {
 
       <section className="hero wrap" id="top">
         <div className="hero-copy">
-          <div className="eyebrow">TẠO QR VUI HƠN · TÙY BIẾN DỄ · VẪN ƯU TIÊN KHẢ NĂNG QUÉT</div>
+          <div className="eyebrow">TẠO MÃ QR VUI HƠN · DỄ TÙY BIẾN · VẪN DỄ QUÉT</div>
           <h1>Mã QR không nhất thiết<br /><em>phải đơn điệu.</em></h1>
           <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QRồi Xong giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
           <small>90 mẫu minh họa · Tải ảnh riêng · Tùy chỉnh vị trí và câu chữ · Hỗ trợ VietQR kèm số tiền.</small>
@@ -785,9 +763,9 @@ export default function Home() {
             <div><h2>Chọn nội dung cần mã hóa</h2><p>Hỗ trợ liên kết, Wi-Fi, VietQR, văn bản và email.</p></div>
           </div>
 
-          <div className="mode-tabs" role="tablist" aria-label="Loại nội dung QR">
+          <div className="mode-tabs" role="group" aria-label="Loại nội dung QR">
             {modes.map((item) => (
-              <button key={item.id} role="tab" aria-selected={mode === item.id} className={mode === item.id ? "active" : ""} onClick={() => switchMode(item.id)}>
+              <button key={item.id} type="button" aria-pressed={mode === item.id} className={mode === item.id ? "active" : ""} onClick={() => switchMode(item.id)}>
                 <b>{item.icon}</b>{item.label}
               </button>
             ))}
@@ -814,7 +792,7 @@ export default function Home() {
                 </label>
                 <div className="two-fields bank-fields">
                   <label>Số tiền (không bắt buộc)
-                    <input inputMode="numeric" value={bankAmount} onChange={(event) => setBankAmount(event.target.value.replace(/\D/g, "").slice(0, 9))} placeholder="Ví dụ: 150000" />
+                    <input inputMode="numeric" value={bankAmount} onChange={(event) => setBankAmount(event.target.value.replace(/\D/g, "").slice(0, 13))} placeholder="Ví dụ: 150000" />
                     {bankAmount && <small className="amount-readout">{Number(bankAmount).toLocaleString("vi-VN")} ₫</small>}
                   </label>
                   <label>Nội dung chuyển khoản
@@ -840,23 +818,23 @@ export default function Home() {
           </div>
 
           <div className="palette-section">
-            <div className="label-row"><span>Chọn màu QR</span><span>Tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đạt yêu cầu ✓" : "· Chưa đạt ✕"}</span></div>
+            <div className="label-row"><span>Chọn màu mã QR</span><span>Độ tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đạt ✓" : "· Chưa đạt ✕"}</span></div>
             <div className="palettes">
               {palettes.map((item) => (
-                <button key={item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
+                <button key={item.name} type="button" aria-pressed={palette.name === item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
                   <i style={{ background: item.value }} /><span>{item.name}</span>
                 </button>
               ))}
-              <label className="color-well">Mực<input type="color" value={palette.value} onChange={(event) => setPalette({ name: "Tự pha", value: event.target.value, accent: palette.accent })} /></label>
-              <label className="color-well">Nền<input type="color" value={palette.accent} onChange={(event) => setPalette({ name: "Tự pha", value: palette.value, accent: event.target.value })} /></label>
+              <label className="color-well">Màu QR<input type="color" value={palette.value} onChange={(event) => setPalette({ name: "Tùy chọn", value: event.target.value, accent: palette.accent })} /></label>
+              <label className="color-well">Màu nền<input type="color" value={palette.accent} onChange={(event) => setPalette({ name: "Tùy chọn", value: palette.value, accent: event.target.value })} /></label>
             </div>
           </div>
 
           <div className="shape-section">
-            <div className="label-row"><span>Chọn kiểu mô-đun</span><span>Vùng định vị luôn được giữ nguyên ✓</span></div>
+            <div className="label-row"><span>Chọn kiểu ô QR</span><span>Ba ô định vị luôn được giữ nguyên ✓</span></div>
             <div className="shape-options">
               {qrStyles.map((item) => (
-                <button key={item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
+                <button key={item.id} type="button" aria-pressed={qrStyle === item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
                   <i aria-hidden="true"><span /><span /><span /><span /></i>
                   <b>{item.name}</b><small>{item.note}</small>
                 </button>
@@ -868,25 +846,26 @@ export default function Home() {
         <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
           <div className="tape">XEM TRƯỚC</div>
           <div className="layout-switch" role="group" aria-label="Kiểu xuất mã">
-            <button className={layoutMode === "stamp" ? "active" : ""} onClick={() => setLayoutMode("stamp")}>QR độc lập</button>
-            <button className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>QR trong hình</button>
+            <button type="button" aria-pressed={layoutMode === "stamp"} className={layoutMode === "stamp" ? "active" : ""} onClick={() => setLayoutMode("stamp")}>Chỉ mã QR</button>
+            <button type="button" aria-pressed={layoutMode === "art"} className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>Mã QR trong tranh</button>
           </div>
           {layoutMode === "art" ? (
             <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để xem trước thiết kế</p></div>}</div>
           ) : (
             <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
           )}
-          <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`}><span>●</span>{notice}</div>
+          <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`} role="status" aria-live="polite"><span>●</span>{displayNotice}</div>
           <div className="tech-badges">
             <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? Math.min(artWidth, artHeight) * artQrScale / 100 >= 18 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
           </div>
           {layoutMode === "art" && <div className="art-controls">
             <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn chủ đề và mẫu phù hợp với mục đích sử dụng.</span></div><em>{artLibrary.length} mẫu</em></div>
-            <div className="category-tabs" role="tablist" aria-label="Chủ đề tranh">
-              {artCategories.map((item) => <button key={item.id} role="tab" aria-selected={artCategory === item.id} className={artCategory === item.id ? "active" : ""} onClick={() => setArtCategory(item.id)}><b>{item.icon}</b>{item.label}<small>{artLibrary.filter((art) => art.category === item.id).length}</small></button>)}
+            <div className="category-tabs" role="group" aria-label="Chủ đề tranh">
+              {artCategories.map((item) => <button key={item.id} type="button" aria-pressed={artCategory === item.id} className={artCategory === item.id ? "active" : ""} onClick={() => setArtCategory(item.id)}><b>{item.icon}</b>{item.label}<small>{artLibrary.filter((art) => art.category === item.id).length}</small></button>)}
             </div>
             <div className="art-library" aria-label="Kho tranh có sẵn">
-              {visibleArt.map((item) => <button key={item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
+              {visibleArt.map((item) => <button key={item.id} type="button" aria-pressed={selectedArt === item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
@@ -898,43 +877,46 @@ export default function Home() {
               <summary>Cách chọn ảnh phù hợp <span>Xem hướng dẫn ↓</span></summary>
               <div className="guide-body">
                 <div className="guide-pictures" aria-hidden="true"><i className="good"><b>QR</b></i><i className="bad"><b>QR</b></i></div>
-                <ul><li><b>Chừa một mảng trống 35–50%</b> để mã không che mặt người hay món đồ chính.</li><li><b>Ít chi tiết phía sau mã.</b> Ảnh càng rối, nên bật “lót giấy trắng”.</li><li><b>Ảnh vuông hoặc dọc, từ 800 px.</b> Tránh ảnh mờ, chụp quá tối hoặc cắt sát chủ thể.</li></ul>
+                <ul><li><b>Chừa một mảng trống 35–50%</b> để mã không che mặt người hay món đồ chính.</li><li><b>Ít chi tiết phía sau mã.</b> Nếu ảnh nhiều chi tiết, hãy bật “Thêm nền và bóng đổ”.</li><li><b>Ảnh vuông hoặc dọc, từ 800 px.</b> Tránh ảnh mờ, chụp quá tối hoặc cắt sát chủ thể.</li></ul>
               </div>
             </details>
-            <div className="control-title"><b>Khung trên tranh</b><span>Di chuyển và khớp mặt bảng</span></div>
-            <div className="slider-grid">
-              <label>Vị trí ngang <output>{artX}%</output><input type="range" min="8" max="92" step="0.5" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
-              <label>Vị trí dọc <output>{artY}%</output><input type="range" min="8" max="92" step="0.5" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
-              <label>Rộng khung <output>{artWidth}%</output><input type="range" min="16" max="72" step="0.5" value={artWidth} onChange={(e) => setArtWidth(Number(e.target.value))} /></label>
-              <label>Cao khung <output>{artHeight}%</output><input type="range" min="16" max="78" step="0.5" value={artHeight} onChange={(e) => setArtHeight(Number(e.target.value))} /></label>
-              <label>Xoay cả cụm <output>{artRotation}°</output><input type="range" min="-18" max="18" step="0.5" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
-              <label>Nghiêng ngang <output>{artSkewX}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewX} onChange={(e) => setArtSkewX(Number(e.target.value))} /></label>
-              <label>Nghiêng dọc <output>{artSkewY}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewY} onChange={(e) => setArtSkewY(Number(e.target.value))} /></label>
-            </div>
-            <div className="control-title"><b>Bố cục bên trong</b><span>QR và chữ được chỉnh độc lập</span></div>
-            <div className="slider-grid">
-              <label>QR ngang <output>{artQrX}%</output><input type="range" min="18" max="82" step="0.5" value={artQrX} onChange={(e) => setArtQrX(Number(e.target.value))} /></label>
-              <label>QR dọc <output>{artQrY}%</output><input type="range" min="18" max="70" step="0.5" value={artQrY} onChange={(e) => setArtQrY(Number(e.target.value))} /></label>
-              <label>Cỡ QR <output>{artQrScale}%</output><input type="range" min="42" max="84" step="0.5" value={artQrScale} onChange={(e) => setArtQrScale(Number(e.target.value))} /></label>
-              <label>Chữ ngang <output>{artCopyX}%</output><input type="range" min="18" max="82" step="0.5" value={artCopyX} onChange={(e) => setArtCopyX(Number(e.target.value))} /></label>
-              <label>Chữ dọc <output>{artCopyY}%</output><input type="range" min="65" max="94" step="0.5" value={artCopyY} onChange={(e) => setArtCopyY(Number(e.target.value))} /></label>
-              <label>Cỡ tiêu đề <output>{artTitleScale}%</output><input type="range" min="3" max="8" step="0.1" value={artTitleScale} onChange={(e) => setArtTitleScale(Number(e.target.value))} /></label>
-            </div>
-            <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Dùng thẻ nổi có nền và bóng đổ</label>
-            <label className="paper-check"><input type="checkbox" checked={artShowSubtitle} onChange={(e) => setArtShowSubtitle(e.target.checked)} /> Hiện dòng mô tả nhỏ</label>
             <div className="caption-grid"><label>Tiêu đề<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Dòng mô tả<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
-            {selectedArt === "custom" && <button className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
+            <details className="layout-editor" key={selectedArt}>
+              <summary><span>Tinh chỉnh bố cục</span><small>Vị trí, kích thước và độ nghiêng</small></summary>
+              <div className="control-title"><b>Khung đặt mã</b><span>Khớp với mặt bảng trong tranh</span></div>
+              <div className="slider-grid">
+                <label>Vị trí ngang <output>{artX}%</output><input type="range" min="8" max="92" step="0.5" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
+                <label>Vị trí dọc <output>{artY}%</output><input type="range" min="8" max="92" step="0.5" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
+                <label>Chiều rộng <output>{artWidth}%</output><input type="range" min="16" max="72" step="0.5" value={artWidth} onChange={(e) => setArtWidth(Number(e.target.value))} /></label>
+                <label>Chiều cao <output>{artHeight}%</output><input type="range" min="16" max="78" step="0.5" value={artHeight} onChange={(e) => setArtHeight(Number(e.target.value))} /></label>
+                <label>Góc xoay <output>{artRotation}°</output><input type="range" min="-18" max="18" step="0.5" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
+                <label>Nghiêng ngang <output>{artSkewX}°</output><input type="range" min="-8" max="8" step="0.5" value={artSkewX} onChange={(e) => setArtSkewX(Number(e.target.value))} /></label>
+                <label>Nghiêng dọc <output>{artSkewY}°</output><input type="range" min="-8" max="8" step="0.5" value={artSkewY} onChange={(e) => setArtSkewY(Number(e.target.value))} /></label>
+              </div>
+              <div className="control-title"><b>Mã QR và câu chữ</b><span>Điều chỉnh độc lập trong khung</span></div>
+              <div className="slider-grid">
+                <label>QR theo chiều ngang <output>{artQrX}%</output><input type="range" min="18" max="82" step="0.5" value={artQrX} onChange={(e) => setArtQrX(Number(e.target.value))} /></label>
+                <label>QR theo chiều dọc <output>{artQrY}%</output><input type="range" min="18" max="70" step="0.5" value={artQrY} onChange={(e) => setArtQrY(Number(e.target.value))} /></label>
+                <label>Kích thước QR <output>{artQrScale}%</output><input type="range" min="42" max="84" step="0.5" value={artQrScale} onChange={(e) => setArtQrScale(Number(e.target.value))} /></label>
+                <label>Chữ theo chiều ngang <output>{artCopyX}%</output><input type="range" min="18" max="82" step="0.5" value={artCopyX} onChange={(e) => setArtCopyX(Number(e.target.value))} /></label>
+                <label>Chữ theo chiều dọc <output>{artCopyY}%</output><input type="range" min="65" max="94" step="0.5" value={artCopyY} onChange={(e) => setArtCopyY(Number(e.target.value))} /></label>
+                <label>Kích thước tiêu đề <output>{artTitleScale}%</output><input type="range" min="3" max="8" step="0.1" value={artTitleScale} onChange={(e) => setArtTitleScale(Number(e.target.value))} /></label>
+              </div>
+              <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Thêm nền và bóng đổ phía sau mã</label>
+              <label className="paper-check"><input type="checkbox" checked={artShowSubtitle} onChange={(e) => setArtShowSubtitle(e.target.checked)} /> Hiện dòng mô tả nhỏ</label>
+            </details>
+            {selectedArt === "custom" && <button type="button" className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
           </div>}
           <div className="download-row">
-            <button className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải thiết kế PNG" : "Tải QR PNG"} <span>↓</span></button>
-            <button className="secondary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>Tải QR SVG</button>
+            <button type="button" className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
+            <button type="button" className="secondary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>Tải mã QR SVG</button>
           </div>
           <p className="scan-tip">Hãy quét thử bằng ít nhất một điện thoại trước khi in số lượng lớn.</p>
         </aside>
       </section>
 
       <section className="why wrap">
-        <div className="why-title"><span>VẤN ĐỀ</span><h2>QR thường đúng chức năng nhưng thiếu cảm xúc.</h2></div>
+        <div className="why-title"><span>VẤN ĐỀ</span><h2>Mã QR thường đúng chức năng nhưng thiếu cảm xúc.</h2></div>
         <div className="proof-grid">
           <article><b>01</b><h3>Đơn điệu và khó tạo ấn tượng</h3><p>Phần lớn công cụ chỉ tạo một ô mã đen trắng giống nhau, khó thể hiện cá tính hoặc khiến người nhận muốn quét.</p></article>
           <article><b>02</b><h3>Khó phù hợp với từng bối cảnh</h3><p>Một mã dùng cho quán ăn, đám cưới, du lịch hay chuyển khoản thường vẫn có cùng hình thức khô khan.</p></article>
