@@ -7,7 +7,7 @@ type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
-type ArtCategory = "hai" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
+type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string };
 
 const palettes = [
@@ -98,10 +98,38 @@ const artLibrary: LibraryArt[] = [
   { id: "da-lat", name: "Lâm Đồng · Đà Lạt", mood: "Cao nguyên", category: "nam-bien", src: "/art-library/mien-nam-bien/da-lat.png", x: 35, y: 75, size: 35, caption: "ĐÀ LẠT, QUÉT PHÁT" },
   { id: "can-tho", name: "Cần Thơ · Chợ nổi", mood: "Miền sông", category: "nam-bien", src: "/art-library/mien-nam-bien/can-tho.png", x: 75, y: 68, size: 36, caption: "CẦN THƠ, MÃ ĐỢI" },
   { id: "phu-quoc", name: "Kiên Giang · Phú Quốc", mood: "Đảo ngọc", category: "nam-bien", src: "/art-library/mien-nam-bien/phu-quoc.png", x: 75, y: 75, size: 35, caption: "ĐẢO XANH, MÃ LÀNH" },
+  { id: "meo-sep", name: "Mèo sếp ra chỉ thị", mood: "Lầy cấp cao", category: "hai-thu", src: "/art-library/hai-thu/meo-sep.png", x: 74, y: 61, size: 38, caption: "SẾP BẢO QUÉT ĐI" },
+  { id: "capy-tron-bao-thuc", name: "Capy giả điếc", mood: "Lười có nghề", category: "hai-thu", src: "/art-library/hai-thu/capy-tron-bao-thuc.png", x: 50, y: 66, size: 34, caption: "BÁO THỨC KỆ, MÃ QUÉT LẸ" },
+  { id: "vit-dieu-phoi", name: "Vịt điều phối giao thông", mood: "Nghiêm mà sai", category: "hai-thu", src: "/art-library/hai-thu/vit-dieu-phoi.png", x: 75, y: 42, size: 38, caption: "DỪNG LẠI, QUÉT CÁI" },
+  { id: "cho-bao-ve", name: "Bảo vệ ngủ có ca", mood: "Hết pin", category: "hai-thu", src: "/art-library/hai-thu/cho-bao-ve.png", x: 74, y: 44, size: 36, caption: "QUÉT NHẸ, ĐỪNG GỌI" },
+  { id: "ech-karaoke", name: "Ếch hát bằng cả đời", mood: "Hát bất chấp", category: "hai-thu", src: "/art-library/hai-thu/ech-karaoke.png", x: 77, y: 44, size: 36, caption: "QUÉT XONG, HÁT TIẾP" },
+  { id: "ga-influencer", name: "Gà tạo dáng mạng", mood: "Tự tin vô hạn", category: "hai-thu", src: "/art-library/hai-thu/ga-influencer.png", x: 70, y: 43, size: 42, caption: "THẢ TIM SAU, QUÉT TRƯỚC" },
+  { id: "ca-phe-cuu-roi", name: "Cà phê gánh cả phòng", mood: "Sáng chưa tỉnh", category: "hai-cong-so", src: "/art-library/hai-cong-so/ca-phe-cuu-roi.png", x: 75, y: 44, size: 44, caption: "CÀ PHÊ TỚI, MÃ LÊN" },
+  { id: "hop-robot", name: "Họp bằng đầu hộp", mood: "Bật cam cho có", category: "hai-cong-so", src: "/art-library/hai-cong-so/hop-robot.png", x: 76, y: 43, size: 36, caption: "CAM BẬT, NÃO TẮT" },
+  { id: "vat-may-in", name: "Vật lộn máy in", mood: "Kẻ thù văn phòng", category: "hai-cong-so", src: "/art-library/hai-cong-so/vat-may-in.png", x: 77, y: 57, size: 40, caption: "MÁY KẸT, MÃ KHÔNG" },
+  { id: "hop-om-goi", name: "Họp nghiêm túc ôm gối", mood: "Tinh thần mềm", category: "hai-cong-so", src: "/art-library/hai-cong-so/hop-om-goi.png", x: 52, y: 25, size: 34, caption: "HỌP DÀI, QUÉT NGAY" },
+  { id: "lam-viec-o-nha", name: "Áo sơ mi, quần ngủ", mood: "Làm xa rất gần", category: "hai-cong-so", src: "/art-library/hai-cong-so/lam-viec-o-nha.png", x: 70, y: 57, size: 40, caption: "TRÊN NGHIÊM, DƯỚI ÊM" },
+  { id: "vi-rong", name: "Ví rỗng đầu tháng", mood: "Tài chính tâm linh", category: "hai-cong-so", src: "/art-library/hai-cong-so/vi-rong.png", x: 76, y: 52, size: 40, caption: "LƯƠNG ĐÂU, MÃ ĐÂY" },
+  { id: "banh-mi-dao-dien", name: "Bánh mì đạo diễn", mood: "Chỉ đạo giòn tan", category: "hai-do-an", src: "/art-library/hai-do-an/banh-mi-dao-dien.png", x: 75, y: 58, size: 44, caption: "CẮT! QUÉT LẠI!" },
+  { id: "mi-yoga", name: "Tô mì tập yoga", mood: "Dẻo hơn sợi mì", category: "hai-do-an", src: "/art-library/hai-do-an/mi-yoga.png", x: 74, y: 62, size: 38, caption: "HÍT VÀO, QUÉT RA" },
+  { id: "ca-phe-mat-mo", name: "Cà phê mở mắt hộ", mood: "Tỉnh quá mức", category: "hai-do-an", src: "/art-library/hai-do-an/ca-phe-mat-mo.png", x: 75, y: 56, size: 40, caption: "MẮT MỞ, MÃ RÕ" },
+  { id: "sau-rieng-diva", name: "Sầu riêng lên thảm đỏ", mood: "Thơm tùy người", category: "hai-do-an", src: "/art-library/hai-do-an/sau-rieng-diva.png", x: 75, y: 56, size: 40, caption: "SẦU RIÊNG, MÃ CHUNG" },
+  { id: "nuoc-mam-sieu-nhan", name: "Nước mắm siêu nhân", mood: "Đậm đà cứu thế", category: "hai-do-an", src: "/art-library/hai-do-an/nuoc-mam-sieu-nhan.png", x: 73, y: 58, size: 40, caption: "ĐẬM ĐÀ, QUÉT RA" },
+  { id: "noi-com-het-hon", name: "Nồi cơm hết hồn", mood: "Cơm vừa bật", category: "hai-do-an", src: "/art-library/hai-do-an/noi-com-het-hon.png", x: 76, y: 57, size: 38, caption: "CƠM CHÍN, MÃ TỈNH" },
+  { id: "san-wifi", name: "Săn Wi‑Fi trên cao", mood: "Một vạch hy vọng", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/san-wifi.png", x: 73, y: 53, size: 42, caption: "SÓNG ĐÂU, MÃ ĐÂY" },
+  { id: "mua-to", name: "Mưa to vẫn bình thản", mood: "Đường về gian nan", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/mua-to.png", x: 73, y: 64, size: 36, caption: "MƯA RƠI, QUÉT THÔI" },
+  { id: "nui-quan-ao", name: "Núi quần áo biết đi", mood: "Giặt không kịp", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/nui-quan-ao.png", x: 73, y: 60, size: 40, caption: "ĐỒ CHẤT, MÃ CHUẨN" },
+  { id: "giu-phong-bi", name: "Giữ phong bì bằng cả tim", mood: "Đi tiệc chiến lược", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/giu-phong-bi.png", x: 73, y: 59, size: 44, caption: "MỪNG SAU, QUÉT TRƯỚC" },
+  { id: "soi-cong-to", name: "Soi công tơ như thám tử", mood: "Điện chạy nhanh", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/soi-cong-to.png", x: 71, y: 63, size: 40, caption: "SỐ QUAY, MÃ ĐỨNG" },
+  { id: "selfie-dai-gia-dinh", name: "Selfie đủ cả họ", mood: "Chen mới vui", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/selfie-dai-gia-dinh.png", x: 76, y: 50, size: 47, caption: "CẢ NHÀ, CÙNG QUÉT" },
 ];
 
 const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
   { id: "hai", label: "Tấu hài", icon: "☺" },
+  { id: "hai-thu", label: "Thú lầy", icon: "☻" },
+  { id: "hai-cong-so", label: "Công sở lụi", icon: "⌘" },
+  { id: "hai-do-an", label: "Đồ ăn thành tinh", icon: "♨" },
+  { id: "hai-doi-thuong", label: "Đời thường lầy", icon: "※" },
   { id: "nghe", label: "Ngành nghề", icon: "✦" },
   { id: "giai-tri", label: "Phim & vui", icon: "▶" },
   { id: "kinh-doanh", label: "Bán & ăn", icon: "₫" },
