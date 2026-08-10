@@ -7,7 +7,8 @@ type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
-type LibraryArt = { id: string; name: string; mood: string; src: string; x: number; y: number; size: number; caption: string };
+type ArtCategory = "hai" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien";
+type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string };
 
 const palettes = [
   { name: "Đen đá", value: "#171717", accent: "#FFD338" },
@@ -31,12 +32,44 @@ const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] =
 ];
 
 const artLibrary: LibraryArt[] = [
-  { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ" },
-  { id: "capy", name: "Capy tan ca", mood: "Hài nhẹ", src: "/art-library/capybara-tan-ca.png", x: 76, y: 37, size: 40, caption: "QUÉT XONG RỒI NGHỈ" },
-  { id: "ech", name: "Ếch trà đá", mood: "Dễ thương", src: "/art-library/ech-tra-da.png", x: 86, y: 35, size: 35, caption: "TRÀ ĐÁ CÓ MÃ" },
-  { id: "cun", name: "Cún nón lá", mood: "Dễ thương", src: "/art-library/cun-non-la.png", x: 50, y: 73, size: 32, caption: "QUÉT NHẸ TAY NHA" },
-  { id: "vit", name: "Vịt chạy đơn", mood: "Bựa vừa", src: "/art-library/vit-chay-don.png", x: 78, y: 57, size: 25, caption: "ĐƠN TỚI, QUÉT THÔI" },
-  { id: "noi", name: "Nồi cơm chào hàng", mood: "Hài nhẹ", src: "/art-library/noi-com-chao-hang.png", x: 81, y: 57, size: 38, caption: "CƠM CHÍN, MÃ XONG" },
+  { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", category: "hai", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ" },
+  { id: "capy", name: "Capy tan ca", mood: "Hài nhẹ", category: "hai", src: "/art-library/capybara-tan-ca.png", x: 76, y: 37, size: 40, caption: "QUÉT XONG RỒI NGHỈ" },
+  { id: "ech", name: "Ếch trà đá", mood: "Dễ thương", category: "hai", src: "/art-library/ech-tra-da.png", x: 81, y: 35, size: 35, caption: "TRÀ ĐÁ CÓ MÃ" },
+  { id: "cun", name: "Cún nón lá", mood: "Dễ thương", category: "hai", src: "/art-library/cun-non-la.png", x: 50, y: 73, size: 32, caption: "QUÉT NHẸ TAY NHA" },
+  { id: "vit", name: "Vịt chạy đơn", mood: "Bựa vừa", category: "hai", src: "/art-library/vit-chay-don.png", x: 78, y: 57, size: 30, caption: "ĐƠN TỚI, QUÉT THÔI" },
+  { id: "noi", name: "Nồi cơm chào hàng", mood: "Hài nhẹ", category: "hai", src: "/art-library/noi-com-chao-hang.png", x: 81, y: 57, size: 38, caption: "CƠM CHÍN, MÃ XONG" },
+  { id: "bac-si", name: "Bác sĩ tận tâm", mood: "Y tế", category: "nghe", src: "/art-library/nganh-nghe/bac-si.png", x: 75, y: 58, size: 40, caption: "QUÉT NHẸ, KHỎE RE" },
+  { id: "giao-vien", name: "Cô giáo vui tính", mood: "Giáo dục", category: "nghe", src: "/art-library/nganh-nghe/giao-vien.png", x: 70, y: 43, size: 45, caption: "QUÉT MÃ, VÀO BÀI" },
+  { id: "tho-toc", name: "Thợ tóc có gu", mood: "Làm đẹp", category: "nghe", src: "/art-library/nganh-nghe/tho-toc.png", x: 76, y: 55, size: 42, caption: "QUÉT MÃ, ĐỔI KIỂU" },
+  { id: "pha-che", name: "Pha chế tỉnh táo", mood: "Đồ uống", category: "nghe", src: "/art-library/nganh-nghe/pha-che.png", x: 76, y: 55, size: 36, caption: "QUÉT XONG, UỐNG NGON" },
+  { id: "giao-hang", name: "Anh ship có mặt", mood: "Vận chuyển", category: "nghe", src: "/art-library/nganh-nghe/giao-hang.png", x: 67, y: 65, size: 34, caption: "HÀNG TỚI, QUÉT THÔI" },
+  { id: "van-phong", name: "Văn phòng sáng cửa", mood: "Công sở", category: "nghe", src: "/art-library/nganh-nghe/van-phong.png", x: 70, y: 42, size: 43, caption: "QUÉT GỌN, LÀM NHANH" },
+  { id: "rap-chieu", name: "Rạp chiếu mở màn", mood: "Điện ảnh", category: "giai-tri", src: "/art-library/giai-tri/rap-chieu.png", x: 66, y: 49, size: 50, caption: "QUÉT VÉ, VÀO PHIM" },
+  { id: "ca-si", name: "Ca sĩ lên mic", mood: "Âm nhạc", category: "giai-tri", src: "/art-library/giai-tri/ca-si.png", x: 68, y: 54, size: 47, caption: "QUÉT MÃ, LÊN NHẠC" },
+  { id: "bap-rang", name: "Bắp rang mời vé", mood: "Điện ảnh", category: "giai-tri", src: "/art-library/giai-tri/bap-rang-bo.png", x: 70, y: 52, size: 45, caption: "CÓ BẮP, CÓ PHIM" },
+  { id: "tro-choi", name: "Thùng game tuổi thơ", mood: "Trò chơi", category: "giai-tri", src: "/art-library/giai-tri/tro-choi.png", x: 61, y: 40, size: 40, caption: "QUÉT MÃ, VÀO GAME" },
+  { id: "dien-nhac", name: "DJ bật nhịp", mood: "Âm nhạc", category: "giai-tri", src: "/art-library/giai-tri/dien-nhac.png", x: 72, y: 50, size: 39, caption: "QUÉT XONG, QUẨY LUÔN" },
+  { id: "san-khau", name: "Sân khấu sáng đèn", mood: "Biểu diễn", category: "giai-tri", src: "/art-library/giai-tri/san-khau.png", x: 70, y: 50, size: 45, caption: "QUÉT VÉ, VÀO VUI" },
+  { id: "banh-mi", name: "Bánh mì nóng giòn", mood: "Ẩm thực", category: "kinh-doanh", src: "/art-library/kinh-doanh/banh-mi.png", x: 69, y: 67, size: 40, caption: "QUÉT MÃ, MUA BÁNH" },
+  { id: "quan-mi", name: "Tô mì biết mời", mood: "Ẩm thực", category: "kinh-doanh", src: "/art-library/kinh-doanh/quan-mi.png", x: 73, y: 54, size: 39, caption: "MÌ NÓNG, MÃ GỌN" },
+  { id: "tiem-hoa", name: "Tiệm hoa nở rộ", mood: "Bán lẻ", category: "kinh-doanh", src: "/art-library/kinh-doanh/tiem-hoa.png", x: 72, y: 72, size: 36, caption: "QUÉT MÃ, GỬI HOA" },
+  { id: "thoi-trang", name: "Tiệm đồ có gu", mood: "Thời trang", category: "kinh-doanh", src: "/art-library/kinh-doanh/thoi-trang.png", x: 70, y: 73, size: 36, caption: "QUÉT MÃ, LÊN ĐỒ" },
+  { id: "sua-xe", name: "Thợ máy chắc tay", mood: "Dịch vụ", category: "kinh-doanh", src: "/art-library/kinh-doanh/sua-xe.png", x: 70, y: 70, size: 43, caption: "QUÉT MÃ, SỬA NGAY" },
+  { id: "cho-que", name: "Sạp chợ tươi vui", mood: "Bán lẻ", category: "kinh-doanh", src: "/art-library/kinh-doanh/cho-que.png", x: 71, y: 69, size: 35, caption: "CHỢ VUI, MÃ TỚI" },
+  { id: "dam-cuoi", name: "Ngày vui có đôi", mood: "Cưới hỏi", category: "su-kien", src: "/art-library/su-kien/dam-cuoi.png", x: 68, y: 71, size: 38, caption: "QUÉT MÃ, CHUNG VUI" },
+  { id: "sinh-nhat", name: "Bánh sinh nhật", mood: "Tiệc vui", category: "su-kien", src: "/art-library/su-kien/sinh-nhat.png", x: 74, y: 69, size: 38, caption: "QUÉT MÃ, THỔI NẾN" },
+  { id: "tot-nghiep", name: "Tân khoa rạng rỡ", mood: "Tốt nghiệp", category: "su-kien", src: "/art-library/su-kien/tot-nghiep.png", x: 70, y: 69, size: 39, caption: "QUÉT MÃ, XEM THÀNH QUẢ" },
+  { id: "du-lich", name: "Xách ba lô lên", mood: "Du lịch", category: "su-kien", src: "/art-library/su-kien/du-lich.png", x: 70, y: 68, size: 41, caption: "QUÉT MÃ, LÊN ĐƯỜNG" },
+  { id: "chay-bo", name: "Chạy là có hội", mood: "Thể thao", category: "su-kien", src: "/art-library/su-kien/chay-bo.png", x: 72, y: 69, size: 40, caption: "QUÉT MÃ, CHẠY THÔI" },
+  { id: "thien-nguyen", name: "Góp vui góp sức", mood: "Cộng đồng", category: "su-kien", src: "/art-library/su-kien/thien-nguyen.png", x: 71, y: 73, size: 38, caption: "QUÉT MÃ, GÓP NIỀM VUI" },
+];
+
+const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
+  { id: "hai", label: "Tấu hài", icon: "☺" },
+  { id: "nghe", label: "Ngành nghề", icon: "✦" },
+  { id: "giai-tri", label: "Phim & vui", icon: "▶" },
+  { id: "kinh-doanh", label: "Bán & ăn", icon: "₫" },
+  { id: "su-kien", label: "Dịp đặc biệt", icon: "★" },
 ];
 
 const fallbackBanks: Bank[] = [
@@ -293,12 +326,14 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   if (options.image) drawImageContained(context, options.image, canvasSize);
   else drawWorkshopDoodle(context, canvasSize, accent);
 
-  const qrSize = canvasSize * options.size / 100;
-  const qrX = canvasSize * options.x / 100;
-  const qrY = canvasSize * options.y / 100;
+  const qrSize = canvasSize * Math.max(options.size, 30) / 100;
+  const angle = options.rotation * Math.PI / 180;
+  const safeHalf = qrSize / 2 * (Math.abs(Math.cos(angle)) + Math.abs(Math.sin(angle)));
+  const qrX = Math.max(safeHalf, Math.min(canvasSize - safeHalf, canvasSize * options.x / 100));
+  const qrY = Math.max(safeHalf, Math.min(canvasSize - safeHalf, canvasSize * options.y / 100));
   context.save();
   context.translate(qrX, qrY);
-  context.rotate(options.rotation * Math.PI / 180);
+  context.rotate(angle);
   if (options.paper) {
     context.shadowColor = "rgba(23,34,31,.28)";
     context.shadowBlur = canvasSize * 0.018;
@@ -362,6 +397,7 @@ export default function Home() {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("stamp");
   const [artImage, setArtImage] = useState<HTMLImageElement | null>(null);
   const [selectedArt, setSelectedArt] = useState(artLibrary[0].id);
+  const [artCategory, setArtCategory] = useState<ArtCategory>("hai");
   const [artX, setArtX] = useState(65);
   const [artY, setArtY] = useState(38);
   const [artSize, setArtSize] = useState(45);
@@ -376,6 +412,7 @@ export default function Home() {
     image.onload = () => {
       setArtImage(image);
       setSelectedArt(item.id);
+      setArtCategory(item.category);
       setArtX(item.x);
       setArtY(item.y);
       setArtSize(item.size);
@@ -450,6 +487,8 @@ export default function Home() {
     caption: artCaption,
     subcaption: artSubcaption,
   };
+
+  const visibleArt = artLibrary.filter((item) => item.category === artCategory);
 
   useEffect(() => {
     if (!inputIsValid || !colorIsSafe) return;
@@ -651,15 +690,19 @@ export default function Home() {
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
-            <span>Sửa lỗi H · Chịu va</span><span>Viền 4 ô · Dễ dò</span><span>{mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Kín thinh"}</span>
+            <span>Sửa lỗi H · Chịu va</span><span>Viền 4 ô · Dễ dò</span><span>{layoutMode === "art" ? artSize >= 36 ? "Cỡ lớn · Dễ quét" : "Cỡ vừa · Quét gần" : mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Kín thinh"}</span>
           </div>
           {layoutMode === "art" && <div className="art-controls">
-            <div className="library-head"><div><b>KỆ TRANH CÓ SẴN</b><span>Chọn phát, mã vào đúng chỗ.</span></div><em>6 mẫu gốc</em></div>
+            <div className="library-head"><div><b>KỆ TRANH CÓ SẴN</b><span>Chọn chủ đề, mã tự vào đúng chỗ.</span></div><em>{artLibrary.length} mẫu gốc</em></div>
+            <div className="category-tabs" role="tablist" aria-label="Chủ đề tranh">
+              {artCategories.map((item) => <button key={item.id} role="tab" aria-selected={artCategory === item.id} className={artCategory === item.id ? "active" : ""} onClick={() => setArtCategory(item.id)}><b>{item.icon}</b>{item.label}<small>{artLibrary.filter((art) => art.category === item.id).length}</small></button>)}
+            </div>
             <div className="art-library" aria-label="Kho tranh có sẵn">
-              {artLibrary.map((item) => <button key={item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
+              {visibleArt.map((item) => <button key={item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
                 <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
+            <p className="safe-note"><b>◎ Vùng mã đã căn sẵn:</b> nền sáng, không đè nhân vật, đủ khoảng trắng để máy dễ quét.</p>
             <div className="custom-divider"><span>HOẶC ẢNH RIÊNG CỦA BẠN</span></div>
             <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Nạp ảnh riêng<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
             <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
@@ -673,7 +716,7 @@ export default function Home() {
             <div className="slider-grid">
               <label>Ngang <output>{artX}%</output><input type="range" min="15" max="85" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
               <label>Dọc <output>{artY}%</output><input type="range" min="15" max="82" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
-              <label>Cỡ mã <output>{artSize}%</output><input type="range" min="22" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
+              <label>Cỡ mã <output>{artSize}%</output><input type="range" min="30" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
               <label>Xoay <output>{artRotation}°</output><input type="range" min="-15" max="15" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
             </div>
             <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Lót giấy trắng sau mã</label>
