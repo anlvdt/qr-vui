@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
+type LayoutMode = "stamp" | "art";
 
 const palettes = [
   { name: "Đen đá", value: "#171717", accent: "#FFD338" },
@@ -170,8 +171,146 @@ function styledSVG(payload: string, color: string, accent: string, style: QRStyl
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1540" viewBox="0 0 1400 1540">${pieces.join("")}</svg>`;
 }
 
+function colorLuminance(hex: string) {
+  const values = [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255).map((value) => value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4));
+  return values[0] * 0.2126 + values[1] * 0.7152 + values[2] * 0.0722;
+}
+
+function contrastOnWhite(hex: string) {
+  const dark = colorLuminance(hex);
+  return 1.05 / (dark + 0.05);
+}
+
+function drawImageContained(context: CanvasRenderingContext2D, image: HTMLImageElement, size: number) {
+  const scale = Math.min(size / image.naturalWidth, size / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  context.fillStyle = "#fff";
+  context.fillRect(0, 0, size, size);
+  context.drawImage(image, (size - width) / 2, (size - height) / 2, width, height);
+}
+
+function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, accent: string) {
+  context.fillStyle = "#f4eedf";
+  context.fillRect(0, 0, size, size);
+  context.strokeStyle = "#17221f";
+  context.lineWidth = size * 0.009;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+
+  context.fillStyle = "#fff";
+  context.beginPath();
+  context.moveTo(size * 0.34, size * 0.12);
+  context.lineTo(size * 0.92, size * 0.09);
+  context.lineTo(size * 0.9, size * 0.72);
+  context.lineTo(size * 0.35, size * 0.76);
+  context.closePath();
+  context.fill();
+  context.stroke();
+
+  context.fillStyle = accent;
+  context.beginPath();
+  context.moveTo(size * 0.08, size * 0.57);
+  context.lineTo(size * 0.16, size * 0.45);
+  context.lineTo(size * 0.22, size * 0.57);
+  context.lineTo(size * 0.29, size * 0.47);
+  context.lineTo(size * 0.33, size * 0.62);
+  context.lineTo(size * 0.27, size * 0.73);
+  context.lineTo(size * 0.31, size * 0.92);
+  context.lineTo(size * 0.2, size * 0.82);
+  context.lineTo(size * 0.12, size * 0.91);
+  context.lineTo(size * 0.14, size * 0.72);
+  context.closePath();
+  context.fill();
+  context.stroke();
+
+  context.fillStyle = "#17221f";
+  context.beginPath();
+  context.arc(size * 0.16, size * 0.59, size * 0.035, 0, Math.PI * 2);
+  context.arc(size * 0.25, size * 0.59, size * 0.035, 0, Math.PI * 2);
+  context.fill();
+  context.beginPath();
+  context.moveTo(size * 0.2, size * 0.63);
+  context.lineTo(size * 0.18, size * 0.66);
+  context.lineTo(size * 0.22, size * 0.66);
+  context.closePath();
+  context.fill();
+
+  context.font = `700 ${size * 0.035}px Arial, sans-serif`;
+  context.textAlign = "left";
+  context.fillText("TRANH CỦA BẠN", size * 0.49, size * 0.83);
+  context.font = `500 ${size * 0.02}px Arial, sans-serif`;
+  context.fillText("Tải ảnh lên · Đặt mã vào · Xuất tranh ra", size * 0.49, size * 0.87);
+}
+
+type ArtboardOptions = {
+  image: HTMLImageElement | null;
+  x: number;
+  y: number;
+  size: number;
+  rotation: number;
+  paper: boolean;
+  caption: string;
+  subcaption: string;
+};
+
+function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, payload: string, ink: string, accent: string, style: QRStyle, options: ArtboardOptions) {
+  if (options.image) drawImageContained(context, options.image, canvasSize);
+  else drawWorkshopDoodle(context, canvasSize, accent);
+
+  const qrSize = canvasSize * options.size / 100;
+  const qrX = canvasSize * options.x / 100;
+  const qrY = canvasSize * options.y / 100;
+  context.save();
+  context.translate(qrX, qrY);
+  context.rotate(options.rotation * Math.PI / 180);
+  if (options.paper) {
+    context.shadowColor = "rgba(23,34,31,.28)";
+    context.shadowBlur = canvasSize * 0.018;
+    context.shadowOffsetX = canvasSize * 0.012;
+    context.shadowOffsetY = canvasSize * 0.016;
+    context.fillStyle = "#fff";
+    context.fillRect(-qrSize * 0.54, -qrSize * 0.54, qrSize * 1.08, qrSize * 1.08);
+    context.shadowColor = "transparent";
+  }
+  drawQR(context, payload, ink, style, -qrSize / 2, -qrSize / 2, qrSize);
+  context.restore();
+
+  if (options.caption.trim()) {
+    context.textAlign = "center";
+    context.fillStyle = "#17221f";
+    context.font = `800 ${canvasSize * 0.038}px Arial, sans-serif`;
+    context.fillText(options.caption.trim().toUpperCase(), canvasSize / 2, canvasSize * 0.91);
+    context.font = `600 ${canvasSize * 0.023}px Arial, sans-serif`;
+    context.fillText(options.subcaption.trim(), canvasSize / 2, canvasSize * 0.95);
+  }
+}
+
+function renderArtPreview(canvas: HTMLCanvasElement, payload: string, ink: string, accent: string, style: QRStyle, options: ArtboardOptions) {
+  const size = 900;
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  drawArtboard(context, size, payload, ink, accent, style, options);
+}
+
+function downloadArtPNG(payload: string, ink: string, accent: string, style: QRStyle, options: ArtboardOptions, filename: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1800;
+  canvas.height = 1800;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  drawArtboard(context, 1800, payload, ink, accent, style, options);
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = `${filename}-tranh.png`;
+  link.click();
+}
+
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const artCanvasRef = useRef<HTMLCanvasElement>(null);
   const [mode, setMode] = useState<Mode>("link");
   const [value, setValue] = useState("qr.denso-wave.com");
   const [wifiName, setWifiName] = useState("");
@@ -185,6 +324,15 @@ export default function Home() {
   const [bankNote, setBankNote] = useState("");
   const [palette, setPalette] = useState(palettes[0]);
   const [qrStyle, setQrStyle] = useState<QRStyle>("round");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("stamp");
+  const [artImage, setArtImage] = useState<HTMLImageElement | null>(null);
+  const [artX, setArtX] = useState(65);
+  const [artY, setArtY] = useState(38);
+  const [artSize, setArtSize] = useState(45);
+  const [artRotation, setArtRotation] = useState(0);
+  const [artPaper, setArtPaper] = useState(true);
+  const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
+  const [artSubcaption, setArtSubcaption] = useState("Mã riêng của bạn · Nét riêng của bạn");
   const [notice, setNotice] = useState("Mã lên nét, quét là kết");
 
   useEffect(() => {
@@ -230,20 +378,36 @@ export default function Home() {
       return accountOk && amountOk;
     }
     return true;
-  }, [payload, mode, value]);
+  }, [payload, mode, value, bankAccount, bankAmount]);
+
+  const colorIsSafe = contrastOnWhite(palette.value) >= 4.5;
+
+  const artOptions: ArtboardOptions = {
+    image: artImage,
+    x: artX,
+    y: artY,
+    size: artSize,
+    rotation: artRotation,
+    paper: artPaper,
+    caption: artCaption,
+    subcaption: artSubcaption,
+  };
 
   useEffect(() => {
-    if (!canvasRef.current || !inputIsValid) return;
+    if (!inputIsValid || !colorIsSafe) return;
     try {
-      renderPreview(canvasRef.current, payload, palette.value, qrStyle);
+      if (layoutMode === "art" && artCanvasRef.current) renderArtPreview(artCanvasRef.current, payload, palette.value, palette.accent, qrStyle, artOptions);
+      else if (canvasRef.current) renderPreview(canvasRef.current, payload, palette.value, qrStyle);
     } catch {
       setNotice("Chữ dài lắm lời, bớt đi bạn ơi");
     }
-  }, [payload, palette, qrStyle, inputIsValid]);
+  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artSize, artRotation, artPaper, artCaption, artSubcaption]);
 
   useEffect(() => {
     setNotice(
-      !payload
+      !colorIsSafe
+        ? "Mực còn nhạt màu, quét dễ lao đao"
+        : !payload
         ? "Chưa có đầu vào, mã biết làm sao"
         : !inputIsValid
           ? "Chưa đúng chưa êm, xem lại rồi thêm"
@@ -251,14 +415,39 @@ export default function Home() {
             ? "Chữ dài lê thê, quét xa dễ chê"
             : "Mã lên nét, quét là kết",
     );
-  }, [payload, inputIsValid]);
+  }, [payload, inputIsValid, colorIsSafe]);
+
+  const uploadArtwork = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setNotice("Tệp này chưa phải ảnh, chọn lại cho lành");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setNotice("Ảnh nặng quá tay, chọn dưới 10 MB ngay");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        setArtImage(image);
+        setLayoutMode("art");
+        setNotice("Tranh đã vào khay, đặt mã cho hay");
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const download = async (format: "png" | "svg") => {
-    if (!inputIsValid) return;
+    if (!inputIsValid || !colorIsSafe) return;
     const filename = `qroi-xong-${Date.now()}`;
     const selectedStyle = qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0];
     if (format === "png") {
-      downloadStyledPNG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption, filename);
+      if (layoutMode === "art") downloadArtPNG(payload, palette.value, palette.accent, qrStyle, artOptions, filename);
+      else downloadStyledPNG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption, filename);
     } else {
       const svg = styledSVG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption);
       const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
@@ -279,25 +468,26 @@ export default function Home() {
 
   return (
     <main>
+      <div className="ticker" aria-hidden="true">ĐƯA CHỮ VÀO · DẬP MÃ RA · ĐƯA TRANH VÀO · ĐẶT MÃ LÊN · QUÉT MỘT PHÁT · XONG MỘT VIỆC</div>
       <nav className="nav wrap" aria-label="Điều hướng chính">
         <a className="brand" href="#top" aria-label="QRồi Xong - trang chủ">
           <span className="brand-mark">QR!</span>
           <span>QRồi Xong!</span>
         </a>
-        <div className="nav-links"><a href="#about">Giới thiệu</a><a href="#tech">Đồ nghề</a></div>
-        <div className="nav-note"><span /> Mã tĩnh · Kín thinh · Không gài phí</div>
+        <div className="nav-links"><a href="#top">Bàn máy</a><a href="#about">Lời xưởng</a><a href="#tech">Phiếu máy</a></div>
+        <div className="nav-note"><span /> Xưởng đang mở cửa</div>
       </nav>
 
       <section className="hero wrap" id="top">
         <div className="hero-copy">
-          <div className="eyebrow">LÀM MÃ ĐÚNG CHUẨN · NÓI CHUYỆN CÓ DUYÊN</div>
-          <h1>Mã quét thật nét.<br /><em>Tính nết thật nhây.</em></h1>
-          <p>Không cần ghi danh. Không lo hết hạn. Không sợ nửa đường chìa tay tính toán.</p>
-          <small>*Danh hiệu tự phong, mong bạn đừng trông.</small>
+          <div className="eyebrow">XƯỞNG DẬP MÃ SỐ 01 · VIỆT NAM</div>
+          <h1>Đưa tranh vào.<br /><em>Dập mã ra.</em></h1>
+          <p>Tự đặt mã lên bất kỳ bức hình nào — gọn mắt, có duyên, quét vẫn chuẩn.</p>
+          <small>Sửa lỗi H · Viền trắng 4 ô · Mắt mã luôn được giữ nguyên.</small>
         </div>
         <div className="doodle" aria-hidden="true">
           <span className="arrow">↳</span>
-          <span className="doodle-copy">Giơ máy lên.<br />Quét một phen. Xong liền.</span>
+          <span className="doodle-copy">Vặn vừa tay.<br />Tải ngay về máy.</span>
         </div>
       </section>
 
@@ -305,7 +495,7 @@ export default function Home() {
         <div className="panel form-panel">
           <div className="panel-heading">
             <span className="step">01</span>
-            <div><h2>Mã này chứa gì?</h2><p>Bạn cứ điền đi, tụi mình chẳng nhìn gì.</p></div>
+            <div><h2>Nạp nội dung</h2><p>Điền vừa đủ, máy dập vừa đẹp.</p></div>
           </div>
 
           <div className="mode-tabs" role="tablist" aria-label="Loại nội dung QR">
@@ -363,13 +553,15 @@ export default function Home() {
           </div>
 
           <div className="palette-section">
-            <div className="label-row"><span>Chọn màu cho ngầu</span><span>Đậm nhạt đã chuẩn, quét khỏi lăn tăn ✓</span></div>
+            <div className="label-row"><span>Pha mực cho mã</span><span>Tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đủ đậm ✓" : "· Còn nhạt ✕"}</span></div>
             <div className="palettes">
               {palettes.map((item) => (
                 <button key={item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
                   <i style={{ background: item.value }} /><span>{item.name}</span>
                 </button>
               ))}
+              <label className="color-well">Mực<input type="color" value={palette.value} onChange={(event) => setPalette({ name: "Tự pha", value: event.target.value, accent: palette.accent })} /></label>
+              <label className="color-well">Nền<input type="color" value={palette.accent} onChange={(event) => setPalette({ name: "Tự pha", value: palette.value, accent: event.target.value })} /></label>
             </div>
           </div>
 
@@ -387,40 +579,56 @@ export default function Home() {
         </div>
 
         <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
-          <div className="tape">MÃ VỪA CHÍN TỚI</div>
-          <div className={`qr-costume ${qrStyle}`}>
-          <div className="qr-shell">
-            {inputIsValid ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Mã đang ngồi chờ<br />bạn cho chút chữ</p></div>}
+          <div className="tape">BẢN DẬP XEM TRƯỚC</div>
+          <div className="layout-switch" role="group" aria-label="Kiểu xuất mã">
+            <button className={layoutMode === "stamp" ? "active" : ""} onClick={() => setLayoutMode("stamp")}>Tem gọn</button>
+            <button className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>Dán vào tranh</button>
           </div>
-          <div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div>
-          </div>
-          <div className={`health ${inputIsValid ? "good" : "wait"}`}><span>●</span>{notice}</div>
+          {layoutMode === "art" ? (
+            <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Đủ chữ, đậm mực<br />tranh mới hiện hình</p></div>}</div>
+          ) : (
+            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Mã đang ngồi chờ<br />bạn cho chút chữ</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
+          )}
+          <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
             <span>Sửa lỗi H · Chịu va</span><span>Viền 4 ô · Dễ dò</span><span>{mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Kín thinh"}</span>
           </div>
+          {layoutMode === "art" && <div className="art-controls">
+            <label className="upload-button">+ Nạp ảnh nền<input type="file" accept="image/*" onChange={uploadArtwork} /></label>
+            <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
+            <div className="slider-grid">
+              <label>Ngang <output>{artX}%</output><input type="range" min="15" max="85" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
+              <label>Dọc <output>{artY}%</output><input type="range" min="15" max="82" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
+              <label>Cỡ mã <output>{artSize}%</output><input type="range" min="22" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
+              <label>Xoay <output>{artRotation}°</output><input type="range" min="-15" max="15" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
+            </div>
+            <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Lót giấy trắng sau mã</label>
+            <div className="caption-grid"><label>Câu trên<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Câu dưới<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
+            {artImage && <button className="text-button" onClick={() => setArtImage(null)}>Bỏ ảnh, về tranh mẫu ↺</button>}
+          </div>}
           <div className="download-row">
-            <button className="primary" disabled={!inputIsValid} onClick={() => download("png")}>Tải PNG, đem khoe <span>↓</span></button>
-            <button className="secondary" disabled={!inputIsValid} onClick={() => download("svg")}>SVG, in mê</button>
+            <button className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải cả tranh PNG" : "Tải tem PNG"} <span>↓</span></button>
+            <button className="secondary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>SVG riêng mã</button>
           </div>
-          <p className="scan-tip">Quét thử trước khi in. Chắc ăn, khỏi đứng hình.</p>
+          <p className="scan-tip">Dặn thật lòng: quét thử trước khi đem in số lượng lớn.</p>
         </aside>
       </section>
 
       <section className="why wrap">
-        <div className="why-title"><span>VỪA VUI VỪA XÀI</span><h2>Mã có duyên, quét phát liền.</h2></div>
+        <div className="why-title"><span>BIÊN BẢN KIỂM ĐỊNH</span><h2>Vui ngoài mặt. Chuẩn tận ruột.</h2></div>
         <div className="proof-grid">
           <article><b>4 ô</b><h3>Chừa bốn ô, máy dễ dò</h3><p>Khoảng trắng đủ bốn bề giúp máy bắt hình nhanh, quét xong khỏi giật mình.</p></article>
           <article><b>H</b><h3>Chịu xước, chịu va</h3><p>Sửa lỗi mức H giúp mã bền bỉ khi dính bẩn hoặc sứt mẻ đôi phần.</p></article>
-          <article><b>0</b><h3>Không vòng, không vo</h3><p>Dữ liệu nằm thẳng trong mã: không chuyển hướng, không giới hạn, không hẹn ngày tan.</p></article>
+          <article><b>□</b><h3>Mắt vuông, đường thông</h3><p>Trang trí phần dữ liệu nhưng giữ nguyên các ô định vị và vùng kỹ thuật.</p></article>
         </div>
       </section>
 
       <section className="about wrap" id="about">
-        <div className="section-kicker">CHUYỆN LÀM MÃ · NÓI CHO ĐÃ</div>
+        <div className="section-kicker">LỜI XƯỞNG · NÓI CHO TƯỜNG</div>
         <div className="about-grid">
-          <div><h2>Sinh ra để mã bớt nhạt,<br />người quét <em>bớt ngáp.</em></h2></div>
+          <div><h2>Mã không cần nhạt.<br />Tranh vẫn <em>quét đạt.</em></h2></div>
           <div className="about-copy">
-            <p><b>QRồi Xong!</b> làm đúng một việc: biến nội dung thành mã dễ quét, dễ tải, dễ chuyền tay — rồi rắc chút duyên để việc kỹ thuật bớt khô như bánh mì để quên.</p>
+            <p><b>QRồi Xong!</b> tách phần vui và phần chuẩn thành hai lớp. Bạn tha hồ đổi tranh, câu chữ, vị trí và kích thước; phần QR vẫn giữ vùng an toàn riêng.</p>
             <p>Không rút gọn đường dẫn. Không giữ lại nội dung. Không biến mã tĩnh thành chiếc vé thu tiền dài hạn. Mã ngân hàng được ghép ngay trên máy; ứng dụng ngân hàng mới là nơi kiểm tra và xác nhận.</p>
             <div className="about-sign">Làm cho chuẩn. Nói cho duyên. Quét phát liền. ↗</div>
           </div>
