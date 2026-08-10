@@ -8,7 +8,11 @@ type ArtFrameGeometry = {
   skewY?: number;
 };
 
+export type ArtPoint = { x: number; y: number };
+export type ArtQuad = [ArtPoint, ArtPoint, ArtPoint, ArtPoint];
+
 export type ArtFrame = ArtFrameGeometry & {
+  quad: ArtQuad;
   qr: { x: number; y: number; size: number };
   copy: { x: number; y: number; width: number; titleScale: number; subtitleScale: number; showSubtitle: boolean };
 };
@@ -109,23 +113,34 @@ const rawArtFrames: Record<string, ArtFrameGeometry> = {
 };
 
 type LayoutOverride = {
+  quad?: ArtQuad;
   qr?: Partial<ArtFrame["qr"]>;
   copy?: Partial<ArtFrame["copy"]>;
 };
 
+const flatQuad: ArtQuad = [
+  { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 },
+];
+
 // Các mẫu có tỷ lệ hoặc diện tích bảng đặc biệt được tinh chỉnh riêng.
 const layoutOverrides: Record<string, LayoutOverride> = {
-  meo: { qr: { y: 39, size: 65 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.4 } },
-  cun: { qr: { y: 38, size: 74 }, copy: { y: 84, titleScale: 5.7, showSubtitle: false } },
-  ech: { qr: { y: 36, size: 78 }, copy: { y: 80, titleScale: 5.1, subtitleScale: 2.2 } },
-  vit: { qr: { y: 39, size: 66 }, copy: { y: 82, titleScale: 5.6, showSubtitle: false } },
+  meo: {
+    quad: [{ x: 0.01, y: 0.05 }, { x: 0.98, y: 0 }, { x: 1, y: 0.96 }, { x: 0.03, y: 1 }],
+    qr: { y: 41, size: 82 }, copy: { y: 92, width: 72, titleScale: 6.5, showSubtitle: false },
+  },
+  cun: {
+    quad: [{ x: 0.02, y: 0.03 }, { x: 0.98, y: 0 }, { x: 1, y: 0.98 }, { x: 0, y: 1 }],
+    qr: { y: 40, size: 78 }, copy: { y: 90, width: 78, titleScale: 6.2, showSubtitle: false },
+  },
+  ech: { qr: { y: 39, size: 80 }, copy: { y: 90, width: 76, titleScale: 6.1, showSubtitle: false } },
+  vit: { qr: { y: 40, size: 76 }, copy: { y: 89, width: 78, titleScale: 6.1, showSubtitle: false } },
   "rap-chieu": { qr: { y: 36, size: 76 }, copy: { y: 81, titleScale: 5.1 } },
   "tra-da": { qr: { x: 33, y: 50, size: 82 }, copy: { x: 73, y: 49, width: 38, titleScale: 7, showSubtitle: false } },
   "xe-trai-cay": { qr: { x: 34, y: 50, size: 80 }, copy: { x: 74, y: 49, width: 36, titleScale: 6.8, showSubtitle: false } },
   "bap-nuong": { qr: { x: 32, y: 50, size: 82 }, copy: { x: 72, y: 49, width: 40, titleScale: 6.7, showSubtitle: false } },
-  "ninh-binh": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
-  "ha-noi": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
-  "quang-ninh": { qr: { y: 38, size: 68 }, copy: { y: 82, titleScale: 5.2, subtitleScale: 2.3 } },
+  "ninh-binh": { qr: { y: 40, size: 76 }, copy: { y: 90, width: 76, titleScale: 6.1, showSubtitle: false } },
+  "ha-noi": { qr: { y: 40, size: 76 }, copy: { y: 90, width: 76, titleScale: 6.1, showSubtitle: false } },
+  "quang-ninh": { qr: { y: 40, size: 76 }, copy: { y: 90, width: 76, titleScale: 6.1, showSubtitle: false } },
   "hop-om-goi": { qr: { x: 70, y: 50, size: 76 }, copy: { x: 25, y: 49, width: 36, titleScale: 6.8, showSubtitle: false } },
   "selfie-dai-gia-dinh": { qr: { y: 35, size: 78 }, copy: { y: 81, titleScale: 5, subtitleScale: 2.2 } },
 };
@@ -136,19 +151,21 @@ function buildLayout(id: string, frame: ArtFrameGeometry): ArtFrame {
   const landscape = ratio > 1.22;
   const base: ArtFrame = {
     ...frame,
-    qr: { x: landscape ? 33 : 50, y: landscape ? 50 : portrait ? 36 : 39, size: portrait ? 80 : landscape ? 82 : 74 },
+    quad: flatQuad.map((point) => ({ ...point })) as ArtQuad,
+    qr: { x: landscape ? 33 : 50, y: landscape ? 50 : 40, size: portrait ? 82 : landscape ? 82 : 78 },
     copy: {
       x: landscape ? 73 : 50,
-      y: landscape ? 49 : portrait ? 81 : 83,
-      width: landscape ? 38 : 88,
-      titleScale: landscape ? 6.8 : portrait ? 5 : 5.3,
+      y: landscape ? 49 : 90,
+      width: landscape ? 38 : 76,
+      titleScale: landscape ? 7.2 : 6.1,
       subtitleScale: 2.25,
-      showSubtitle: !landscape && Math.min(frame.width, frame.height) >= 28,
+      showSubtitle: false,
     },
   };
   const override = layoutOverrides[id];
   return {
     ...base,
+    quad: override?.quad ?? base.quad,
     qr: { ...base.qr, ...override?.qr },
     copy: { ...base.copy, ...override?.copy },
   };

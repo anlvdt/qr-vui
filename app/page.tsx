@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
-import { artFrames, type ArtFrame } from "./art-frames";
+import { artFrames, type ArtFrame, type ArtPoint, type ArtQuad } from "./art-frames";
 
 type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
@@ -13,8 +13,9 @@ type LibraryArt = { id: string; name: string; mood: string; category: ArtCategor
 
 const customArtFrame: ArtFrame = {
   x: 50, y: 50, width: 45, height: 52, rotation: 0, skewX: 0, skewY: 0,
-  qr: { x: 50, y: 38, size: 74 },
-  copy: { x: 50, y: 83, width: 88, titleScale: 5.3, subtitleScale: 2.25, showSubtitle: false },
+  quad: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }],
+  qr: { x: 50, y: 40, size: 78 },
+  copy: { x: 50, y: 90, width: 76, titleScale: 6.1, subtitleScale: 2.25, showSubtitle: false },
 };
 
 const palettes = [
@@ -376,6 +377,7 @@ type ArtboardOptions = {
   rotation: number;
   skewX: number;
   skewY: number;
+  quad: ArtQuad;
   qrX: number;
   qrY: number;
   qrScale: number;
@@ -389,6 +391,71 @@ type ArtboardOptions = {
   caption: string;
   subcaption: string;
 };
+
+function drawPolygon(context: CanvasRenderingContext2D, points: ArtPoint[]) {
+  context.beginPath();
+  points.forEach((point, index) => index === 0 ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y));
+  context.closePath();
+}
+
+function badgeQuadPoints(quad: ArtQuad, width: number, height: number) {
+  return quad.map((point) => ({ x: (point.x - 0.5) * width, y: (point.y - 0.5) * height })) as ArtQuad;
+}
+
+function bilinearPoint(quad: ArtQuad, u: number, v: number): ArtPoint {
+  const [topLeft, topRight, bottomRight, bottomLeft] = quad;
+  return {
+    x: topLeft.x * (1 - u) * (1 - v) + topRight.x * u * (1 - v) + bottomRight.x * u * v + bottomLeft.x * (1 - u) * v,
+    y: topLeft.y * (1 - u) * (1 - v) + topRight.y * u * (1 - v) + bottomRight.y * u * v + bottomLeft.y * (1 - u) * v,
+  };
+}
+
+function drawProjectedQR(context: CanvasRenderingContext2D, payload: string, color: string, style: QRStyle, background: string, mapPoint: (x: number, y: number) => ArtPoint, x: number, y: number, size: number) {
+  const qr = QRCode.create(payload, { errorCorrectionLevel: "H" });
+  const modules = qr.modules as typeof qr.modules & { isReserved(row: number, column: number): number };
+  const quiet = 4;
+  const cells = modules.size + quiet * 2;
+  const cell = size / cells;
+  const fillMappedCell = (cellX: number, cellY: number, inset = 0) => {
+    const overlap = cell * 0.012;
+    const left = cellX + inset - overlap;
+    const top = cellY + inset - overlap;
+    const right = cellX + cell - inset + overlap;
+    const bottom = cellY + cell - inset + overlap;
+    drawPolygon(context, [mapPoint(left, top), mapPoint(right, top), mapPoint(right, bottom), mapPoint(left, bottom)]);
+    context.fill();
+  };
+
+  context.fillStyle = background;
+  drawPolygon(context, [mapPoint(x, y), mapPoint(x + size, y), mapPoint(x + size, y + size), mapPoint(x, y + size)]);
+  context.fill();
+  context.fillStyle = color;
+  for (let row = 0; row < modules.size; row++) {
+    for (let column = 0; column < modules.size; column++) {
+      if (!modules.get(row, column)) continue;
+      const moduleX = x + (column + quiet) * cell;
+      const moduleY = y + (row + quiet) * cell;
+      const protectedModule = Boolean(modules.isReserved(row, column));
+      if (style === "dots" && !protectedModule) {
+        const center = mapPoint(moduleX + cell / 2, moduleY + cell / 2);
+        const edgeX = mapPoint(moduleX + cell * 0.96, moduleY + cell / 2);
+        const edgeY = mapPoint(moduleX + cell / 2, moduleY + cell * 0.96);
+        const radiusX = Math.hypot(edgeX.x - center.x, edgeX.y - center.y);
+        const radiusY = Math.hypot(edgeY.x - center.x, edgeY.y - center.y);
+        context.save();
+        context.translate(center.x, center.y);
+        context.rotate(Math.atan2(edgeX.y - center.y, edgeX.x - center.x));
+        context.scale(1, radiusX ? radiusY / radiusX : 1);
+        context.beginPath();
+        context.arc(0, 0, radiusX, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      } else {
+        fillMappedCell(moduleX, moduleY, style === "round" && !protectedModule ? cell * 0.035 : 0);
+      }
+    }
+  }
+}
 
 function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, payload: string, ink: string, accent: string, style: QRStyle, options: ArtboardOptions) {
   if (options.image) drawImageContained(context, options.image, canvasSize);
@@ -405,25 +472,35 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   const localRight = badgeWidth / 2;
   const localTop = -badgeHeight / 2;
   const localBottom = badgeHeight / 2;
+  const projectedQuad = badgeQuadPoints(options.quad, badgeWidth, badgeHeight);
+  const mapPoint = (x: number, y: number) => bilinearPoint(projectedQuad, (x - localLeft) / badgeWidth, (y - localTop) / badgeHeight);
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  const rotatedCorners = [
-    [localLeft, localTop], [localRight, localTop], [localRight, localBottom], [localLeft, localBottom],
-  ].map(([x, y]) => {
+  const transformedCorners = projectedQuad.map(({ x, y }) => {
     const skewedX = x + skewX * y;
     const skewedY = skewY * x + y;
     return { x: skewedX * cos - skewedY * sin, y: skewedX * sin + skewedY * cos };
   });
-  const minX = Math.min(...rotatedCorners.map((point) => point.x));
-  const maxX = Math.max(...rotatedCorners.map((point) => point.x));
-  const minY = Math.min(...rotatedCorners.map((point) => point.y));
-  const maxY = Math.max(...rotatedCorners.map((point) => point.y));
+  const minX = Math.min(...transformedCorners.map((point) => point.x));
+  const maxX = Math.max(...transformedCorners.map((point) => point.x));
+  const minY = Math.min(...transformedCorners.map((point) => point.y));
+  const maxY = Math.max(...transformedCorners.map((point) => point.y));
   const clampCenter = (raw: number, min: number, max: number) => min <= max ? Math.max(min, Math.min(max, raw)) : canvasSize / 2;
-  const qrX = clampCenter(canvasSize * options.x / 100, -minX, canvasSize - maxX);
-  const qrY = clampCenter(canvasSize * options.y / 100, -minY, canvasSize - maxY);
-  const embeddedSurface = options.paper ? "#FFFFFF" : sampleLightSurface(context, qrX, qrY, canvasSize);
+  const frameX = clampCenter(canvasSize * options.x / 100, -minX, canvasSize - maxX);
+  const frameY = clampCenter(canvasSize * options.y / 100, -minY, canvasSize - maxY);
+  const shortestSide = Math.min(badgeWidth, badgeHeight);
+  const qrSize = shortestSide * Math.max(42, Math.min(84, options.qrScale)) / 100;
+  const clampLocal = (raw: number, min: number, max: number) => Math.max(min, Math.min(max, raw));
+  const qrCenterX = clampLocal(localLeft + badgeWidth * options.qrX / 100, localLeft + qrSize / 2, localRight - qrSize / 2);
+  const qrCenterY = clampLocal(localTop + badgeHeight * options.qrY / 100, localTop + qrSize / 2, localBottom - qrSize / 2);
+  const projectedQrCenter = mapPoint(qrCenterX, qrCenterY);
+  const skewedCenterX = projectedQrCenter.x + skewX * projectedQrCenter.y;
+  const skewedCenterY = skewY * projectedQrCenter.x + projectedQrCenter.y;
+  const sampledX = frameX + skewedCenterX * cos - skewedCenterY * sin;
+  const sampledY = frameY + skewedCenterX * sin + skewedCenterY * cos;
+  const embeddedSurface = options.paper ? "#FFFFFF" : sampleLightSurface(context, sampledX, sampledY, canvasSize);
   context.save();
-  context.translate(qrX, qrY);
+  context.translate(frameX, frameY);
   context.rotate(angle);
   context.transform(1, skewY, skewX, 1, 0, 0);
   if (options.paper) {
@@ -432,42 +509,49 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
     context.shadowBlur = canvasSize * 0.014;
     context.shadowOffsetX = canvasSize * 0.009;
     context.shadowOffsetY = canvasSize * 0.011;
-    context.fillRect(localLeft, localTop, badgeWidth, badgeHeight);
+    drawPolygon(context, projectedQuad);
+    context.fill();
     context.shadowColor = "transparent";
     context.strokeStyle = "rgba(23,34,31,.72)";
     context.lineWidth = Math.max(2, Math.min(badgeWidth, badgeHeight) * 0.012);
-    context.strokeRect(localLeft, localTop, badgeWidth, badgeHeight);
+    drawPolygon(context, projectedQuad);
+    context.stroke();
   }
-  const shortestSide = Math.min(badgeWidth, badgeHeight);
-  const qrSize = shortestSide * Math.max(42, Math.min(84, options.qrScale)) / 100;
-  const clampLocal = (raw: number, min: number, max: number) => Math.max(min, Math.min(max, raw));
-  const qrCenterX = clampLocal(localLeft + badgeWidth * options.qrX / 100, localLeft + qrSize / 2, localRight - qrSize / 2);
-  const qrCenterY = clampLocal(localTop + badgeHeight * options.qrY / 100, localTop + qrSize / 2, localBottom - qrSize / 2);
-  drawQR(context, payload, ink, style, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize, embeddedSurface);
+  drawProjectedQR(context, payload, ink, style, embeddedSurface, mapPoint, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize);
   const copyWidth = Math.min(badgeWidth, badgeWidth * options.copyWidth / 100);
   const copyCenterX = clampLocal(localLeft + badgeWidth * options.copyX / 100, localLeft + copyWidth / 2, localRight - copyWidth / 2);
-  const captionFont = caption ? Math.min(badgeHeight * options.titleScale / 100, copyWidth / Math.max(8, caption.length * 0.58)) : 0;
+  const captionFont = caption ? Math.min(badgeHeight * options.titleScale / 100, copyWidth / Math.max(7, caption.length * 0.52)) : 0;
   const subcaptionFont = subcaption ? Math.min(badgeHeight * options.subtitleScale / 100, copyWidth / Math.max(18, subcaption.length * 0.52)) : 0;
-  const labelHeight = caption ? Math.max(captionFont * (subcaption ? 3.05 : 1.8), badgeHeight * 0.12) : 0;
+  const labelHeight = caption ? Math.max(captionFont * (subcaption ? 3.05 : 2.15), badgeHeight * 0.13) : 0;
   const copyCenterY = clampLocal(localTop + badgeHeight * options.copyY / 100, localTop + labelHeight / 2, localBottom - labelHeight / 2);
   const labelTop = copyCenterY - labelHeight / 2;
-  if (options.paper) {
-    context.fillStyle = "#17221f";
-    context.fillRect(copyCenterX - copyWidth / 2, labelTop, copyWidth, labelHeight);
-    context.fillStyle = "#DFFF45";
-    context.fillRect(copyCenterX - copyWidth / 2, labelTop, copyWidth, Math.max(2, badgeHeight * 0.012));
-  }
   if (caption) {
+    context.fillStyle = "#17221f";
+    const labelCorners = [mapPoint(copyCenterX - copyWidth / 2, labelTop), mapPoint(copyCenterX + copyWidth / 2, labelTop), mapPoint(copyCenterX + copyWidth / 2, labelTop + labelHeight), mapPoint(copyCenterX - copyWidth / 2, labelTop + labelHeight)];
+    drawPolygon(context, labelCorners);
+    context.fill();
+    context.fillStyle = "#DFFF45";
+    const accentHeight = Math.max(2, badgeHeight * 0.012);
+    drawPolygon(context, [mapPoint(copyCenterX - copyWidth / 2, labelTop), mapPoint(copyCenterX + copyWidth / 2, labelTop), mapPoint(copyCenterX + copyWidth / 2, labelTop + accentHeight), mapPoint(copyCenterX - copyWidth / 2, labelTop + accentHeight)]);
+    context.fill();
+    const textCenter = mapPoint(copyCenterX, copyCenterY);
+    const textLeft = mapPoint(copyCenterX - copyWidth / 2, copyCenterY);
+    const textRight = mapPoint(copyCenterX + copyWidth / 2, copyCenterY);
+    const projectedCopyWidth = Math.hypot(textRight.x - textLeft.x, textRight.y - textLeft.y);
+    context.save();
+    context.translate(textCenter.x, textCenter.y);
+    context.rotate(Math.atan2(textRight.y - textLeft.y, textRight.x - textLeft.x));
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = options.paper ? "#fff" : "#17221f";
+    context.fillStyle = "#fff";
     context.font = `800 ${captionFont}px ${canvasFontFamily()}`;
-    context.fillText(caption, copyCenterX, copyCenterY - (subcaption ? labelHeight * 0.14 : 0), copyWidth);
+    context.fillText(caption, 0, subcaption ? -labelHeight * 0.14 : 0, projectedCopyWidth * 0.9);
     if (subcaption) {
-      context.fillStyle = options.paper ? "#DFFF45" : "rgba(23,34,31,.72)";
+      context.fillStyle = "#DFFF45";
       context.font = `600 ${subcaptionFont}px ${canvasFontFamily()}`;
-      context.fillText(subcaption, copyCenterX, copyCenterY + labelHeight * 0.24, copyWidth);
+      context.fillText(subcaption, 0, labelHeight * 0.24, projectedCopyWidth * 0.9);
     }
+    context.restore();
   }
   context.restore();
 }
@@ -521,13 +605,14 @@ export default function Home() {
   const [artRotation, setArtRotation] = useState(0);
   const [artSkewX, setArtSkewX] = useState(0);
   const [artSkewY, setArtSkewY] = useState(0);
+  const [artQuad, setArtQuad] = useState<ArtQuad>(customArtFrame.quad);
   const [artQrX, setArtQrX] = useState(50);
-  const [artQrY, setArtQrY] = useState(39);
-  const [artQrScale, setArtQrScale] = useState(74);
+  const [artQrY, setArtQrY] = useState(40);
+  const [artQrScale, setArtQrScale] = useState(78);
   const [artCopyX, setArtCopyX] = useState(50);
-  const [artCopyY, setArtCopyY] = useState(83);
-  const [artCopyWidth, setArtCopyWidth] = useState(88);
-  const [artTitleScale, setArtTitleScale] = useState(5.3);
+  const [artCopyY, setArtCopyY] = useState(90);
+  const [artCopyWidth, setArtCopyWidth] = useState(76);
+  const [artTitleScale, setArtTitleScale] = useState(6.1);
   const [artSubtitleScale, setArtSubtitleScale] = useState(2.25);
   const [artShowSubtitle, setArtShowSubtitle] = useState(false);
   const [artPaper, setArtPaper] = useState(true);
@@ -543,6 +628,7 @@ export default function Home() {
     setArtRotation(frame.rotation);
     setArtSkewX(frame.skewX ?? 0);
     setArtSkewY(frame.skewY ?? 0);
+    setArtQuad(frame.quad);
     setArtQrX(frame.qr.x);
     setArtQrY(frame.qr.y);
     setArtQrScale(frame.qr.size);
@@ -559,8 +645,9 @@ export default function Home() {
     image.onload = () => {
       const frame = artFrames[item.id] ?? {
         x: item.x, y: item.y, width: item.size, height: item.size, rotation: item.rotation ?? 0, skewX: 0, skewY: 0,
-        qr: { x: 50, y: 39, size: 74 },
-        copy: { x: 50, y: 83, width: 88, titleScale: 5.3, subtitleScale: 2.25, showSubtitle: false },
+        quad: customArtFrame.quad,
+        qr: { x: 50, y: 40, size: 78 },
+        copy: { x: 50, y: 90, width: 76, titleScale: 6.1, subtitleScale: 2.25, showSubtitle: false },
       };
       setArtImage(image);
       setSelectedArt(item.id);
@@ -570,7 +657,7 @@ export default function Home() {
       setArtCaption(item.caption);
       setArtSubcaption("");
       setLayoutMode("art");
-      setNotice(`Đã chọn ${item.name}. Mã QR đã được căn vào vùng an toàn.`);
+      setNotice(`Mẫu ${item.name} đã sẵn sàng.`);
     };
     image.onerror = () => setNotice(`Không thể tải mẫu ${item.name}. Hãy chọn mẫu khác.`);
     image.src = item.src;
@@ -650,6 +737,7 @@ export default function Home() {
     rotation: artRotation,
     skewX: artSkewX,
     skewY: artSkewY,
+    quad: artQuad,
     qrX: artQrX,
     qrY: artQrY,
     qrScale: artQrScale,
@@ -662,7 +750,7 @@ export default function Home() {
     paper: artPaper,
     caption: artCaption,
     subcaption: artSubcaption,
-  }), [artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
+  }), [artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQuad, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
 
   const visibleArt = artLibrary.filter((item) => item.category === artCategory);
 
@@ -866,9 +954,12 @@ export default function Home() {
             <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`} role="status" aria-live="polite"><span>●</span>{displayNotice}</div>
-          <div className="tech-badges">
-            <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? Math.min(artWidth, artHeight) * artQrScale / 100 >= 18 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
-          </div>
+          <details className="scan-details">
+            <summary>Thông số bảo đảm khả năng quét</summary>
+            <div className="tech-badges">
+              <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? "Phối cảnh 4 góc" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
+            </div>
+          </details>
           {layoutMode === "art" && <div className="art-controls">
             <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn chủ đề và mẫu phù hợp với mục đích sử dụng.</span></div><em>{artLibrary.length} mẫu</em></div>
             <div className="category-tabs" role="group" aria-label="Chủ đề tranh">
