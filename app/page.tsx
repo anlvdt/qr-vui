@@ -198,13 +198,15 @@ function roundedRect(context: CanvasRenderingContext2D, x: number, y: number, si
   context.fill();
 }
 
-function drawQR(context: CanvasRenderingContext2D, payload: string, color: string, style: QRStyle, x: number, y: number, outputSize: number) {
+function drawQR(context: CanvasRenderingContext2D, payload: string, color: string, style: QRStyle, x: number, y: number, outputSize: number, background: string | null = "#FFFFFF") {
   const qr = QRCode.create(payload, { errorCorrectionLevel: "H" });
   const modules = qr.modules as typeof qr.modules & { isReserved(row: number, column: number): number };
   const quiet = 4;
   const cell = outputSize / (modules.size + quiet * 2);
-  context.fillStyle = "#FFFFFF";
-  context.fillRect(x, y, outputSize, outputSize);
+  if (background) {
+    context.fillStyle = background;
+    context.fillRect(x, y, outputSize, outputSize);
+  }
   context.fillStyle = color;
 
   for (let row = 0; row < modules.size; row++) {
@@ -433,36 +435,38 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
   context.translate(qrX, qrY);
   context.rotate(angle);
   context.transform(1, skewY, skewX, 1, 0, 0);
-  context.fillStyle = "#fff";
   if (options.paper) {
+    context.fillStyle = "#fff";
     context.shadowColor = "rgba(23,34,31,.28)";
     context.shadowBlur = canvasSize * 0.014;
     context.shadowOffsetX = canvasSize * 0.009;
     context.shadowOffsetY = canvasSize * 0.011;
+    context.fillRect(localLeft, localTop, badgeWidth, badgeHeight);
+    context.shadowColor = "transparent";
+    context.strokeStyle = "rgba(23,34,31,.72)";
+    context.lineWidth = Math.max(2, Math.min(badgeWidth, badgeHeight) * 0.012);
+    context.strokeRect(localLeft, localTop, badgeWidth, badgeHeight);
   }
-  context.fillRect(localLeft, localTop, badgeWidth, badgeHeight);
-  context.shadowColor = "transparent";
-  context.strokeStyle = "rgba(23,34,31,.72)";
-  context.lineWidth = Math.max(2, Math.min(badgeWidth, badgeHeight) * 0.012);
-  context.strokeRect(localLeft, localTop, badgeWidth, badgeHeight);
   const labelHeight = caption ? Math.min(badgeHeight * 0.2, canvasSize * 0.09) : 0;
   const labelTop = localBottom - labelHeight;
   const qrAreaHeight = labelTop - localTop;
-  const qrSize = Math.min(badgeWidth * 0.9, qrAreaHeight * 0.94);
+  const qrSize = Math.min(badgeWidth * (options.paper ? 0.9 : 0.82), qrAreaHeight * (options.paper ? 0.94 : 0.88));
   const qrTop = localTop + (qrAreaHeight - qrSize) / 2;
-  drawQR(context, payload, ink, style, -qrSize / 2, qrTop, qrSize);
-  context.fillStyle = "#17221f";
-  context.fillRect(localLeft, labelTop, badgeWidth, labelHeight);
-  context.fillStyle = "#DFFF45";
-  context.fillRect(localLeft, labelTop, badgeWidth, Math.max(2, badgeHeight * 0.012));
+  drawQR(context, payload, ink, style, -qrSize / 2, qrTop, qrSize, options.paper ? "#FFFFFF" : null);
+  if (options.paper) {
+    context.fillStyle = "#17221f";
+    context.fillRect(localLeft, labelTop, badgeWidth, labelHeight);
+    context.fillStyle = "#DFFF45";
+    context.fillRect(localLeft, labelTop, badgeWidth, Math.max(2, badgeHeight * 0.012));
+  }
   if (caption) {
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillStyle = "#fff";
+    context.fillStyle = options.paper ? "#fff" : "#17221f";
     context.font = `800 ${captionFont}px Arial, sans-serif`;
     context.fillText(caption, 0, labelTop + labelHeight * (subcaption ? 0.4 : 0.54));
     if (subcaption) {
-      context.fillStyle = "#DFFF45";
+      context.fillStyle = options.paper ? "#DFFF45" : "rgba(23,34,31,.72)";
       context.font = `600 ${subcaptionFont}px Arial, sans-serif`;
       context.fillText(subcaption, 0, labelTop + labelHeight * 0.74);
     }
@@ -853,7 +857,7 @@ export default function Home() {
               <label>Nghiêng ngang <output>{artSkewX}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewX} onChange={(e) => setArtSkewX(Number(e.target.value))} /></label>
               <label>Nghiêng dọc <output>{artSkewY}°</output><input type="range" min="-10" max="10" step="0.5" value={artSkewY} onChange={(e) => setArtSkewY(Number(e.target.value))} /></label>
             </div>
-            <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Thêm nền trắng và bóng đổ cho cụm QR</label>
+            <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Dùng thẻ nổi có nền và bóng đổ</label>
             <div className="caption-grid"><label>Tiêu đề<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Dòng mô tả<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
             {selectedArt === "custom" && <button className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
           </div>}

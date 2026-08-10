@@ -82,6 +82,8 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /Xoay cả cụm/);
   assert.match(page, /rotation: -2/);
   assert.match(page, /context\.transform\(1, skewY, skewX, 1, 0, 0\)/);
+  assert.match(page, /options\.paper \? "#FFFFFF" : null/);
+  assert.match(page, /if \(options\.paper\)/);
   assert.match(page, /const labelTop = localBottom - labelHeight/);
   assert.match(page, /Rộng khung/);
   assert.match(page, /Nghiêng ngang/);
