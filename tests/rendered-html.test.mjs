@@ -19,12 +19,14 @@ test("server-renders the QRồi Xong product", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /QRồi Xong!/);
-  assert.match(html, /Đưa tranh vào/);
-  assert.match(html, /XƯỞNG DẬP MÃ SỐ 01/);
-  assert.match(html, /Tải tem PNG/);
+  assert.match(html, /Mã QR không nhất thiết/);
+  assert.match(html, /phải đơn điệu/);
+  assert.match(html, /Tạo mã QR/);
   assert.match(html, /Ngân hàng/);
-  assert.match(html, /Phiếu máy/);
-  assert.match(html, /Bo tròn, quét giòn/);
+  assert.match(html, /Công nghệ/);
+  assert.match(html, /Ô bo góc/);
+  assert.match(html, /Đơn điệu và khó tạo ấn tượng/);
+  assert.match(html, /Một mã QR vui vẻ/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);
 });
 
@@ -48,9 +50,9 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /contrastOnWhite/);
   assert.match(page, /artCanvasRef/);
   assert.match(page, /type="file"/);
-  assert.match(page, /KỆ TRANH CÓ SẴN/);
+  assert.match(page, /THƯ VIỆN MINH HỌA/);
   assert.match(page, /artLibrary/);
-  assert.match(page, /Ảnh nào dập mã sẽ đẹp/);
+  assert.match(page, /Cách chọn ảnh phù hợp/);
   assert.match(page, /meo-mat-lanh\.png/);
   assert.match(page, /artLibrary\.length/);
   assert.match(page, /Ngành nghề/);
@@ -58,7 +60,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /kinh-doanh\/banh-mi\.png/);
   assert.match(page, /giai-tri\/rap-chieu\.png/);
   assert.match(page, /su-kien\/dam-cuoi\.png/);
-  assert.match(page, /Vùng mã đã căn sẵn/);
+  assert.match(page, /Vùng QR đã được căn sẵn/);
   assert.match(page, /Math\.max\(options\.size, 30\)/);
   assert.match(page, /min="30" max="68"/);
   assert.match(page, /Nông nghiệp/);

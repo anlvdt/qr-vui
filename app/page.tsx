@@ -11,10 +11,10 @@ type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-th
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string; rotation?: number };
 
 const palettes = [
-  { name: "Đen đá", value: "#171717", accent: "#FFD338" },
-  { name: "Hồng bồng", value: "#9F1239", accent: "#FDA4AF" },
-  { name: "Xanh lành", value: "#075E54", accent: "#6EE7B7" },
-  { name: "Tím lịm", value: "#4C1D95", accent: "#C4B5FD" },
+  { name: "Đen", value: "#171717", accent: "#FFD338" },
+  { name: "Đỏ đậm", value: "#9F1239", accent: "#FDA4AF" },
+  { name: "Xanh lá đậm", value: "#075E54", accent: "#6EE7B7" },
+  { name: "Tím đậm", value: "#4C1D95", accent: "#C4B5FD" },
 ];
 
 const modes: { id: Mode; label: string; icon: string }[] = [
@@ -26,9 +26,9 @@ const modes: { id: Mode; label: string; icon: string }[] = [
 ];
 
 const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] = [
-  { id: "square", name: "Vuông vức, quét cực", note: "Thẳng hàng, rõ ràng", caption: "VUÔNG VỨC, QUÉT CỰC" },
-  { id: "round", name: "Bo tròn, quét giòn", note: "Mềm mắt, bắt nét", caption: "BO TRÒN, QUÉT GIÒN" },
-  { id: "dots", name: "Chấm bi, quét đi", note: "Nhỏ xinh, quét nhanh", caption: "CHẤM BI, QUÉT ĐI" },
+  { id: "square", name: "Ô vuông tiêu chuẩn", note: "Tương phản rõ, dễ quét", caption: "MÃ QR TIÊU CHUẨN" },
+  { id: "round", name: "Ô bo góc", note: "Mềm hơn nhưng vẫn rõ", caption: "MÃ QR BO GÓC" },
+  { id: "dots", name: "Chấm tròn", note: "Trang trí phần dữ liệu", caption: "MÃ QR CHẤM TRÒN" },
 ];
 
 const artLibrary: LibraryArt[] = [
@@ -504,7 +504,7 @@ export default function Home() {
   const [artPaper, setArtPaper] = useState(true);
   const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
   const [artSubcaption, setArtSubcaption] = useState("Mã riêng của bạn · Nét riêng của bạn");
-  const [notice, setNotice] = useState("Mã lên nét, quét là kết");
+  const [notice, setNotice] = useState("Mã QR đã sẵn sàng để tải xuống");
 
   const chooseLibraryArt = (item: LibraryArt) => {
     const image = new Image();
@@ -520,7 +520,7 @@ export default function Home() {
       setArtCaption(item.caption);
       setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
       setLayoutMode("art");
-      setNotice(`${item.name} đã vào khay, mã tự tìm ngay chỗ đẹp`);
+      setNotice(`Đã chọn ${item.name}. QR được căn vào vùng an toàn.`);
     };
     image.src = item.src;
   };
@@ -595,21 +595,21 @@ export default function Home() {
       if (layoutMode === "art" && artCanvasRef.current) renderArtPreview(artCanvasRef.current, payload, palette.value, palette.accent, qrStyle, artOptions);
       else if (canvasRef.current) renderPreview(canvasRef.current, payload, palette.value, qrStyle);
     } catch {
-      setNotice("Chữ dài lắm lời, bớt đi bạn ơi");
+      setNotice("Nội dung quá dài. Hãy rút gọn để mã dễ quét hơn.");
     }
   }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artImage, artX, artY, artSize, artRotation, artPaper, artCaption, artSubcaption]);
 
   useEffect(() => {
     setNotice(
       !colorIsSafe
-        ? "Mực còn nhạt màu, quét dễ lao đao"
+        ? "Màu QR chưa đủ tương phản với nền trắng"
         : !payload
-        ? "Chưa có đầu vào, mã biết làm sao"
+        ? "Hãy nhập nội dung để tạo mã QR"
         : !inputIsValid
-          ? "Chưa đúng chưa êm, xem lại rồi thêm"
+          ? "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
           : payload.length > 500
-            ? "Chữ dài lê thê, quét xa dễ chê"
-            : "Mã lên nét, quét là kết",
+            ? "Nội dung dài có thể làm mã khó quét từ xa"
+            : "Mã QR đã sẵn sàng để tải xuống",
     );
   }, [payload, inputIsValid, colorIsSafe]);
 
@@ -617,11 +617,11 @@ export default function Home() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setNotice("Tệp này chưa phải ảnh, chọn lại cho lành");
+      setNotice("Định dạng tệp không được hỗ trợ. Hãy chọn một tệp ảnh.");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setNotice("Ảnh nặng quá tay, chọn dưới 10 MB ngay");
+      setNotice("Ảnh vượt quá 10 MB. Hãy chọn ảnh có dung lượng nhỏ hơn.");
       return;
     }
     const reader = new FileReader();
@@ -632,7 +632,7 @@ export default function Home() {
         setSelectedArt("custom");
         setLayoutMode("art");
         setArtPaper(true);
-        setNotice("Tranh đã vào khay, đặt mã cho hay");
+        setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí QR.");
       };
       image.src = String(reader.result);
     };
@@ -655,7 +655,7 @@ export default function Home() {
       link.click();
       URL.revokeObjectURL(url);
     }
-    setNotice(`${format.toUpperCase()} về máy gọn ghẽ — đem khoe lẹ làng ✨`);
+    setNotice(`Đã tải tệp ${format.toUpperCase()} xuống thiết bị.`);
   };
 
   const switchMode = (nextMode: Mode) => {
@@ -666,26 +666,26 @@ export default function Home() {
 
   return (
     <main>
-      <div className="ticker" aria-hidden="true">ĐƯA CHỮ VÀO · DẬP MÃ RA · ĐƯA TRANH VÀO · ĐẶT MÃ LÊN · QUÉT MỘT PHÁT · XONG MỘT VIỆC</div>
+      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR KÈM SỐ TIỀN · VĂN BẢN · EMAIL · 90 MẪU MINH HỌA</div>
       <nav className="nav wrap" aria-label="Điều hướng chính">
         <a className="brand" href="#top" aria-label="QRồi Xong - trang chủ">
           <span className="brand-mark">QR!</span>
           <span>QRồi Xong!</span>
         </a>
-        <div className="nav-links"><a href="#top">Bàn máy</a><a href="#about">Lời xưởng</a><a href="#tech">Phiếu máy</a></div>
-        <div className="nav-note"><span /> Xưởng đang mở cửa</div>
+        <div className="nav-links"><a href="#top">Tạo mã QR</a><a href="#about">Giải pháp</a><a href="#tech">Công nghệ</a></div>
+        <div className="nav-note"><span /> Xử lý tại trình duyệt</div>
       </nav>
 
       <section className="hero wrap" id="top">
         <div className="hero-copy">
-          <div className="eyebrow">XƯỞNG DẬP MÃ SỐ 01 · VIỆT NAM</div>
-          <h1>Đưa tranh vào.<br /><em>Dập mã ra.</em></h1>
-          <p>Tự đặt mã lên bất kỳ bức hình nào — gọn mắt, có duyên, quét vẫn chuẩn.</p>
-          <small>Sửa lỗi H · Viền trắng 4 ô · Mắt mã luôn được giữ nguyên.</small>
+          <div className="eyebrow">TẠO QR VUI HƠN · TÙY BIẾN DỄ · VẪN ƯU TIÊN KHẢ NĂNG QUÉT</div>
+          <h1>Mã QR không nhất thiết<br /><em>phải đơn điệu.</em></h1>
+          <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QRồi Xong giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
+          <small>90 mẫu minh họa · Tải ảnh riêng · Tùy chỉnh vị trí và câu chữ · Hỗ trợ VietQR kèm số tiền.</small>
         </div>
         <div className="doodle" aria-hidden="true">
           <span className="arrow">↳</span>
-          <span className="doodle-copy">Vặn vừa tay.<br />Tải ngay về máy.</span>
+          <span className="doodle-copy">Chọn một mẫu.<br />Tùy chỉnh. Tải xuống.</span>
         </div>
       </section>
 
@@ -693,7 +693,7 @@ export default function Home() {
         <div className="panel form-panel">
           <div className="panel-heading">
             <span className="step">01</span>
-            <div><h2>Nạp nội dung</h2><p>Điền vừa đủ, máy dập vừa đẹp.</p></div>
+            <div><h2>Chọn nội dung cần mã hóa</h2><p>Hỗ trợ liên kết, Wi-Fi, VietQR, văn bản và email.</p></div>
           </div>
 
           <div className="mode-tabs" role="tablist" aria-label="Loại nội dung QR">
@@ -709,7 +709,7 @@ export default function Home() {
               <>
                 <label>Tên mạng Wi-Fi<input value={wifiName} onChange={(e) => setWifiName(e.target.value)} placeholder="Ví dụ: NhaNayCoWifi" /></label>
                 <div className="two-fields">
-                  <label>Mật khẩu<input type="password" value={wifiPassword} onChange={(e) => setWifiPassword(e.target.value)} placeholder="Điền cho kín, chẳng ai nhìn" /></label>
+                  <label>Mật khẩu<input type="password" value={wifiPassword} onChange={(e) => setWifiPassword(e.target.value)} placeholder="Nhập mật khẩu Wi-Fi" /></label>
                   <label>Bảo mật<select value={wifiSecurity} onChange={(e) => setWifiSecurity(e.target.value)}><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Không mật khẩu</option></select></label>
                 </div>
               </>
@@ -732,26 +732,26 @@ export default function Home() {
                     <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CA PHE" />
                   </label>
                 </div>
-                <div className="bank-warning"><b>Nhắc cho kỹ, khỏi phí tiền:</b> Mã chỉ điền hộ, không chuyển tiền hộ. Tên đúng, tiền đủ, lời nhắn rõ rồi mới xác nhận.</div>
+                <div className="bank-warning"><b>Lưu ý:</b> Mã chỉ điền sẵn thông tin chuyển khoản. Hãy kiểm tra người nhận, số tiền và nội dung trong ứng dụng ngân hàng trước khi xác nhận.</div>
               </>
             ) : (
               <>
                 <label>
-                  {mode === "link" ? "Dán đường dẫn vào đây" : mode === "email" ? "Địa chỉ thư điện tử" : "Lời nhắn kín (hoặc chẳng kín)"}
+                  {mode === "link" ? "Đường dẫn" : mode === "email" ? "Địa chỉ email" : "Nội dung văn bản"}
                   {mode === "text" ? (
-                    <textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Ví dụ: Nhớ mua rau. Quên là đau." rows={4} />
+                    <textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Nhập nội dung bạn muốn lưu trong mã QR" rows={4} />
                   ) : (
                     <input type={mode === "email" ? "email" : "text"} value={value} onChange={(e) => setValue(e.target.value)} placeholder={mode === "email" ? "hello@congty.vn" : "tenmien.vn/mon-ngon"} />
                   )}
                 </label>
-                {mode === "email" && <label>Tiêu đề (không bắt buộc)<input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Ví dụ: Em gửi file rồi ạ" /></label>}
+                {mode === "email" && <label>Tiêu đề email (không bắt buộc)<input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Ví dụ: Yêu cầu báo giá" /></label>}
               </>
             )}
-            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Tài khoản với số tiền chỉ ghép liền trên máy." : "Dữ liệu nằm yên, máy chủ làm thinh."}</div>
+            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Thông tin VietQR được tạo trực tiếp trên thiết bị của bạn." : "Nội dung được xử lý trực tiếp trong trình duyệt và không gửi lên máy chủ."}</div>
           </div>
 
           <div className="palette-section">
-            <div className="label-row"><span>Pha mực cho mã</span><span>Tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đủ đậm ✓" : "· Còn nhạt ✕"}</span></div>
+            <div className="label-row"><span>Chọn màu QR</span><span>Tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đạt yêu cầu ✓" : "· Chưa đạt ✕"}</span></div>
             <div className="palettes">
               {palettes.map((item) => (
                 <button key={item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
@@ -764,7 +764,7 @@ export default function Home() {
           </div>
 
           <div className="shape-section">
-            <div className="label-row"><span>Chọn dáng cho đáng</span><span>Mắt mã vuông, đường quét thông ✓</span></div>
+            <div className="label-row"><span>Chọn kiểu mô-đun</span><span>Vùng định vị luôn được giữ nguyên ✓</span></div>
             <div className="shape-options">
               {qrStyles.map((item) => (
                 <button key={item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
@@ -777,22 +777,22 @@ export default function Home() {
         </div>
 
         <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
-          <div className="tape">BẢN DẬP XEM TRƯỚC</div>
+          <div className="tape">XEM TRƯỚC</div>
           <div className="layout-switch" role="group" aria-label="Kiểu xuất mã">
-            <button className={layoutMode === "stamp" ? "active" : ""} onClick={() => setLayoutMode("stamp")}>Tem gọn</button>
-            <button className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>Dán vào tranh</button>
+            <button className={layoutMode === "stamp" ? "active" : ""} onClick={() => setLayoutMode("stamp")}>QR độc lập</button>
+            <button className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>QR trong hình</button>
           </div>
           {layoutMode === "art" ? (
-            <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Đủ chữ, đậm mực<br />tranh mới hiện hình</p></div>}</div>
+            <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để xem trước thiết kế</p></div>}</div>
           ) : (
-            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Mã đang ngồi chờ<br />bạn cho chút chữ</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
+            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
-            <span>Sửa lỗi H · Chịu va</span><span>Viền 4 ô · Dễ dò</span><span>{layoutMode === "art" ? artSize >= 36 ? "Cỡ lớn · Dễ quét" : "Cỡ vừa · Quét gần" : mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Kín thinh"}</span>
+            <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? artSize >= 36 ? "Kích thước tốt" : "Nên quét ở khoảng cách gần" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
           </div>
           {layoutMode === "art" && <div className="art-controls">
-            <div className="library-head"><div><b>KỆ TRANH CÓ SẴN</b><span>Chọn chủ đề, mã tự vào đúng chỗ.</span></div><em>{artLibrary.length} mẫu gốc</em></div>
+            <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn chủ đề và mẫu phù hợp với mục đích sử dụng.</span></div><em>{artLibrary.length} mẫu</em></div>
             <div className="category-tabs" role="tablist" aria-label="Chủ đề tranh">
               {artCategories.map((item) => <button key={item.id} role="tab" aria-selected={artCategory === item.id} className={artCategory === item.id ? "active" : ""} onClick={() => setArtCategory(item.id)}><b>{item.icon}</b>{item.label}<small>{artLibrary.filter((art) => art.category === item.id).length}</small></button>)}
             </div>
@@ -801,12 +801,12 @@ export default function Home() {
                 <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
-            <p className="safe-note"><b>◎ Vùng mã đã căn sẵn:</b> nền sáng, không đè nhân vật, đủ khoảng trắng để máy dễ quét.</p>
-            <div className="custom-divider"><span>HOẶC ẢNH RIÊNG CỦA BẠN</span></div>
-            <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Nạp ảnh riêng<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
+            <p className="safe-note"><b>◎ Vùng QR đã được căn sẵn:</b> nền sáng, không che chủ thể và có đủ khoảng trắng để quét ổn định.</p>
+            <div className="custom-divider"><span>HOẶC SỬ DỤNG ẢNH CỦA BẠN</span></div>
+            <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Tải ảnh lên<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
             <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
             <details className="photo-guide">
-              <summary>Ảnh nào dập mã sẽ đẹp? <span>Mở bí kíp ↓</span></summary>
+              <summary>Cách chọn ảnh phù hợp <span>Xem hướng dẫn ↓</span></summary>
               <div className="guide-body">
                 <div className="guide-pictures" aria-hidden="true"><i className="good"><b>QR</b></i><i className="bad"><b>QR</b></i></div>
                 <ul><li><b>Chừa một mảng trống 35–50%</b> để mã không che mặt người hay món đồ chính.</li><li><b>Ít chi tiết phía sau mã.</b> Ảnh càng rối, nên bật “lót giấy trắng”.</li><li><b>Ảnh vuông hoặc dọc, từ 800 px.</b> Tránh ảnh mờ, chụp quá tối hoặc cắt sát chủ thể.</li></ul>
@@ -815,60 +815,60 @@ export default function Home() {
             <div className="slider-grid">
               <label>Ngang <output>{artX}%</output><input type="range" min="15" max="85" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
               <label>Dọc <output>{artY}%</output><input type="range" min="15" max="82" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
-              <label>Cỡ mã <output>{artSize}%</output><input type="range" min="30" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
+              <label>Kích thước <output>{artSize}%</output><input type="range" min="30" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
               <label>Xoay cả cụm <output>{artRotation}°</output><input type="range" min="-15" max="15" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
             </div>
-            <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Lót giấy trắng sau mã</label>
-            <div className="caption-grid"><label>Câu trên<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Câu dưới<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
-            {selectedArt === "custom" && <button className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh riêng, về kệ tranh ↺</button>}
+            <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Thêm nền trắng và bóng đổ cho cụm QR</label>
+            <div className="caption-grid"><label>Tiêu đề<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Dòng mô tả<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
+            {selectedArt === "custom" && <button className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
           </div>}
           <div className="download-row">
-            <button className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải cả tranh PNG" : "Tải tem PNG"} <span>↓</span></button>
-            <button className="secondary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>SVG riêng mã</button>
+            <button className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải thiết kế PNG" : "Tải QR PNG"} <span>↓</span></button>
+            <button className="secondary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>Tải QR SVG</button>
           </div>
-          <p className="scan-tip">Dặn thật lòng: quét thử trước khi đem in số lượng lớn.</p>
+          <p className="scan-tip">Hãy quét thử bằng ít nhất một điện thoại trước khi in số lượng lớn.</p>
         </aside>
       </section>
 
       <section className="why wrap">
-        <div className="why-title"><span>BIÊN BẢN KIỂM ĐỊNH</span><h2>Vui ngoài mặt. Chuẩn tận ruột.</h2></div>
+        <div className="why-title"><span>VẤN ĐỀ</span><h2>QR thường đúng chức năng nhưng thiếu cảm xúc.</h2></div>
         <div className="proof-grid">
-          <article><b>4 ô</b><h3>Chừa bốn ô, máy dễ dò</h3><p>Khoảng trắng đủ bốn bề giúp máy bắt hình nhanh, quét xong khỏi giật mình.</p></article>
-          <article><b>H</b><h3>Chịu xước, chịu va</h3><p>Sửa lỗi mức H giúp mã bền bỉ khi dính bẩn hoặc sứt mẻ đôi phần.</p></article>
-          <article><b>□</b><h3>Mắt vuông, đường thông</h3><p>Trang trí phần dữ liệu nhưng giữ nguyên các ô định vị và vùng kỹ thuật.</p></article>
+          <article><b>01</b><h3>Đơn điệu và khó tạo ấn tượng</h3><p>Phần lớn công cụ chỉ tạo một ô mã đen trắng giống nhau, khó thể hiện cá tính hoặc khiến người nhận muốn quét.</p></article>
+          <article><b>02</b><h3>Khó phù hợp với từng bối cảnh</h3><p>Một mã dùng cho quán ăn, đám cưới, du lịch hay chuyển khoản thường vẫn có cùng hình thức khô khan.</p></article>
+          <article><b>03</b><h3>Trang trí có thể làm mã khó quét</h3><p>QRồi Xong đặt mã trên vùng tương phản riêng, giữ viền an toàn và vùng định vị để hình ảnh vui hơn mà mã vẫn rõ.</p></article>
         </div>
       </section>
 
       <section className="about wrap" id="about">
-        <div className="section-kicker">LỜI XƯỞNG · NÓI CHO TƯỜNG</div>
+        <div className="section-kicker">GIẢI PHÁP</div>
         <div className="about-grid">
-          <div><h2>Mã không cần nhạt.<br />Tranh vẫn <em>quét đạt.</em></h2></div>
+          <div><h2>Một mã QR vui vẻ,<br />hài hước và <em>dễ quét.</em></h2></div>
           <div className="about-copy">
-            <p><b>QRồi Xong!</b> tách phần vui và phần chuẩn thành hai lớp. Bạn tha hồ đổi tranh, câu chữ, vị trí và kích thước; phần QR vẫn giữ vùng an toàn riêng.</p>
-            <p>Không rút gọn đường dẫn. Không giữ lại nội dung. Không biến mã tĩnh thành chiếc vé thu tiền dài hạn. Mã ngân hàng được ghép ngay trên máy; ứng dụng ngân hàng mới là nơi kiểm tra và xác nhận.</p>
-            <div className="about-sign">Làm cho chuẩn. Nói cho duyên. Quét phát liền. ↗</div>
+            <p><b>QRồi Xong</b> cung cấp 90 mẫu minh họa theo nghề nghiệp, món ăn, đời sống, du lịch và các tình huống hài hước. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
+            <p>Phần minh họa và phần kỹ thuật được xử lý riêng. Vùng QR luôn có nền tương phản, viền an toàn và các ô định vị nguyên vẹn; vì vậy thiết kế có thể vui hơn mà không bỏ qua khả năng quét.</p>
+            <div className="about-sign">Tạo nội dung → Chọn thiết kế → Quét thử → Tải xuống ↗</div>
           </div>
         </div>
       </section>
 
       <section className="stack-section" id="tech">
         <div className="wrap">
-          <div className="why-title"><span>KÊ ĐỒ NGHỀ · NÓI GỌN GHẼ</span><h2>Máy chạy bằng gì?</h2></div>
+          <div className="why-title"><span>CÔNG NGHỆ</span><h2>Những thành phần chính</h2></div>
           <div className="stack-grid">
-            <article><span>01</span><h3>React 19</h3><p>Bạn vừa gõ xong, mã đã nấu xong.</p></article>
-            <article><span>02</span><h3>TypeScript</h3><p>Dữ liệu ngay hàng, bớt lỗi lang thang.</p></article>
-            <article><span>03</span><h3>node-qrcode</h3><p>Lõi tạo mã lâu năm, làm PNG lẫn SVG, sửa lỗi mức H.</p></article>
-            <article><span>04</span><h3>VietQR · CRC16</h3><p>Chuỗi chuyển khoản ghép tại máy, có thể điền sẵn số tiền.</p></article>
-            <article><span>05</span><h3>Cloudflare Edge</h3><p>Trang nhẹ, tải lẹ, chẳng cần kho dữ liệu cồng kềnh.</p></article>
+            <article><span>01</span><h3>React 19</h3><p>Cập nhật bản xem trước ngay khi nội dung hoặc thiết kế thay đổi.</p></article>
+            <article><span>02</span><h3>TypeScript</h3><p>Kiểm soát kiểu dữ liệu và giảm lỗi trong quá trình tạo mã.</p></article>
+            <article><span>03</span><h3>node-qrcode</h3><p>Tạo PNG và SVG với sửa lỗi mức H và viền trắng tiêu chuẩn.</p></article>
+            <article><span>04</span><h3>VietQR · CRC16</h3><p>Tạo nội dung chuyển khoản, hỗ trợ điền sẵn số tiền và lời nhắn.</p></article>
+            <article><span>05</span><h3>Cloudflare Edge</h3><p>Phân phối trang nhanh mà không cần lưu nội dung QR của người dùng.</p></article>
           </div>
-          <p className="stack-footnote">Không chuỗi khối cho kêu. Không trí tuệ nhân tạo cho sang. Cần gì, dùng nấy.</p>
+          <p className="stack-footnote">Mỗi công nghệ được sử dụng cho một chức năng cụ thể của sản phẩm.</p>
         </div>
       </section>
 
       <footer className="wrap">
         <div className="brand"><span className="brand-mark">QR!</span><span>QRồi Xong!</span></div>
-        <p>Làm mã cho chuẩn. Nói chữ cho duyên.</p>
-        <a href="#top">Lên đầu trang ↑</a>
+        <p>Tạo mã QR dễ sử dụng, dễ tùy biến và dễ quét.</p>
+        <a href="#top">Quay lại đầu trang ↑</a>
       </footer>
     </main>
   );

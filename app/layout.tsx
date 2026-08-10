@@ -11,14 +11,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const ogImage = `${protocol}://${host}/og-v3.png`;
-  const title = "QRồi Xong! — Đưa tranh vào, dập mã ra";
-  const description = "Tạo QR chuẩn quét, đặt tùy ý lên ảnh, thêm câu chữ và xuất cả tranh. Có VietQR kèm số tiền, Wi-Fi, đường dẫn, lời nhắn và thư điện tử.";
+  const title = "QRồi Xong — Tạo mã QR dễ quét và tùy biến hình ảnh";
+  const description = "Biến mã QR đơn điệu thành thiết kế vui vẻ, hài hước và phù hợp với bối cảnh. Tùy biến với 90 mẫu minh họa hoặc ảnh riêng mà vẫn ưu tiên khả năng quét.";
 
   return {
     title,
     description,
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
-    openGraph: { title, description, locale: "vi_VN", type: "website", images: [{ url: ogImage, width: 1200, height: 630, alt: "QRồi Xong! — Đưa tranh vào, dập mã ra" }] },
+    openGraph: { title, description, locale: "vi_VN", type: "website", images: [{ url: ogImage, width: 1200, height: 630, alt: "QRồi Xong — Tạo mã QR dễ quét và tùy biến hình ảnh" }] },
     twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }
