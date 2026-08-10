@@ -23,7 +23,8 @@ test("server-renders the QRồi Xong product", async () => {
   assert.match(html, /Không đăng nhập/);
   assert.match(html, /Tải PNG/);
   assert.match(html, /Ngân hàng/);
-  assert.match(html, /Tech stack/);
+  assert.match(html, /Đồ nghề/);
+  assert.match(html, /Bo tròn lon ton/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);
 });
 
@@ -34,13 +35,15 @@ test("keeps QR reliability guardrails in source", async () => {
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
   assert.match(page, /errorCorrectionLevel:\s*"H"/);
-  assert.match(page, /margin:\s*4/);
-  assert.match(page, /width:\s*1400/);
+  assert.match(page, /const quiet = 4/);
+  assert.match(page, /canvas\.width = 1400/);
   assert.match(page, /WIFI:T:/);
   assert.match(page, /makeVietQRContent/);
   assert.match(page, /crc16/);
   assert.match(page, /500_000_000/);
-  assert.match(page, /QRCode\.toString/);
+  assert.match(page, /modules\.isReserved/);
+  assert.match(page, /styledSVG/);
+  assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-v2\.png/);
   assert.match(packageJson, /"qrcode"/);

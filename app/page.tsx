@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 
 type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
+type QRStyle = "square" | "round" | "dots";
 
 const palettes = [
   { name: "Đen đá", value: "#171717", accent: "#FFD338" },
@@ -18,7 +19,13 @@ const modes: { id: Mode; label: string; icon: string }[] = [
   { id: "wifi", label: "Wi-Fi", icon: "⌁" },
   { id: "bank", label: "Ngân hàng", icon: "₫" },
   { id: "text", label: "Lời nhắn", icon: "✎" },
-  { id: "email", label: "Email", icon: "@" },
+  { id: "email", label: "Thư điện tử", icon: "@" },
+];
+
+const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] = [
+  { id: "square", name: "Vuông mà vương", note: "Rõ ràng, cứng cáp", caption: "QUÉT PHÁT, ĂN NGAY" },
+  { id: "round", name: "Bo tròn lon ton", note: "Mềm mắt, vẫn chắc", caption: "ĐƯA MÁY LẠI, QUÉT MỘT CÁI" },
+  { id: "dots", name: "Chấm bi lí nhí", note: "Nhí nhảnh, dễ nhìn", caption: "CHẤM CHẤM, QUÉT CHẮC" },
 ];
 
 const fallbackBanks: Bank[] = [
@@ -70,6 +77,99 @@ function makeVietQRContent(bankId: string, accountId: string, amount: string, de
   return content + crc16(content);
 }
 
+function roundedRect(context: CanvasRenderingContext2D, x: number, y: number, size: number, radius: number) {
+  context.beginPath();
+  context.roundRect(x, y, size, size, radius);
+  context.fill();
+}
+
+function drawQR(context: CanvasRenderingContext2D, payload: string, color: string, style: QRStyle, x: number, y: number, outputSize: number) {
+  const qr = QRCode.create(payload, { errorCorrectionLevel: "H" });
+  const modules = qr.modules as typeof qr.modules & { isReserved(row: number, column: number): number };
+  const quiet = 4;
+  const cell = outputSize / (modules.size + quiet * 2);
+  context.fillStyle = "#FFFFFF";
+  context.fillRect(x, y, outputSize, outputSize);
+  context.fillStyle = color;
+
+  for (let row = 0; row < modules.size; row++) {
+    for (let column = 0; column < modules.size; column++) {
+      if (!modules.get(row, column)) continue;
+      const moduleX = x + (column + quiet) * cell;
+      const moduleY = y + (row + quiet) * cell;
+      const protectedModule = Boolean(modules.isReserved(row, column));
+      if (style === "square" || protectedModule) {
+        context.fillRect(moduleX, moduleY, cell + 0.08, cell + 0.08);
+      } else if (style === "round") {
+        const inset = cell * 0.035;
+        roundedRect(context, moduleX + inset, moduleY + inset, cell - inset * 2, cell * 0.24);
+      } else {
+        context.beginPath();
+        context.arc(moduleX + cell / 2, moduleY + cell / 2, cell * 0.46, 0, Math.PI * 2);
+        context.fill();
+      }
+    }
+  }
+}
+
+function renderPreview(canvas: HTMLCanvasElement, payload: string, color: string, style: QRStyle) {
+  const scale = window.devicePixelRatio || 1;
+  const size = 336;
+  canvas.width = size * scale;
+  canvas.height = size * scale;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.scale(scale, scale);
+  drawQR(context, payload, color, style, 0, 0, size);
+}
+
+function downloadStyledPNG(payload: string, color: string, accent: string, style: QRStyle, caption: string, filename: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1400;
+  canvas.height = 1540;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.fillStyle = accent;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#171717";
+  context.fillRect(58, 58, 1284, 1284);
+  drawQR(context, payload, color, style, 74, 74, 1252);
+  context.fillStyle = "#171717";
+  context.fillRect(110, 1370, 1180, 104);
+  context.fillStyle = "#FFFFFF";
+  context.font = "700 38px Arial, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(caption, 700, 1422);
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = `${filename}.png`;
+  link.click();
+}
+
+function styledSVG(payload: string, color: string, accent: string, style: QRStyle, caption: string) {
+  const qr = QRCode.create(payload, { errorCorrectionLevel: "H" });
+  const modules = qr.modules as typeof qr.modules & { isReserved(row: number, column: number): number };
+  const quiet = 4;
+  const qrSize = 1252;
+  const origin = 74;
+  const cell = qrSize / (modules.size + quiet * 2);
+  const pieces: string[] = [`<rect width="1400" height="1540" fill="${accent}"/>`, `<rect x="58" y="58" width="1284" height="1284" fill="#171717"/>`, `<rect x="74" y="74" width="1252" height="1252" fill="#fff"/>`];
+  for (let row = 0; row < modules.size; row++) {
+    for (let column = 0; column < modules.size; column++) {
+      if (!modules.get(row, column)) continue;
+      const px = origin + (column + quiet) * cell;
+      const py = origin + (row + quiet) * cell;
+      const protectedModule = Boolean(modules.isReserved(row, column));
+      if (style === "dots" && !protectedModule) pieces.push(`<circle cx="${px + cell / 2}" cy="${py + cell / 2}" r="${cell * 0.46}" fill="${color}"/>`);
+      else pieces.push(`<rect x="${px}" y="${py}" width="${cell + 0.08}" height="${cell + 0.08}" rx="${style === "round" && !protectedModule ? cell * 0.24 : 0}" fill="${color}"/>`);
+    }
+  }
+  const safeCaption = caption.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  pieces.push(`<rect x="110" y="1370" width="1180" height="104" fill="#171717"/><text x="700" y="1434" fill="#fff" font-family="Arial,sans-serif" font-size="38" font-weight="700" text-anchor="middle">${safeCaption}</text>`);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1540" viewBox="0 0 1400 1540">${pieces.join("")}</svg>`;
+}
+
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mode, setMode] = useState<Mode>("link");
@@ -84,7 +184,8 @@ export default function Home() {
   const [bankAmount, setBankAmount] = useState("");
   const [bankNote, setBankNote] = useState("");
   const [palette, setPalette] = useState(palettes[0]);
-  const [notice, setNotice] = useState("Mã đang khỏe như trâu");
+  const [qrStyle, setQrStyle] = useState<QRStyle>("round");
+  const [notice, setNotice] = useState("Mã ngon, quét giòn");
 
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
@@ -133,47 +234,33 @@ export default function Home() {
 
   useEffect(() => {
     if (!canvasRef.current || !inputIsValid) return;
-    QRCode.toCanvas(canvasRef.current, payload, {
-      width: 336,
-      margin: 4,
-      errorCorrectionLevel: "H",
-      color: { dark: `${palette.value}FF`, light: "#FFFFFFFF" },
-    }).catch(() => setNotice("Mã hơi quá tải, bớt chữ giúp tui nha"));
-  }, [payload, palette, inputIsValid]);
+    try {
+      renderPreview(canvasRef.current, payload, palette.value, qrStyle);
+    } catch {
+      setNotice("Chữ dài như sớ, bớt một mớ nhé");
+    }
+  }, [payload, palette, qrStyle, inputIsValid]);
 
   useEffect(() => {
     setNotice(
       !payload
-        ? "Cho tui chút dữ liệu để nấu mã"
+        ? "Thiếu nguyên liệu, bếp chưa lên lửa"
         : !inputIsValid
-          ? "Thông tin này còn hơi khả nghi nha"
+          ? "Dữ liệu hơi lạ, xem lại nha"
           : payload.length > 500
-            ? "Hơi nhiều chữ — mã sẽ dày và khó quét xa"
-            : "Mã đang khỏe như trâu",
+            ? "Chữ nhiều như sớ — quét xa hơi khó"
+            : "Mã ngon, quét giòn",
     );
   }, [payload, inputIsValid]);
 
   const download = async (format: "png" | "svg") => {
     if (!inputIsValid) return;
     const filename = `qroi-xong-${Date.now()}`;
+    const selectedStyle = qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0];
     if (format === "png") {
-      const url = await QRCode.toDataURL(payload, {
-        width: 1400,
-        margin: 4,
-        errorCorrectionLevel: "H",
-        color: { dark: `${palette.value}FF`, light: "#FFFFFFFF" },
-      });
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${filename}.png`;
-      link.click();
+      downloadStyledPNG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption, filename);
     } else {
-      const svg = await QRCode.toString(payload, {
-        type: "svg",
-        margin: 4,
-        errorCorrectionLevel: "H",
-        color: { dark: `${palette.value}FF`, light: "#FFFFFFFF" },
-      });
+      const svg = styledSVG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption);
       const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
       const link = document.createElement("a");
       link.href = url;
@@ -181,7 +268,7 @@ export default function Home() {
       link.click();
       URL.revokeObjectURL(url);
     }
-    setNotice(`${format.toUpperCase()} đã hạ cánh vào máy bạn ✨`);
+    setNotice(`${format.toUpperCase()} về máy — đẹp trai, hết sẩy ✨`);
   };
 
   const switchMode = (nextMode: Mode) => {
@@ -197,20 +284,20 @@ export default function Home() {
           <span className="brand-mark">QR!</span>
           <span>QRồi Xong!</span>
         </a>
-        <div className="nav-links"><a href="#about">Giới thiệu</a><a href="#tech">Tech stack</a></div>
-        <div className="nav-note"><span /> Tĩnh · Riêng tư · Không úp sọt</div>
+        <div className="nav-links"><a href="#about">Giới thiệu</a><a href="#tech">Đồ nghề</a></div>
+        <div className="nav-note"><span /> Mã tĩnh · Kín mít · Không gài phí</div>
       </nav>
 
       <section className="hero wrap" id="top">
         <div className="hero-copy">
-          <div className="eyebrow">Trình tạo QR bớt nghiêm túc số 1 vũ trụ*</div>
+          <div className="eyebrow">Máy làm mã bớt nghiêm số 1 vũ trụ*</div>
           <h1>Mã chuẩn chỉnh.<br /><em>Tính tình hơi nhây.</em></h1>
-          <p>Tạo mã QR quét phát ăn ngay — không tài khoản, không hết hạn, không có màn “bất ngờ chưa, trả tiền đi”.</p>
+          <p>Quét phát ăn ngay — chẳng cần tài khoản, chẳng lo hết hạn, chẳng sợ nửa đường đòi tiền.</p>
           <small>*Vũ trụ tính từ bàn làm việc của tụi mình.</small>
         </div>
         <div className="doodle" aria-hidden="true">
           <span className="arrow">↳</span>
-          <span className="doodle-copy">Quét thử đi.<br />Có cắn đâu.</span>
+          <span className="doodle-copy">Đưa máy lên.<br />Quét một nhịp. Xong.</span>
         </div>
       </section>
 
@@ -218,7 +305,7 @@ export default function Home() {
         <div className="panel form-panel">
           <div className="panel-heading">
             <span className="step">01</span>
-            <div><h2>Bạn muốn giấu gì trong mã?</h2><p>Yên tâm, tụi mình không nhìn trộm.</p></div>
+            <div><h2>Bạn muốn nhét gì vào mã?</h2><p>Cứ điền đi, tụi mình không ngó nghiêng.</p></div>
           </div>
 
           <div className="mode-tabs" role="tablist" aria-label="Loại nội dung QR">
@@ -257,12 +344,12 @@ export default function Home() {
                     <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CAFE" />
                   </label>
                 </div>
-                <div className="bank-warning"><b>Nhắc nhẹ mà quan trọng:</b> QR chỉ điền sẵn lệnh chuyển. Hãy kiểm tra đúng tên người nhận, số tiền và nội dung trong app ngân hàng trước khi xác nhận.</div>
+                <div className="bank-warning"><b>Nhắc nhẹ mà quan trọng:</b> Mã chỉ điền sẵn lệnh chuyển. Hãy kiểm tra tên người nhận, số tiền và lời nhắn trong ứng dụng ngân hàng trước khi xác nhận.</div>
               </>
             ) : (
               <>
                 <label>
-                  {mode === "link" ? "Dán đường dẫn vào đây" : mode === "email" ? "Địa chỉ email" : "Lời nhắn bí mật (hoặc không bí mật)"}
+                  {mode === "link" ? "Dán đường dẫn vào đây" : mode === "email" ? "Địa chỉ thư điện tử" : "Lời nhắn kín (hoặc chẳng kín)"}
                   {mode === "text" ? (
                     <textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Ví dụ: Nhớ mua rau. Thiệt đó." rows={4} />
                   ) : (
@@ -272,11 +359,11 @@ export default function Home() {
                 {mode === "email" && <label>Tiêu đề (không bắt buộc)<input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Ví dụ: Em gửi file rồi ạ" /></label>}
               </>
             )}
-            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Số tài khoản và số tiền chỉ được ghép mã trên máy bạn." : "Dữ liệu chỉ nằm trên máy bạn. Server không hóng chuyện."}</div>
+            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Tài khoản và số tiền chỉ được ghép mã ngay trên máy bạn." : "Dữ liệu nằm yên trên máy. Máy chủ không hỏi, chẳng ai dòm ngó."}</div>
           </div>
 
           <div className="palette-section">
-            <div className="label-row"><span>Chọn một chiếc vibe</span><span>Tương phản đã được canh sẵn ✓</span></div>
+            <div className="label-row"><span>Chọn một sắc chất</span><span>Độ tương phản đã canh sẵn ✓</span></div>
             <div className="palettes">
               {palettes.map((item) => (
                 <button key={item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
@@ -285,12 +372,27 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          <div className="shape-section">
+            <div className="label-row"><span>Chọn một dáng nhây</span><span>Mắt định vị luôn vuông vức ✓</span></div>
+            <div className="shape-options">
+              {qrStyles.map((item) => (
+                <button key={item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
+                  <i aria-hidden="true"><span /><span /><span /><span /></i>
+                  <b>{item.name}</b><small>{item.note}</small>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
-          <div className="tape">HÀNG TƯƠI VỪA RA LÒ</div>
+          <div className="tape">MÃ NÓNG VỪA RA LÒ</div>
+          <div className={`qr-costume ${qrStyle}`}>
           <div className="qr-shell">
             {inputIsValid ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>QR đang ngồi chờ<br />nội dung của bạn</p></div>}
+          </div>
+          <div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div>
           </div>
           <div className={`health ${inputIsValid ? "good" : "wait"}`}><span>●</span>{notice}</div>
           <div className="tech-badges">
@@ -298,9 +400,9 @@ export default function Home() {
           </div>
           <div className="download-row">
             <button className="primary" disabled={!inputIsValid} onClick={() => download("png")}>Tải PNG <span>↓</span></button>
-            <button className="secondary" disabled={!inputIsValid} onClick={() => download("svg")}>SVG nét căng</button>
+            <button className="secondary" disabled={!inputIsValid} onClick={() => download("svg")}>SVG nét, in phết</button>
           </div>
-          <p className="scan-tip">Mẹo nhỏ: thử quét trên màn hình trước khi in 10.000 tờ rơi nhé. Đỡ “ủa”.</p>
+          <p className="scan-tip">Mẹo nhỏ: quét thử trên màn hình trước khi in cả nghìn tờ. Chắc tay, khỏi ngẩn ngơ.</p>
         </aside>
       </section>
 
@@ -314,12 +416,12 @@ export default function Home() {
       </section>
 
       <section className="about wrap" id="about">
-        <div className="section-kicker">CHUYỆN NHÀ QR</div>
+        <div className="section-kicker">CHUYỆN NHÀ LÀM MÃ</div>
         <div className="about-grid">
           <div><h2>Sinh ra vì mã QR<br />không cần phải <em>buồn ngủ.</em></h2></div>
           <div className="about-copy">
-            <p><b>QRồi Xong!</b> là một công cụ nhỏ làm đúng một việc: biến nội dung của bạn thành mã QR dễ quét, nhanh tải và dễ chia sẻ — rồi thêm chút duyên để thao tác kỹ thuật bớt khô như bánh mì để quên.</p>
-            <p>Tụi mình không rút gọn link, không giữ nội dung và không biến một mã tĩnh thành chiếc vé đăng ký thuê bao. Với QR ngân hàng, dữ liệu được tạo cục bộ theo cấu trúc VietQR; ứng dụng ngân hàng mới là nơi kiểm tra người nhận và xác nhận giao dịch.</p>
+            <p><b>QRồi Xong!</b> là một món đồ nhỏ làm đúng một việc: biến nội dung thành mã dễ quét, nhanh tải, tiện chuyền tay — rồi rắc chút duyên cho việc kỹ thuật bớt khô như bánh mì để quên.</p>
+            <p>Tụi mình không rút gọn đường dẫn, không giữ nội dung, không biến mã tĩnh thành chiếc vé thu tiền dài hạn. Với mã ngân hàng, dữ liệu được tạo ngay trên máy theo cấu trúc VietQR; ứng dụng ngân hàng mới là nơi kiểm tra người nhận và xác nhận giao dịch.</p>
             <div className="about-sign">Làm nghiêm túc. Nói chuyện bớt nghiêm túc. ↗</div>
           </div>
         </div>
@@ -327,7 +429,7 @@ export default function Home() {
 
       <section className="stack-section" id="tech">
         <div className="wrap">
-          <div className="why-title"><span>MỞ NẮP CAPO</span><h2>Máy móc bên trong.</h2></div>
+          <div className="why-title"><span>MỞ NẮP MÁY</span><h2>Đồ nghề bên trong.</h2></div>
           <div className="stack-grid">
             <article><span>01</span><h3>React 19</h3><p>Giao diện phản hồi tức thì. Bạn gõ tới đâu, mã được nấu tới đó.</p></article>
             <article><span>02</span><h3>TypeScript</h3><p>Giữ dữ liệu ngay hàng thẳng lối, giảm những cú “ủa sao vậy ta”.</p></article>
@@ -335,7 +437,7 @@ export default function Home() {
             <article><span>04</span><h3>VietQR · CRC16</h3><p>Payload chuyển khoản tạo tại máy theo cấu trúc VietQR/NAPAS, có số tiền tùy chọn.</p></article>
             <article><span>05</span><h3>Cloudflare Edge</h3><p>Trang tĩnh nhẹ tênh, phục vụ gần người dùng và không cần cơ sở dữ liệu.</p></article>
           </div>
-          <p className="stack-footnote">Không blockchain. Không AI gắn cho sang. Chỉ dùng đúng món cần dùng.</p>
+          <p className="stack-footnote">Không chuỗi khối cho kêu. Không trí tuệ nhân tạo cho sang. Cần gì, dùng nấy.</p>
         </div>
       </section>
 
