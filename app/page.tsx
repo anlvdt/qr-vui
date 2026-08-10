@@ -8,7 +8,7 @@ type Bank = { bin: string; shortName: string; name: string; transferSupported?: 
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
 type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
-type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string };
+type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string; rotation?: number };
 
 const palettes = [
   { name: "Đen đá", value: "#171717", accent: "#FFD338" },
@@ -32,7 +32,7 @@ const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] =
 ];
 
 const artLibrary: LibraryArt[] = [
-  { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", category: "hai", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ" },
+  { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", category: "hai", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ", rotation: -2 },
   { id: "capy", name: "Capy tan ca", mood: "Hài nhẹ", category: "hai", src: "/art-library/capybara-tan-ca.png", x: 76, y: 37, size: 40, caption: "QUÉT XONG RỒI NGHỈ" },
   { id: "ech", name: "Ếch trà đá", mood: "Dễ thương", category: "hai", src: "/art-library/ech-tra-da.png", x: 81, y: 35, size: 35, caption: "TRÀ ĐÁ CÓ MÃ" },
   { id: "cun", name: "Cún nón lá", mood: "Dễ thương", category: "hai", src: "/art-library/cun-non-la.png", x: 50, y: 73, size: 32, caption: "QUÉT NHẸ TAY NHA" },
@@ -398,9 +398,30 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
 
   const qrSize = canvasSize * Math.max(options.size, 30) / 100;
   const angle = options.rotation * Math.PI / 180;
-  const safeHalf = qrSize / 2 * (Math.abs(Math.cos(angle)) + Math.abs(Math.sin(angle)));
-  const qrX = Math.max(safeHalf, Math.min(canvasSize - safeHalf, canvasSize * options.x / 100));
-  const qrY = Math.max(safeHalf, Math.min(canvasSize - safeHalf, canvasSize * options.y / 100));
+  const caption = options.caption.trim().toUpperCase();
+  const subcaption = options.subcaption.trim();
+  const captionFont = caption ? Math.min(canvasSize * 0.038, qrSize / Math.max(12, caption.length * 0.58)) : 0;
+  const subcaptionFont = subcaption ? Math.min(canvasSize * 0.023, qrSize / Math.max(18, subcaption.length * 0.52)) : 0;
+  const captionY = qrSize * 0.54 + qrSize * 0.035 + captionFont / 2;
+  const subcaptionY = captionY + captionFont * 0.7 + subcaptionFont * 1.05;
+  const localLeft = -qrSize * 0.54;
+  const localRight = qrSize * 0.54;
+  const localTop = -qrSize * 0.54;
+  const localBottom = caption
+    ? (subcaption ? subcaptionY + subcaptionFont * 0.7 : captionY + captionFont * 0.7) + qrSize * 0.025
+    : qrSize * 0.54;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const rotatedCorners = [
+    [localLeft, localTop], [localRight, localTop], [localRight, localBottom], [localLeft, localBottom],
+  ].map(([x, y]) => ({ x: x * cos - y * sin, y: x * sin + y * cos }));
+  const minX = Math.min(...rotatedCorners.map((point) => point.x));
+  const maxX = Math.max(...rotatedCorners.map((point) => point.x));
+  const minY = Math.min(...rotatedCorners.map((point) => point.y));
+  const maxY = Math.max(...rotatedCorners.map((point) => point.y));
+  const clampCenter = (raw: number, min: number, max: number) => min <= max ? Math.max(min, Math.min(max, raw)) : canvasSize / 2;
+  const qrX = clampCenter(canvasSize * options.x / 100, -minX, canvasSize - maxX);
+  const qrY = clampCenter(canvasSize * options.y / 100, -minY, canvasSize - maxY);
   context.save();
   context.translate(qrX, qrY);
   context.rotate(angle);
@@ -410,20 +431,22 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
     context.shadowOffsetX = canvasSize * 0.012;
     context.shadowOffsetY = canvasSize * 0.016;
     context.fillStyle = "#fff";
-    context.fillRect(-qrSize * 0.54, -qrSize * 0.54, qrSize * 1.08, qrSize * 1.08);
+    context.fillRect(localLeft, localTop, localRight - localLeft, localBottom - localTop);
     context.shadowColor = "transparent";
   }
   drawQR(context, payload, ink, style, -qrSize / 2, -qrSize / 2, qrSize);
-  context.restore();
-
-  if (options.caption.trim()) {
+  if (caption) {
     context.textAlign = "center";
+    context.textBaseline = "middle";
     context.fillStyle = "#17221f";
-    context.font = `800 ${canvasSize * 0.038}px Arial, sans-serif`;
-    context.fillText(options.caption.trim().toUpperCase(), canvasSize / 2, canvasSize * 0.91);
-    context.font = `600 ${canvasSize * 0.023}px Arial, sans-serif`;
-    context.fillText(options.subcaption.trim(), canvasSize / 2, canvasSize * 0.95);
+    context.font = `800 ${captionFont}px Arial, sans-serif`;
+    context.fillText(caption, 0, captionY);
+    if (subcaption) {
+      context.font = `600 ${subcaptionFont}px Arial, sans-serif`;
+      context.fillText(subcaption, 0, subcaptionY);
+    }
   }
+  context.restore();
 }
 
 function renderArtPreview(canvas: HTMLCanvasElement, payload: string, ink: string, accent: string, style: QRStyle, options: ArtboardOptions) {
@@ -486,7 +509,7 @@ export default function Home() {
       setArtX(item.x);
       setArtY(item.y);
       setArtSize(item.size);
-      setArtRotation(0);
+      setArtRotation(item.rotation ?? 0);
       setArtPaper(false);
       setArtCaption(item.caption);
       setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
@@ -787,7 +810,7 @@ export default function Home() {
               <label>Ngang <output>{artX}%</output><input type="range" min="15" max="85" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
               <label>Dọc <output>{artY}%</output><input type="range" min="15" max="82" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
               <label>Cỡ mã <output>{artSize}%</output><input type="range" min="30" max="68" value={artSize} onChange={(e) => setArtSize(Number(e.target.value))} /></label>
-              <label>Xoay <output>{artRotation}°</output><input type="range" min="-15" max="15" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
+              <label>Xoay cả cụm <output>{artRotation}°</output><input type="range" min="-15" max="15" value={artRotation} onChange={(e) => setArtRotation(Number(e.target.value))} /></label>
             </div>
             <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Lót giấy trắng sau mã</label>
             <div className="caption-grid"><label>Câu trên<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Câu dưới<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
