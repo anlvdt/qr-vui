@@ -48,6 +48,10 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /contrastOnWhite/);
   assert.match(page, /artCanvasRef/);
   assert.match(page, /type="file"/);
+  assert.match(page, /KỆ TRANH CÓ SẴN/);
+  assert.match(page, /artLibrary/);
+  assert.match(page, /Ảnh nào dập mã sẽ đẹp/);
+  assert.match(page, /meo-mat-lanh\.png/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-v3\.png/);

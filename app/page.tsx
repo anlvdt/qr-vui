@@ -7,6 +7,7 @@ type Mode = "link" | "wifi" | "bank" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
+type LibraryArt = { id: string; name: string; mood: string; src: string; x: number; y: number; size: number; caption: string };
 
 const palettes = [
   { name: "Đen đá", value: "#171717", accent: "#FFD338" },
@@ -27,6 +28,15 @@ const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] =
   { id: "square", name: "Vuông vức, quét cực", note: "Thẳng hàng, rõ ràng", caption: "VUÔNG VỨC, QUÉT CỰC" },
   { id: "round", name: "Bo tròn, quét giòn", note: "Mềm mắt, bắt nét", caption: "BO TRÒN, QUÉT GIÒN" },
   { id: "dots", name: "Chấm bi, quét đi", note: "Nhỏ xinh, quét nhanh", caption: "CHẤM BI, QUÉT ĐI" },
+];
+
+const artLibrary: LibraryArt[] = [
+  { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ" },
+  { id: "capy", name: "Capy tan ca", mood: "Hài nhẹ", src: "/art-library/capybara-tan-ca.png", x: 76, y: 37, size: 40, caption: "QUÉT XONG RỒI NGHỈ" },
+  { id: "ech", name: "Ếch trà đá", mood: "Dễ thương", src: "/art-library/ech-tra-da.png", x: 86, y: 35, size: 35, caption: "TRÀ ĐÁ CÓ MÃ" },
+  { id: "cun", name: "Cún nón lá", mood: "Dễ thương", src: "/art-library/cun-non-la.png", x: 50, y: 73, size: 32, caption: "QUÉT NHẸ TAY NHA" },
+  { id: "vit", name: "Vịt chạy đơn", mood: "Bựa vừa", src: "/art-library/vit-chay-don.png", x: 78, y: 57, size: 25, caption: "ĐƠN TỚI, QUÉT THÔI" },
+  { id: "noi", name: "Nồi cơm chào hàng", mood: "Hài nhẹ", src: "/art-library/noi-com-chao-hang.png", x: 81, y: 57, size: 38, caption: "CƠM CHÍN, MÃ XONG" },
 ];
 
 const fallbackBanks: Bank[] = [
@@ -190,7 +200,7 @@ function drawImageContained(context: CanvasRenderingContext2D, image: HTMLImageE
   context.drawImage(image, (size - width) / 2, (size - height) / 2, width, height);
 }
 
-function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, accent: string) {
+function drawLegacyWorkshopDoodle(context: CanvasRenderingContext2D, size: number, accent: string) {
   context.fillStyle = "#f4eedf";
   context.fillRect(0, 0, size, size);
   context.strokeStyle = "#17221f";
@@ -241,6 +251,31 @@ function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, acc
   context.fillText("TRANH CỦA BẠN", size * 0.49, size * 0.83);
   context.font = `500 ${size * 0.02}px Arial, sans-serif`;
   context.fillText("Tải ảnh lên · Đặt mã vào · Xuất tranh ra", size * 0.49, size * 0.87);
+}
+
+function drawWorkshopDoodle(context: CanvasRenderingContext2D, size: number, accent: string) {
+  context.fillStyle = "#f4eedf";
+  context.fillRect(0, 0, size, size);
+  context.strokeStyle = "rgba(23,34,31,.12)";
+  context.lineWidth = 1;
+  for (let offset = 0; offset < size; offset += size / 18) {
+    context.beginPath();
+    context.moveTo(offset, 0);
+    context.lineTo(offset, size);
+    context.moveTo(0, offset);
+    context.lineTo(size, offset);
+    context.stroke();
+  }
+  context.fillStyle = accent;
+  context.fillRect(size * 0.12, size * 0.18, size * 0.76, size * 0.58);
+  context.fillStyle = "#fff";
+  context.fillRect(size * 0.2, size * 0.26, size * 0.6, size * 0.42);
+  context.fillStyle = "#17221f";
+  context.textAlign = "center";
+  context.font = `800 ${size * 0.038}px Arial, sans-serif`;
+  context.fillText("CHỌN TRANH HOẶC NẠP ẢNH", size / 2, size * 0.46);
+  context.font = `600 ${size * 0.022}px Arial, sans-serif`;
+  context.fillText("Mã sẽ tự tìm một chỗ đẹp", size / 2, size * 0.52);
 }
 
 type ArtboardOptions = {
@@ -326,6 +361,7 @@ export default function Home() {
   const [qrStyle, setQrStyle] = useState<QRStyle>("round");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("stamp");
   const [artImage, setArtImage] = useState<HTMLImageElement | null>(null);
+  const [selectedArt, setSelectedArt] = useState(artLibrary[0].id);
   const [artX, setArtX] = useState(65);
   const [artY, setArtY] = useState(38);
   const [artSize, setArtSize] = useState(45);
@@ -334,6 +370,28 @@ export default function Home() {
   const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
   const [artSubcaption, setArtSubcaption] = useState("Mã riêng của bạn · Nét riêng của bạn");
   const [notice, setNotice] = useState("Mã lên nét, quét là kết");
+
+  const chooseLibraryArt = (item: LibraryArt) => {
+    const image = new Image();
+    image.onload = () => {
+      setArtImage(image);
+      setSelectedArt(item.id);
+      setArtX(item.x);
+      setArtY(item.y);
+      setArtSize(item.size);
+      setArtRotation(0);
+      setArtPaper(false);
+      setArtCaption(item.caption);
+      setArtSubcaption("Mã riêng của bạn · Nét riêng của bạn");
+      setLayoutMode("art");
+      setNotice(`${item.name} đã vào khay, mã tự tìm ngay chỗ đẹp`);
+    };
+    image.src = item.src;
+  };
+
+  useEffect(() => {
+    chooseLibraryArt(artLibrary[0]);
+  }, []);
 
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
@@ -433,7 +491,9 @@ export default function Home() {
       const image = new Image();
       image.onload = () => {
         setArtImage(image);
+        setSelectedArt("custom");
         setLayoutMode("art");
+        setArtPaper(true);
         setNotice("Tranh đã vào khay, đặt mã cho hay");
       };
       image.src = String(reader.result);
@@ -594,8 +654,22 @@ export default function Home() {
             <span>Sửa lỗi H · Chịu va</span><span>Viền 4 ô · Dễ dò</span><span>{mode === "bank" ? "VietQR · CRC16" : "Mã tĩnh · Kín thinh"}</span>
           </div>
           {layoutMode === "art" && <div className="art-controls">
-            <label className="upload-button">+ Nạp ảnh nền<input type="file" accept="image/*" onChange={uploadArtwork} /></label>
+            <div className="library-head"><div><b>KỆ TRANH CÓ SẴN</b><span>Chọn phát, mã vào đúng chỗ.</span></div><em>6 mẫu gốc</em></div>
+            <div className="art-library" aria-label="Kho tranh có sẵn">
+              {artLibrary.map((item) => <button key={item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
+                <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
+              </button>)}
+            </div>
+            <div className="custom-divider"><span>HOẶC ẢNH RIÊNG CỦA BẠN</span></div>
+            <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Nạp ảnh riêng<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
             <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
+            <details className="photo-guide">
+              <summary>Ảnh nào dập mã sẽ đẹp? <span>Mở bí kíp ↓</span></summary>
+              <div className="guide-body">
+                <div className="guide-pictures" aria-hidden="true"><i className="good"><b>QR</b></i><i className="bad"><b>QR</b></i></div>
+                <ul><li><b>Chừa một mảng trống 35–50%</b> để mã không che mặt người hay món đồ chính.</li><li><b>Ít chi tiết phía sau mã.</b> Ảnh càng rối, nên bật “lót giấy trắng”.</li><li><b>Ảnh vuông hoặc dọc, từ 800 px.</b> Tránh ảnh mờ, chụp quá tối hoặc cắt sát chủ thể.</li></ul>
+              </div>
+            </details>
             <div className="slider-grid">
               <label>Ngang <output>{artX}%</output><input type="range" min="15" max="85" value={artX} onChange={(e) => setArtX(Number(e.target.value))} /></label>
               <label>Dọc <output>{artY}%</output><input type="range" min="15" max="82" value={artY} onChange={(e) => setArtY(Number(e.target.value))} /></label>
@@ -604,7 +678,7 @@ export default function Home() {
             </div>
             <label className="paper-check"><input type="checkbox" checked={artPaper} onChange={(e) => setArtPaper(e.target.checked)} /> Lót giấy trắng sau mã</label>
             <div className="caption-grid"><label>Câu trên<input value={artCaption} maxLength={36} onChange={(e) => setArtCaption(e.target.value)} /></label><label>Câu dưới<input value={artSubcaption} maxLength={54} onChange={(e) => setArtSubcaption(e.target.value)} /></label></div>
-            {artImage && <button className="text-button" onClick={() => setArtImage(null)}>Bỏ ảnh, về tranh mẫu ↺</button>}
+            {selectedArt === "custom" && <button className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh riêng, về kệ tranh ↺</button>}
           </div>}
           <div className="download-row">
             <button className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải cả tranh PNG" : "Tải tem PNG"} <span>↓</span></button>
