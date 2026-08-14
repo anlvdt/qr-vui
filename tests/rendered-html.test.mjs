@@ -31,11 +31,12 @@ test("server-renders the QR Vui product", async () => {
 });
 
 test("keeps QR reliability guardrails in source", async () => {
-  const [page, frames, layout, packageJson] = await Promise.all([
+  const [page, frames, layout, packageJson, sitesPlugin] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/art-frames.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
+    readFile(new URL("../build/sites-vite-plugin.ts", import.meta.url), "utf8"),
   ]);
   assert.match(page, /errorCorrectionLevel:\s*"H"/);
   assert.match(page, /QRCode\.create\(payload, \{ errorCorrectionLevel: "H" \}\)/);
@@ -126,4 +127,6 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(packageJson, /"name": "qr-vui"/);
   assert.doesNotMatch(page, /QRồi Xong|qroi-xong/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(sitesPlugin, /let packaging = Promise\.resolve\(\)/);
+  assert.match(sitesPlugin, /packaging = packaging\.then/);
 });
