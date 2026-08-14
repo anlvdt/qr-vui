@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const ogImage = `${protocol}://${host}/og-v3.png`;
   const title = "QRồi Xong — Tạo mã QR dễ quét và tùy biến hình ảnh";
-  const description = "Biến mã QR đơn điệu thành thiết kế vui vẻ, hài hước và phù hợp với bối cảnh. Tùy biến với 90 mẫu minh họa hoặc ảnh riêng mà vẫn ưu tiên khả năng quét.";
+  const description = "Biến mã QR đơn điệu thành thiết kế vui vẻ, hài hước và phù hợp với bối cảnh. Tùy biến với 96 mẫu minh họa hoặc ảnh riêng mà vẫn ưu tiên khả năng quét.";
 
   return {
     title,

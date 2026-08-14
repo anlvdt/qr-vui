@@ -39,6 +39,33 @@ const qrStyles: { id: QRStyle; name: string; note: string; caption: string }[] =
   { id: "dots", name: "Chấm tròn", note: "Trang trí phần dữ liệu", caption: "MÃ QR CHẤM TRÒN" },
 ];
 
+const transferNotePresets = [
+  "Trả nợ để còn nhìn mặt nhau",
+  "Tiền cà phê cứu lấy tình bạn",
+  "Quỹ chống đói cuối tháng",
+  "Góp lẩu, không góp chuyện",
+  "Trà sữa chữa lành tâm hồn",
+  "Chuyển nhẹ kẻo ví đau",
+  "Tiền ăn, cân nặng tính sau",
+  "Ăn trước, hối hận sau",
+  "Mừng cưới, đừng hỏi lương",
+  "Mừng nhà mới, nhớ mời cơm",
+  "Sinh nhật vui, ví tôi buồn",
+  "Tiền mừng tới, người chưa tới",
+  "Nộp quỹ bảo toàn tình yêu",
+  "Tiền nhà, tình nghĩa miễn phí",
+  "Không phải rửa tiền, là rửa bát",
+  "Chuyển khoản bằng cả tấm lòng",
+  "Ví mỏng nhưng tình dày",
+  "Tiền đến rồi, đừng gọi nữa",
+  "Nhận đi, đừng hỏi nguồn",
+  "Khoản này mẹ không được biết",
+  "Của ít, lời nhắn hơi nhiều",
+  "Gửi tiền trước, xin lỗi sau",
+  "Hôm nay tôi là người tử tế",
+  "Chốt sổ, khỏi nhắc lần ba",
+];
+
 const artLibrary: LibraryArt[] = [
   { id: "meo", name: "Mèo mặt lạnh", mood: "Bựa vừa", category: "hai", src: "/art-library/meo-mat-lanh.png", x: 55, y: 68, size: 39, caption: "QUÉT ĐI, NHÌN GÌ", rotation: -2 },
   { id: "capy", name: "Capy tan ca", mood: "Hài nhẹ", category: "hai", src: "/art-library/capybara-tan-ca.png", x: 76, y: 37, size: 40, caption: "QUÉT XONG RỒI NGHỈ" },
@@ -70,6 +97,12 @@ const artLibrary: LibraryArt[] = [
   { id: "du-lich", name: "Xách ba lô lên", mood: "Du lịch", category: "su-kien", src: "/art-library/su-kien/du-lich.png", x: 70, y: 68, size: 41, caption: "QUÉT MÃ, LÊN ĐƯỜNG" },
   { id: "chay-bo", name: "Chạy là có hội", mood: "Thể thao", category: "su-kien", src: "/art-library/su-kien/chay-bo.png", x: 72, y: 69, size: 40, caption: "QUÉT MÃ, CHẠY THÔI" },
   { id: "thien-nguyen", name: "Góp vui góp sức", mood: "Cộng đồng", category: "su-kien", src: "/art-library/su-kien/thien-nguyen.png", x: 71, y: 73, size: 38, caption: "QUÉT MÃ, GÓP NIỀM VUI" },
+  { id: "le-an-hoi", name: "Lễ ăn hỏi rộn ràng", mood: "Cưới hỏi", category: "su-kien", src: "/art-library/su-kien/le-an-hoi.png", x: 72, y: 68, size: 50, caption: "QUÉT MÃ, TRAO DUYÊN" },
+  { id: "thoi-noi", name: "Thôi nôi bé yêu", mood: "Gia đình", category: "su-kien", src: "/art-library/su-kien/thoi-noi.png", x: 74, y: 66, size: 48, caption: "BÉ VUI, MÃ TỚI" },
+  { id: "tan-gia", name: "Tân gia có tổ ấm", mood: "Nhà mới", category: "su-kien", src: "/art-library/su-kien/tan-gia.png", x: 72, y: 67, size: 52, caption: "NHÀ MỚI, QUÉT THÔI" },
+  { id: "ky-niem-cuoi", name: "Kỷ niệm ngày cưới", mood: "Ngày đôi mình", category: "su-kien", src: "/art-library/su-kien/ky-niem-cuoi.png", x: 71, y: 69, size: 52, caption: "QUÉT MÃ, YÊU TIẾP" },
+  { id: "tat-nien", name: "Tất niên hết mình", mood: "Tiệc cuối năm", category: "su-kien", src: "/art-library/su-kien/tat-nien.png", x: 71, y: 67, size: 54, caption: "QUÉT XONG, NHẬP TIỆC" },
+  { id: "lien-hoan-ban-be", name: "Liên hoan hội bạn", mood: "Đám tiệc", category: "su-kien", src: "/art-library/su-kien/lien-hoan-ban-be.png", x: 69, y: 71, size: 54, caption: "GÓP VUI, QUÉT LUÔN" },
   { id: "lua-gao", name: "Mùa lúa chín", mood: "Trồng trọt", category: "nong-nghiep", src: "/art-library/nong-nghiep/lua-gao.png", x: 74, y: 64, size: 44, caption: "QUÉT MÃ, GẶT NIỀM VUI" },
   { id: "ca-phe", name: "Vườn cà phê", mood: "Nông sản", category: "nong-nghiep", src: "/art-library/nong-nghiep/ca-phe.png", x: 73, y: 64, size: 44, caption: "QUÉT MÃ, XEM VƯỜN" },
   { id: "vuon-trai-cay", name: "Vườn trái ngọt", mood: "Nhà vườn", category: "nong-nghiep", src: "/art-library/nong-nghiep/vuon-trai-cay.png", x: 73, y: 64, size: 44, caption: "QUÉT MÃ, CHỌN TRÁI" },
@@ -847,7 +880,7 @@ export default function Home() {
           <div className="eyebrow">TẠO MÃ QR VUI HƠN · DỄ TÙY BIẾN · VẪN DỄ QUÉT</div>
           <h1>Mã QR không nhất thiết<br /><em>phải đơn điệu.</em></h1>
           <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QRồi Xong giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
-          <small>90 mẫu minh họa · Tải ảnh riêng · Tùy chỉnh vị trí và câu chữ · Hỗ trợ VietQR kèm số tiền.</small>
+          <small>96 mẫu minh họa · Tải ảnh riêng · Tùy chỉnh vị trí và câu chữ · Hỗ trợ VietQR kèm số tiền.</small>
         </div>
         <div className="doodle" aria-hidden="true">
           <span className="arrow">↳</span>
@@ -896,7 +929,18 @@ export default function Home() {
                   </label>
                   <label>Nội dung chuyển khoản
                     <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CA PHE" />
+                    {bankNote && <small className="bank-note-preview">Ngân hàng sẽ nhận: {cleanTransferNote(bankNote)}</small>}
                   </label>
+                </div>
+                <div className="transfer-presets">
+                  <div className="preset-heading"><b>Câu chuyển khoản siêu hài</b><button type="button" onClick={() => setBankNote(transferNotePresets[Math.floor(Math.random() * transferNotePresets.length)])}>Chọn giúp tôi ↻</button></div>
+                  <div className="preset-quick" aria-label="Gợi ý nội dung chuyển khoản">
+                    {transferNotePresets.slice(0, 6).map((note) => <button type="button" key={note} aria-pressed={bankNote === note} className={bankNote === note ? "active" : ""} onClick={() => setBankNote(note)}>{note}</button>)}
+                  </div>
+                  <details className="preset-more">
+                    <summary>Xem đủ {transferNotePresets.length} câu vui</summary>
+                    <div>{transferNotePresets.slice(6).map((note) => <button type="button" key={note} aria-pressed={bankNote === note} className={bankNote === note ? "active" : ""} onClick={() => setBankNote(note)}>{note}</button>)}</div>
+                  </details>
                 </div>
                 <div className="bank-warning"><b>Lưu ý:</b> Mã chỉ điền sẵn thông tin chuyển khoản. Hãy kiểm tra người nhận, số tiền và nội dung trong ứng dụng ngân hàng trước khi xác nhận.</div>
               </>
@@ -1032,7 +1076,7 @@ export default function Home() {
         <div className="about-grid">
           <div><h2>Một mã QR vui vẻ,<br />hài hước và <em>dễ quét.</em></h2></div>
           <div className="about-copy">
-            <p><b>QRồi Xong</b> cung cấp 90 mẫu minh họa theo nghề nghiệp, món ăn, đời sống, du lịch và các tình huống hài hước. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
+            <p><b>QRồi Xong</b> cung cấp 96 mẫu minh họa theo nghề nghiệp, món ăn, đời sống, sự kiện, du lịch và các tình huống hài hước. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
             <p>Phần minh họa và phần kỹ thuật được xử lý riêng. Vùng QR luôn có nền tương phản, viền an toàn và các ô định vị nguyên vẹn; vì vậy thiết kế có thể vui hơn mà không bỏ qua khả năng quét.</p>
             <div className="about-sign">Tạo nội dung → Chọn thiết kế → Quét thử → Tải xuống ↗</div>
           </div>
