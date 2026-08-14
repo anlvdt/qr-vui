@@ -10,15 +10,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const ogImage = `${protocol}://${host}/og-v3.png`;
-  const title = "QRồi Xong — Tạo mã QR dễ quét và tùy biến hình ảnh";
-  const description = "Biến mã QR đơn điệu thành thiết kế vui vẻ, hài hước và phù hợp với bối cảnh. Tùy biến với 96 mẫu minh họa hoặc ảnh riêng mà vẫn ưu tiên khả năng quét.";
+  const ogImage = `${protocol}://${host}/og-qr-vui.png`;
+  const title = "QR Vui — Tạo mã QR vui hơn, vẫn dễ quét";
+  const description = "Tạo mã QR cho liên kết, Wi-Fi, VietQR, văn bản và email; tùy biến với 96 mẫu minh họa hoặc ảnh riêng ngay trên thiết bị của bạn.";
 
   return {
     title,
     description,
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
-    openGraph: { title, description, locale: "vi_VN", type: "website", images: [{ url: ogImage, width: 1200, height: 630, alt: "QRồi Xong — Tạo mã QR dễ quét và tùy biến hình ảnh" }] },
+    openGraph: { title, description, locale: "vi_VN", type: "website", images: [{ url: ogImage, width: 1731, height: 909, alt: "QR Vui — Tạo mã QR vui hơn, vẫn dễ quét" }] },
     twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }

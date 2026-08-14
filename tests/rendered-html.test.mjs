@@ -13,12 +13,12 @@ async function render() {
   );
 }
 
-test("server-renders the QRồi Xong product", async () => {
+test("server-renders the QR Vui product", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
-  assert.match(html, /QRồi Xong!/);
+  assert.match(html, /QR Vui/);
   assert.match(html, /Mã QR không nhất thiết/);
   assert.match(html, /phải đơn điệu/);
   assert.match(html, /Tạo mã QR/);
@@ -38,6 +38,9 @@ test("keeps QR reliability guardrails in source", async () => {
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
   assert.match(page, /errorCorrectionLevel:\s*"H"/);
+  assert.match(page, /QRCode\.create\(payload, \{ errorCorrectionLevel: "H" \}\)/);
+  assert.match(page, /function escapeSvgText/);
+  assert.match(page, /window\.setTimeout\(\(\) => URL\.revokeObjectURL/);
   assert.match(page, /const quiet = 4/);
   assert.match(page, /canvas\.width = 1400/);
   assert.match(page, /WIFI:T:/);
@@ -118,8 +121,9 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
   assert.doesNotMatch(page, /drawLegacyWorkshopDoodle/);
   assert.match(layout, /lang="vi"/);
-  assert.match(layout, /og-v3\.png/);
+  assert.match(layout, /og-qr-vui\.png/);
   assert.match(packageJson, /"qrcode"/);
-  assert.match(packageJson, /"name": "qroi-xong"/);
+  assert.match(packageJson, /"name": "qr-vui"/);
+  assert.doesNotMatch(page, /QRồi Xong|qroi-xong/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

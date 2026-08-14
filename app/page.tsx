@@ -310,6 +310,10 @@ function downloadStyledPNG(payload: string, color: string, accent: string, style
   link.click();
 }
 
+function escapeSvgText(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function styledSVG(payload: string, color: string, accent: string, style: QRStyle, caption: string) {
   const qr = QRCode.create(payload, { errorCorrectionLevel: "H" });
   const modules = qr.modules as typeof qr.modules & { isReserved(row: number, column: number): number };
@@ -328,7 +332,7 @@ function styledSVG(payload: string, color: string, accent: string, style: QRStyl
       else pieces.push(`<rect x="${px}" y="${py}" width="${cell + 0.08}" height="${cell + 0.08}" rx="${style === "round" && !protectedModule ? cell * 0.24 : 0}" fill="${color}"/>`);
     }
   }
-  const safeCaption = caption.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const safeCaption = escapeSvgText(caption);
   pieces.push(`<rect x="110" y="1370" width="1180" height="104" fill="#171717"/><text x="700" y="1434" fill="#fff" font-family="Be Vietnam Pro,Arial,sans-serif" font-size="38" font-weight="700" text-anchor="middle">${safeCaption}</text>`);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1540" viewBox="0 0 1400 1540">${pieces.join("")}</svg>`;
 }
@@ -745,18 +749,23 @@ export default function Home() {
     if (!payload || payloadBytes > 1200) return false;
     if (mode === "link") {
       try {
-        return ["http:", "https:"].includes(new URL(payload).protocol);
+        if (!["http:", "https:"].includes(new URL(payload).protocol)) return false;
       } catch {
         return false;
       }
     }
-    if (mode === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    if (mode === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return false;
     if (mode === "bank") {
       const accountOk = /^[A-Za-z0-9]{6,19}$/.test(bankAccount.trim());
       const amountOk = !bankAmount || (/^[1-9]\d{0,12}$/.test(bankAmount) && Number(bankAmount) <= 9_999_999_999_999);
-      return accountOk && amountOk;
+      if (!accountOk || !amountOk) return false;
     }
-    return true;
+    try {
+      QRCode.create(payload, { errorCorrectionLevel: "H" });
+      return true;
+    } catch {
+      return false;
+    }
   }, [payload, payloadBytes, mode, value, bankAccount, bankAmount]);
 
   const colorIsSafe = contrastOnWhite(palette.value) >= 4.5;
@@ -840,7 +849,7 @@ export default function Home() {
 
   const download = async (format: "png" | "svg") => {
     if (!inputIsValid || !colorIsSafe) return;
-    const filename = `qroi-xong-${Date.now()}`;
+    const filename = `qr-vui-${Date.now()}`;
     const selectedStyle = qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0];
     if (format === "png") {
       if (layoutMode === "art") downloadArtPNG(payload, palette.value, palette.accent, qrStyle, artOptions, filename);
@@ -852,7 +861,7 @@ export default function Home() {
       link.href = url;
       link.download = `${filename}.svg`;
       link.click();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
     }
     setNotice(`Đã tải tệp ${format.toUpperCase()} xuống thiết bị.`);
   };
@@ -865,11 +874,11 @@ export default function Home() {
 
   return (
     <main>
-      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR CÓ SỐ TIỀN · VĂN BẢN · EMAIL · 90 MẪU MINH HỌA</div>
+      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR CÓ SỐ TIỀN · VĂN BẢN · EMAIL · {artLibrary.length} MẪU MINH HỌA</div>
       <nav className="nav wrap" aria-label="Điều hướng chính">
-        <a className="brand" href="#top" aria-label="QRồi Xong - trang chủ">
+        <a className="brand" href="#top" aria-label="QR Vui - trang chủ">
           <span className="brand-mark">QR!</span>
-          <span>QRồi Xong!</span>
+          <span>QR Vui</span>
         </a>
         <div className="nav-links"><a href="#top">Tạo mã QR</a><a href="#about">Giải pháp</a><a href="#tech">Công nghệ</a></div>
         <div className="nav-note"><span /> Xử lý tại trình duyệt</div>
@@ -879,7 +888,7 @@ export default function Home() {
         <div className="hero-copy">
           <div className="eyebrow">TẠO MÃ QR VUI HƠN · DỄ TÙY BIẾN · VẪN DỄ QUÉT</div>
           <h1>Mã QR không nhất thiết<br /><em>phải đơn điệu.</em></h1>
-          <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QRồi Xong giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
+          <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QR Vui giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
           <small>96 mẫu minh họa · Tải ảnh riêng · Tùy chỉnh vị trí và câu chữ · Hỗ trợ VietQR kèm số tiền.</small>
         </div>
         <div className="doodle" aria-hidden="true">
@@ -1067,7 +1076,7 @@ export default function Home() {
         <div className="proof-grid">
           <article><b>01</b><h3>Đơn điệu và khó tạo ấn tượng</h3><p>Phần lớn công cụ chỉ tạo một ô mã đen trắng giống nhau, khó thể hiện cá tính hoặc khiến người nhận muốn quét.</p></article>
           <article><b>02</b><h3>Khó phù hợp với từng bối cảnh</h3><p>Một mã dùng cho quán ăn, đám cưới, du lịch hay chuyển khoản thường vẫn có cùng hình thức khô khan.</p></article>
-          <article><b>03</b><h3>Trang trí có thể làm mã khó quét</h3><p>QRồi Xong đặt mã trên vùng tương phản riêng, giữ viền an toàn và vùng định vị để hình ảnh vui hơn mà mã vẫn rõ.</p></article>
+          <article><b>03</b><h3>Trang trí có thể làm mã khó quét</h3><p>QR Vui đặt mã trên vùng tương phản riêng, giữ viền an toàn và vùng định vị để hình ảnh vui hơn mà mã vẫn rõ.</p></article>
         </div>
       </section>
 
@@ -1076,7 +1085,7 @@ export default function Home() {
         <div className="about-grid">
           <div><h2>Một mã QR vui vẻ,<br />hài hước và <em>dễ quét.</em></h2></div>
           <div className="about-copy">
-            <p><b>QRồi Xong</b> cung cấp 96 mẫu minh họa theo nghề nghiệp, món ăn, đời sống, sự kiện, du lịch và các tình huống hài hước. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
+            <p><b>QR Vui</b> cung cấp {artLibrary.length} mẫu minh họa theo nghề nghiệp, món ăn, đời sống, sự kiện, du lịch và các tình huống hài hước. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
             <p>Phần minh họa và phần kỹ thuật được xử lý riêng. Vùng QR luôn có nền tương phản, viền an toàn và các ô định vị nguyên vẹn; vì vậy thiết kế có thể vui hơn mà không bỏ qua khả năng quét.</p>
             <div className="about-sign">Tạo nội dung → Chọn thiết kế → Quét thử → Tải xuống ↗</div>
           </div>
@@ -1098,7 +1107,7 @@ export default function Home() {
       </section>
 
       <footer className="wrap">
-        <div className="brand"><span className="brand-mark">QR!</span><span>QRồi Xong!</span></div>
+        <div className="brand"><span className="brand-mark">QR!</span><span>QR Vui</span></div>
         <p>Tạo mã QR dễ sử dụng, dễ tùy biến và dễ quét.</p>
         <a href="#top">Quay lại đầu trang ↑</a>
       </footer>
