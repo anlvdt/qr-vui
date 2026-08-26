@@ -316,7 +316,27 @@ function drawQR(context: CanvasRenderingContext2D, payload: string, color: strin
   }
 }
 
-function renderPreview(canvas: HTMLCanvasElement, payload: string, color: string, style: QRStyle) {
+function drawBrandLogo(context: CanvasRenderingContext2D, logo: HTMLImageElement | null, centerX: number, centerY: number, qrSize: number, scale: number) {
+  if (!logo) return;
+  const badgeSize = qrSize * Math.max(8, Math.min(18, scale)) / 100;
+  const padding = badgeSize * 0.14;
+  context.save();
+  context.fillStyle = "#FFFFFF";
+  context.strokeStyle = "rgba(23,34,31,.28)";
+  context.lineWidth = Math.max(1.5, badgeSize * 0.018);
+  context.beginPath();
+  context.roundRect(centerX - badgeSize / 2, centerY - badgeSize / 2, badgeSize, badgeSize, badgeSize * 0.18);
+  context.fill();
+  context.stroke();
+  const available = badgeSize - padding * 2;
+  const ratio = Math.min(available / logo.naturalWidth, available / logo.naturalHeight);
+  const width = logo.naturalWidth * ratio;
+  const height = logo.naturalHeight * ratio;
+  context.drawImage(logo, centerX - width / 2, centerY - height / 2, width, height);
+  context.restore();
+}
+
+function renderPreview(canvas: HTMLCanvasElement, payload: string, color: string, style: QRStyle, logo: HTMLImageElement | null, logoScale: number) {
   const scale = window.devicePixelRatio || 1;
   const size = 336;
   canvas.width = size * scale;
@@ -325,6 +345,7 @@ function renderPreview(canvas: HTMLCanvasElement, payload: string, color: string
   if (!context) return;
   context.scale(scale, scale);
   drawQR(context, payload, color, style, 0, 0, size);
+  drawBrandLogo(context, logo, size / 2, size / 2, size, logoScale);
 }
 
 function canvasFontFamily() {
@@ -332,7 +353,7 @@ function canvasFontFamily() {
   return window.getComputedStyle(document.body).fontFamily || 'var(--font-display), Arial, sans-serif';
 }
 
-function downloadStyledPNG(payload: string, color: string, accent: string, style: QRStyle, caption: string, filename: string) {
+function downloadStyledPNG(payload: string, color: string, accent: string, style: QRStyle, caption: string, filename: string, logo: HTMLImageElement | null, logoScale: number) {
   const canvas = document.createElement("canvas");
   canvas.width = 1400;
   canvas.height = 1540;
@@ -343,6 +364,7 @@ function downloadStyledPNG(payload: string, color: string, accent: string, style
   context.fillStyle = "#171717";
   context.fillRect(58, 58, 1284, 1284);
   drawQR(context, payload, color, style, 74, 74, 1252);
+  drawBrandLogo(context, logo, 700, 700, 1252, logoScale);
   context.fillStyle = "#171717";
   context.fillRect(110, 1370, 1180, 104);
   context.fillStyle = "#FFFFFF";
@@ -360,7 +382,7 @@ function escapeSvgText(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function styledSVG(payload: string, color: string, accent: string, style: QRStyle, caption: string) {
+function styledSVG(payload: string, color: string, accent: string, style: QRStyle, caption: string, logoDataUrl: string, logoScale: number) {
   const qr = QRCode.create(payload, { errorCorrectionLevel: "H" });
   const modules = qr.modules as typeof qr.modules & { isReserved(row: number, column: number): number };
   const quiet = 4;
@@ -378,6 +400,12 @@ function styledSVG(payload: string, color: string, accent: string, style: QRStyl
       else pieces.push(`<rect x="${px}" y="${py}" width="${cell + 0.08}" height="${cell + 0.08}" rx="${style === "round" && !protectedModule ? cell * 0.24 : 0}" fill="${color}"/>`);
     }
   }
+  if (logoDataUrl) {
+    const badgeSize = qrSize * Math.max(8, Math.min(18, logoScale)) / 100;
+    const padding = badgeSize * 0.14;
+    pieces.push(`<rect x="${700 - badgeSize / 2}" y="${700 - badgeSize / 2}" width="${badgeSize}" height="${badgeSize}" rx="${badgeSize * 0.18}" fill="#fff" stroke="#17221f" stroke-opacity=".28" stroke-width="${Math.max(1.5, badgeSize * 0.018)}"/>`);
+    pieces.push(`<image href="${escapeSvgText(logoDataUrl)}" x="${700 - badgeSize / 2 + padding}" y="${700 - badgeSize / 2 + padding}" width="${badgeSize - padding * 2}" height="${badgeSize - padding * 2}" preserveAspectRatio="xMidYMid meet"/>`);
+  }
   const safeCaption = escapeSvgText(caption);
   pieces.push(`<rect x="110" y="1370" width="1180" height="104" fill="#171717"/><text x="700" y="1434" fill="#fff" font-family="var(--font-display),Arial,sans-serif" font-size="38" font-weight="700" text-anchor="middle">${safeCaption}</text>`);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1540" viewBox="0 0 1400 1540">${pieces.join("")}</svg>`;
@@ -391,6 +419,15 @@ function colorLuminance(hex: string) {
 function contrastOnWhite(hex: string) {
   const dark = colorLuminance(hex);
   return 1.05 / (dark + 0.05);
+}
+
+function HexColorInput({ label, value, onApply }: { label: string; value: string; onApply: (value: string) => void }) {
+  const commit = (input: HTMLInputElement) => {
+    const normalized = `#${input.value.replace(/#/g, "").slice(0, 6).toUpperCase()}`;
+    if (/^#[0-9A-F]{6}$/.test(normalized)) onApply(normalized);
+    else input.value = value.toUpperCase();
+  };
+  return <label className="brand-color-field"><span>{label}</span><div><input type="color" value={value} onChange={(event) => onApply(event.target.value.toUpperCase())} aria-label={`Chọn ${label.toLowerCase()}`} /><input key={value} defaultValue={value.toUpperCase()} onBlur={(event) => commit(event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} maxLength={7} inputMode="text" spellCheck={false} aria-label={`Mã HEX ${label.toLowerCase()}`} /></div></label>;
 }
 
 function drawImageContained(context: CanvasRenderingContext2D, image: HTMLImageElement, size: number) {
@@ -453,6 +490,8 @@ function sampleLightSurface(context: CanvasRenderingContext2D, x: number, y: num
 
 type ArtboardOptions = {
   image: HTMLImageElement | null;
+  logo: HTMLImageElement | null;
+  logoScale: number;
   x: number;
   y: number;
   width: number;
@@ -540,6 +579,28 @@ function drawProjectedQR(context: CanvasRenderingContext2D, payload: string, col
   }
 }
 
+function drawProjectedBrandLogo(context: CanvasRenderingContext2D, logo: HTMLImageElement | null, mapPoint: (x: number, y: number) => ArtPoint, centerX: number, centerY: number, qrSize: number, scale: number) {
+  if (!logo) return;
+  const badgeSize = qrSize * Math.max(8, Math.min(18, scale)) / 100;
+  const half = badgeSize / 2;
+  const corners = [mapPoint(centerX - half, centerY - half), mapPoint(centerX + half, centerY - half), mapPoint(centerX + half, centerY + half), mapPoint(centerX - half, centerY + half)];
+  context.fillStyle = "#FFFFFF";
+  drawPolygon(context, corners);
+  context.fill();
+  const padding = badgeSize * 0.14;
+  const available = badgeSize - padding * 2;
+  const ratio = Math.min(available / logo.naturalWidth, available / logo.naturalHeight);
+  const width = logo.naturalWidth * ratio;
+  const height = logo.naturalHeight * ratio;
+  const center = mapPoint(centerX, centerY);
+  const xUnit = mapPoint(centerX + 1, centerY);
+  const yUnit = mapPoint(centerX, centerY + 1);
+  context.save();
+  context.transform(xUnit.x - center.x, xUnit.y - center.y, yUnit.x - center.x, yUnit.y - center.y, center.x, center.y);
+  context.drawImage(logo, -width / 2, -height / 2, width, height);
+  context.restore();
+}
+
 function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, payload: string, ink: string, accent: string, style: QRStyle, options: ArtboardOptions) {
   if (options.image) drawImageContained(context, options.image, canvasSize);
   else drawWorkshopDoodle(context, canvasSize, accent);
@@ -601,6 +662,7 @@ function drawArtboard(context: CanvasRenderingContext2D, canvasSize: number, pay
     context.stroke();
   }
   drawProjectedQR(context, payload, ink, style, embeddedSurface, mapPoint, qrCenterX - qrSize / 2, qrCenterY - qrSize / 2, qrSize);
+  drawProjectedBrandLogo(context, options.logo, mapPoint, qrCenterX, qrCenterY, qrSize, options.logoScale);
   const copyWidth = Math.min(badgeWidth, badgeWidth * options.copyWidth / 100);
   const copyCenterX = clampLocal(localLeft + badgeWidth * options.copyX / 100, localLeft + copyWidth / 2, localRight - copyWidth / 2);
   const captionFont = caption ? Math.min(badgeHeight * options.titleScale / 100, copyWidth / Math.max(7, caption.length * 0.52)) : 0;
@@ -688,6 +750,11 @@ export default function Home() {
   const billFileRef = useRef<HTMLInputElement | null>(null);
   const billOcrRequestRef = useRef(0);
   const [palette, setPalette] = useState(palettes[0]);
+  const [brandName, setBrandName] = useState("");
+  const [brandLogo, setBrandLogo] = useState<HTMLImageElement | null>(null);
+  const [brandLogoDataUrl, setBrandLogoDataUrl] = useState("");
+  const [brandLogoName, setBrandLogoName] = useState("");
+  const [brandLogoScale, setBrandLogoScale] = useState(14);
   const [qrStyle, setQrStyle] = useState<QRStyle>("round");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("stamp");
   const [artImage, setArtImage] = useState<HTMLImageElement | null>(null);
@@ -939,6 +1006,8 @@ export default function Home() {
 
   const artOptions = useMemo<ArtboardOptions>(() => ({
     image: artImage,
+    logo: brandLogo,
+    logoScale: brandLogoScale,
     x: artX,
     y: artY,
     width: artWidth,
@@ -959,15 +1028,16 @@ export default function Home() {
     paper: artPaper,
     caption: artCaption,
     subcaption: artSubcaption,
-  }), [artImage, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQuad, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
+  }), [artImage, brandLogo, brandLogoScale, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQuad, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
 
   const visibleArt = artLibrary.filter((item) => item.category === artCategory);
+  const stampCaption = brandName.trim().toUpperCase() || (qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption;
 
   useEffect(() => {
     if (!inputIsValid || !colorIsSafe) return;
     if (layoutMode === "art" && artCanvasRef.current) renderArtPreview(artCanvasRef.current, payload, palette.value, palette.accent, qrStyle, artOptions);
-    else if (canvasRef.current) renderPreview(canvasRef.current, payload, palette.value, qrStyle);
-  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artOptions]);
+    else if (canvasRef.current) renderPreview(canvasRef.current, payload, palette.value, qrStyle, brandLogo, brandLogoScale);
+  }, [payload, palette, qrStyle, inputIsValid, colorIsSafe, layoutMode, artOptions, brandLogo, brandLogoScale]);
 
   const displayNotice = !colorIsSafe
     ? "Màu mã QR chưa đủ tương phản với nền sáng"
@@ -1010,7 +1080,7 @@ export default function Home() {
         setLayoutMode("art");
         applyArtFrame(customArtFrame);
         setArtPaper(true);
-        setArtCaption("QUÉT ĐỂ XEM");
+        setArtCaption("MỜI BẠN QUÉT MÃ!");
         setArtSubcaption("");
         setArtworkLoading(false);
         setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí mã QR.");
@@ -1028,15 +1098,49 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+  const uploadBrandLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setNotice("Logo cần là tệp PNG, JPG hoặc WEBP.");
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setNotice("Logo vượt quá 3 MB. Hãy chọn tệp nhẹ hơn.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        setBrandLogo(image);
+        setBrandLogoDataUrl(String(reader.result));
+        setBrandLogoName(file.name);
+        setNotice("Logo thương hiệu đã được đặt an toàn ở giữa mã QR.");
+      };
+      image.onerror = () => setNotice("Không thể đọc logo này. Hãy thử một tệp khác.");
+      image.src = String(reader.result);
+    };
+    reader.onerror = () => setNotice("Không thể mở tệp logo. Hãy thử chọn lại.");
+    reader.readAsDataURL(file);
+  };
+
+  const clearBrandLogo = () => {
+    setBrandLogo(null);
+    setBrandLogoDataUrl("");
+    setBrandLogoName("");
+    setNotice("Đã gỡ logo khỏi thiết kế.");
+  };
+
   const download = (format: "png" | "svg") => {
     if (!inputIsValid || !colorIsSafe) return;
     const filename = `qr-vui${mode === "bill" ? `-chia-bill-${selectedBillPayer + 1}` : ""}-${Date.now()}`;
-    const selectedStyle = qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0];
     if (format === "png") {
       if (layoutMode === "art") downloadArtPNG(payload, palette.value, palette.accent, qrStyle, artOptions, filename);
-      else downloadStyledPNG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption, filename);
+      else downloadStyledPNG(payload, palette.value, palette.accent, qrStyle, stampCaption, filename, brandLogo, brandLogoScale);
     } else {
-      const svg = styledSVG(payload, palette.value, palette.accent, qrStyle, selectedStyle.caption);
+      const svg = styledSVG(payload, palette.value, palette.accent, qrStyle, stampCaption, brandLogoDataUrl, brandLogoScale);
       const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
       const link = document.createElement("a");
       link.href = url;
@@ -1245,8 +1349,24 @@ export default function Home() {
                   <i style={{ background: item.value }} /><span>{item.name}</span>
                 </button>
               ))}
-              <label className="color-well">Màu QR<input type="color" value={palette.value} onChange={(event) => setPalette({ name: "Tùy chọn", value: event.target.value, accent: palette.accent })} /></label>
-              <label className="color-well">Màu nền<input type="color" value={palette.accent} onChange={(event) => setPalette({ name: "Tùy chọn", value: palette.value, accent: event.target.value })} /></label>
+            </div>
+            <div className="brand-customizer">
+              <div className="brand-heading"><div><b>NHẬN DIỆN THƯƠNG HIỆU</b><span>Nhập đúng mã màu brand, thêm logo và tên hiển thị trên ấn phẩm.</span></div><em>Riêng tư · xử lý trên máy</em></div>
+              <div className="brand-color-grid">
+                <HexColorInput label="Màu mã QR" value={palette.value} onApply={(value) => setPalette({ name: "Tùy chọn", value, accent: palette.accent })} />
+                <HexColorInput label="Màu nền ấn phẩm" value={palette.accent} onApply={(accent) => setPalette({ name: "Tùy chọn", value: palette.value, accent })} />
+              </div>
+              <label className="brand-name-field">Tên thương hiệu hoặc thông điệp ngắn<input value={brandName} onChange={(event) => setBrandName(event.target.value.slice(0, 32))} placeholder="Ví dụ: CÀ PHÊ NHÀ MÌNH" /><small>{brandName.length}/32 · dùng trên ấn phẩm QR độc lập</small></label>
+              <div className={`brand-logo-control${brandLogo ? " has-logo" : ""}`}>
+                <label className="brand-logo-upload"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadBrandLogo} /><span>{brandLogo ? "Đổi logo" : "+ Tải logo lên"}</span><small>PNG nền trong suốt được khuyên dùng · tối đa 3 MB</small></label>
+                {brandLogo && <div className="brand-logo-summary">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={brandLogoDataUrl} alt="Logo thương hiệu vừa tải" />
+                  <div><b>{brandLogoName}</b><button type="button" onClick={clearBrandLogo}>Gỡ logo</button></div>
+                </div>}
+              </div>
+              <label className="brand-art-upload"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} disabled={artworkLoading} /><span>{artworkLoading ? "Đang chuẩn bị ấn phẩm…" : "+ Tải menu, poster hoặc bao bì"}</span><small>Ứng dụng sẽ chuyển sang chế độ “Mã QR trong tranh” để bạn đặt QR trực tiếp lên ấn phẩm.</small></label>
+              {brandLogo && <label className="brand-logo-size">Kích thước logo <output>{brandLogoScale}%</output><input type="range" min="8" max="18" step="1" value={brandLogoScale} onChange={(event) => setBrandLogoScale(Number(event.target.value))} /><small>Giới hạn 8–18% để giữ khả năng quét; logo luôn có nền trắng bảo vệ.</small></label>}
             </div>
           </div>
 
@@ -1272,13 +1392,13 @@ export default function Home() {
           {layoutMode === "art" ? (
             <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" role="img" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để xem trước thiết kế</p></div>}</div>
           ) : (
-            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} role="img" aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{mode === "bill" && billIsValid ? `QR PHẦN CỦA ${selectedBillName.toUpperCase()}` : (qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
+            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} role="img" aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{mode === "bill" && billIsValid ? `QR PHẦN CỦA ${selectedBillName.toUpperCase()}` : stampCaption}</div></div>
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`} role="status" aria-live="polite"><span>●</span>{displayNotice}</div>
           <details className="scan-details">
             <summary>Thông số bảo đảm khả năng quét</summary>
             <div className="tech-badges">
-              <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? "Phối cảnh 4 góc" : mode === "bank" || mode === "bill" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
+              <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span>{brandLogo && <span>Logo an toàn {brandLogoScale}%</span>}<span>{layoutMode === "art" ? "Phối cảnh 4 góc" : mode === "bank" || mode === "bill" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
             </div>
           </details>
           {layoutMode === "art" && <div className="art-controls">
