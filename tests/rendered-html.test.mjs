@@ -33,10 +33,11 @@ test("server-renders the QR Vui product", async () => {
 });
 
 test("keeps QR reliability guardrails in source", async () => {
-  const [page, frames, layout, packageJson, sitesPlugin] = await Promise.all([
+  const [page, frames, layout, styles, packageJson, sitesPlugin] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/art-frames.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../build/sites-vite-plugin.ts", import.meta.url), "utf8"),
   ]);
@@ -135,6 +136,8 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-qr-vui\.png/);
   assert.match(layout, /NEXT_PUBLIC_SITE_URL/);
+  assert.match(styles, /--text-base:16px/);
+  assert.match(styles, /input,textarea,select\{font-size:16px\}/);
   assert.match(packageJson, /"build:pages"/);
   assert.match(packageJson, /"qrcode"/);
   assert.match(packageJson, /"name": "qr-vui"/);
