@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { extractReceiptTotal, splitBillEvenly } from "../app/bill-utils.ts";
 
 async function render() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -56,9 +57,8 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /9_999_999_999_999/);
   assert.match(page, /const initiationMethod = amount \? "12" : "11"/);
   assert.match(page, /const billShares = useMemo/);
-  assert.match(page, /Math\.floor\(billTotalNumber \/ billPeopleCount\)/);
-  assert.match(page, /billTotalNumber % billPeopleCount/);
-  assert.match(page, /Chia hóa đơn trong vài giây/);
+  assert.match(page, /splitBillEvenly/);
+  assert.match(page, /Tự chia bill như ảnh/);
   assert.match(page, /Mỗi đồng lẻ/);
   assert.match(page, /const passwordField = wifiSecurity === "nopass"/);
   assert.match(page, /modules\.isReserved/);
@@ -142,4 +142,18 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.match(sitesPlugin, /let packaging = Promise\.resolve\(\)/);
   assert.match(sitesPlugin, /packaging = packaging\.then/);
+});
+
+test("extracts the payable total instead of an item or invoice number", () => {
+  const receipt = `Mã HĐ: 20260824-0011\nBudweiser 330ml 1 26.000 26.000\nRượu Em Mơ 15 299.000 4.485.000\nTổng: 8.851.000 đ\nThuế đồ ăn 708.080 đ\nTổng thanh toán: 9.661.560 đ`;
+  assert.equal(extractReceiptTotal(receipt), "9661560");
+  assert.equal(extractReceiptTotal("GRAND TOTAL\n1,250,000 VND"), "1250000");
+  assert.equal(extractReceiptTotal("Mã hóa đơn 202608240011\nBàn B2.14"), null);
+});
+
+test("splits every đồng exactly once", () => {
+  const shares = splitBillEvenly(9_661_560, 7);
+  assert.deepEqual(shares, [1_380_223, 1_380_223, 1_380_223, 1_380_223, 1_380_223, 1_380_223, 1_380_222]);
+  assert.equal(shares.reduce((sum, share) => sum + share, 0), 9_661_560);
+  assert.deepEqual(splitBillEvenly(10_000, 3), [3_334, 3_333, 3_333]);
 });

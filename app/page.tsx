@@ -5,6 +5,7 @@ export const dynamic = "force-static";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { artFrames, type ArtFrame, type ArtPoint, type ArtQuad } from "./art-frames";
+import { extractReceiptTotal, splitBillEvenly } from "./bill-utils";
 
 type Mode = "link" | "wifi" | "bank" | "bill" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
@@ -643,8 +644,10 @@ export default function Home() {
   const [billPayer, setBillPayer] = useState(0);
   const [billImage, setBillImage] = useState<string | null>(null);
   const [billOcrStatus, setBillOcrStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [, setBillOcrText] = useState("");
+  const [billOcrProgress, setBillOcrProgress] = useState(0);
+  const [billOcrMessage, setBillOcrMessage] = useState("Kéo-thả ảnh vào đây cũng được");
   const billFileRef = useRef<HTMLInputElement | null>(null);
+  const billOcrRequestRef = useRef(0);
   const [palette, setPalette] = useState(palettes[0]);
   const [qrStyle, setQrStyle] = useState<QRStyle>("round");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("stamp");
@@ -734,6 +737,10 @@ export default function Home() {
     if (downloadResetRef.current) clearTimeout(downloadResetRef.current);
   }, []);
 
+  useEffect(() => () => {
+    if (billImage) URL.revokeObjectURL(billImage);
+  }, [billImage]);
+
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
       .then((response) => {
@@ -757,74 +764,83 @@ export default function Home() {
     && billPeopleCount <= 30
   ), [billPeopleCount, billTotal, billTotalNumber]);
   const billNamesList = useMemo(() => {
-    const enteredNames = billNames.split(",").map((name) => name.trim()).filter(Boolean);
+    const enteredNames = billNames.split(/[,;\n]+/).map((name) => name.trim()).filter(Boolean);
     return Array.from({ length: Math.max(0, billPeopleCount) }, (_, index) => enteredNames[index] || `Người ${index + 1}`);
   }, [billNames, billPeopleCount]);
   const billShares = useMemo(() => {
     if (!billIsValid) return [];
-    const baseShare = Math.floor(billTotalNumber / billPeopleCount);
-    const remainder = billTotalNumber % billPeopleCount;
-    return Array.from({ length: billPeopleCount }, (_, index) => baseShare + (index < remainder ? 1 : 0));
+    return splitBillEvenly(billTotalNumber, billPeopleCount);
   }, [billIsValid, billPeopleCount, billTotalNumber]);
   const selectedBillPayer = Math.min(billPayer, Math.max(0, billPeopleCount - 1));
   const selectedBillShare = billShares[selectedBillPayer] ?? 0;
   const selectedBillName = billNamesList[selectedBillPayer] ?? `Người ${selectedBillPayer + 1}`;
   const billTotalFormatted = useMemo(() => billIsValid ? billTotalNumber.toLocaleString("vi-VN") : "", [billIsValid, billTotalNumber]);
 
-  const extractTotalFromText = useCallback((text: string): string | null => {
-    const normalized = text.replace(/\u00A0/g, " ");
-    // Ưu tiên dòng chứa "tong thanh toan" / "tong cong" / "total"
-    const lines = normalized.split(/\n/).map((l) => l.trim()).filter(Boolean);
-    const totalLine = lines.find((l) => /t[o0]ng\s*(thanh\s*toan|cong)|total/i.test(l)) ?? "";
-    const candidates: string[] = [];
-    if (totalLine) {
-      const m = totalLine.match(/([\d][\d\s.,]{3,})/g);
-      if (m) candidates.push(...m);
-    }
-    // Fallback: tất cả số tiền lớn trong văn bản
-    const all = normalized.match(/([\d][\d\s.,]{4,})/g) ?? [];
-    candidates.push(...all);
-    for (const raw of candidates) {
-      const digits = raw.replace(/[^\d]/g, "");
-      if (!digits) continue;
-      // Loại bỏ số quá nhỏ ( < 10k ) hoặc quá lớn
-      if (digits.length < 4 || digits.length > 13) continue;
-      // Bỏ số kiểu 8% / 10% VAT
-      if (/^\d{1,2}$/.test(digits)) continue;
-      // Lấy số cuối cùng trong dòng tổng thường là tổng tiền
-      const n = Number(digits);
-      if (n >= 5000 && n <= 9999999999999) return digits;
-    }
-    return null;
-  }, []);
-
   const handleBillImage = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setBillOcrStatus("error");
+      setBillOcrMessage("Tệp này không phải ảnh. Hãy chọn JPG, PNG hoặc HEIC.");
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      setBillOcrStatus("error");
+      setBillOcrMessage("Ảnh lớn hơn 12 MB. Hãy chụp lại hoặc giảm kích thước ảnh.");
+      return;
+    }
+    const requestId = ++billOcrRequestRef.current;
     const url = URL.createObjectURL(file);
-    setBillImage((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return url;
-    });
+    setBillImage(url);
     setBillOcrStatus("loading");
-    setBillOcrText("");
+    setBillOcrProgress(0);
+    setBillOcrMessage("Đang chuẩn bị bộ đọc hóa đơn…");
     try {
       const { createWorker } = await import("tesseract.js");
-      const worker = await createWorker("eng");
-      const { data } = await worker.recognize(file);
-      await worker.terminate();
+      const worker = await createWorker("eng", undefined, {
+        logger: (message) => {
+          if (requestId !== billOcrRequestRef.current || message.status !== "recognizing text") return;
+          const progress = Math.max(0, Math.min(100, Math.round((message.progress ?? 0) * 100)));
+          setBillOcrProgress(progress);
+          setBillOcrMessage(`Đang đọc chữ trên bill… ${progress}%`);
+        },
+      });
+      const { data } = await worker.recognize(file).finally(() => worker.terminate());
+      if (requestId !== billOcrRequestRef.current) return;
       const text = data.text || "";
-      setBillOcrText(text);
-      const found = extractTotalFromText(text);
+      const found = extractReceiptTotal(text);
       if (found) {
         setBillTotal(found);
         setBillOcrStatus("done");
+        setBillOcrProgress(100);
+        setBillOcrMessage(`Đã điền ${Number(found).toLocaleString("vi-VN")} ₫ — hãy đối chiếu với ảnh.`);
         setNotice(`Đã nhận diện tổng bill ${Number(found).toLocaleString("vi-VN")} ₫ từ ảnh.`);
       } else {
         setBillOcrStatus("error");
+        setBillOcrMessage("Chưa tìm thấy dòng tổng. Bạn có thể nhập tay ngay bên dưới.");
       }
     } catch {
+      if (requestId !== billOcrRequestRef.current) return;
       setBillOcrStatus("error");
+      setBillOcrMessage("Không đọc được ảnh này. Hãy thử ảnh rõ hơn hoặc nhập tổng bill.");
     }
-  }, [extractTotalFromText]);
+  }, []);
+
+  const clearBillImage = useCallback(() => {
+    billOcrRequestRef.current += 1;
+    setBillImage(null);
+    setBillOcrStatus("idle");
+    setBillOcrProgress(0);
+    setBillOcrMessage("Kéo-thả ảnh vào đây cũng được");
+    if (billFileRef.current) billFileRef.current.value = "";
+  }, []);
+
+  const copySelectedBillShare = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(`${selectedBillName}: ${selectedBillShare.toLocaleString("vi-VN")} ₫`);
+      setNotice(`Đã sao chép phần của ${selectedBillName}.`);
+    } catch {
+      setNotice("Không thể sao chép. Hãy giữ và chọn nội dung thủ công.");
+    }
+  }, [selectedBillName, selectedBillShare]);
 
   const payload = useMemo(() => {
     if (mode === "link") return normalizeUrl(value);
@@ -1078,20 +1094,18 @@ export default function Home() {
                 {mode === "bill" ? (
                   <>
                     <div className="bill-guide"><b>Tự chia bill như ảnh — chụp hoặc thả ảnh hóa đơn</b><span>Nhìn dòng “<b>Tổng thanh toán</b>” trên bill (như ảnh bạn gửi), app sẽ tự đọc tổng tiền. Bạn chỉ cần chọn số người, QR của từng người sẽ mang đúng phần tiền, phần lẻ chia đều cho người đầu.</span></div>
-                    <div className="bill-upload">
-                      <input ref={billFileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBillImage(f); }} />
-                      <button type="button" className="bill-upload-btn" onClick={() => billFileRef.current?.click()}>
+                    <div className={`bill-upload ${billOcrStatus}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files?.[0]; if (file) handleBillImage(file); }}>
+                      <input ref={billFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) handleBillImage(file); event.currentTarget.value = ""; }} />
+                      <button type="button" className="bill-upload-btn" onClick={() => billFileRef.current?.click()} aria-describedby="bill-upload-status">
                         <span className="bill-upload-icon">▣</span>
                         <span>
                           <b>{billImage ? "Đổi ảnh bill" : "Tải ảnh bill lên"}</b>
-                          <small>JPG/PNG — tự nhận diện “Tổng thanh toán”</small>
+                          <small>JPG, PNG, WebP, HEIC · tối đa 12 MB</small>
                         </span>
                       </button>
-                      <div className="bill-upload-hint">
-                        {billOcrStatus === "loading" && <span className="ocr loading">Đang đọc ảnh…</span>}
-                        {billOcrStatus === "done" && <span className="ocr done">✓ Đã điền {Number(billTotal).toLocaleString("vi-VN")} ₫</span>}
-                        {billOcrStatus === "error" && <span className="ocr error">Không đọc được tổng — hãy nhập tay ô “Tổng bill”</span>}
-                        {billOcrStatus === "idle" && <span>Kéo-thả ảnh vào đây cũng được</span>}
+                      <div className="bill-upload-hint" id="bill-upload-status" role="status" aria-live="polite">
+                        <span className={`ocr ${billOcrStatus}`}>{billOcrMessage}</span>
+                        {billOcrStatus === "loading" && <progress max="100" value={billOcrProgress} aria-label="Tiến trình đọc ảnh bill" />}
                       </div>
                     </div>
                     {billImage && (
@@ -1101,7 +1115,7 @@ export default function Home() {
                         <div>
                           <b>Ảnh bill</b>
                           <span>Đối chiếu dòng “Tổng thanh toán” với số đã điền bên dưới.</span>
-                          <button type="button" onClick={() => { if (billImage) URL.revokeObjectURL(billImage); setBillImage(null); setBillOcrStatus("idle"); setBillOcrText(""); }}>Xóa ảnh</button>
+                          <button type="button" onClick={clearBillImage}>Xóa ảnh</button>
                         </div>
                       </div>
                     )}
@@ -1116,7 +1130,7 @@ export default function Home() {
                     </div>
                     <div className="two-fields bill-fields">
                       <label>Tổng bill <span className="req">*</span>
-                        <input inputMode="numeric" value={billTotal} onChange={(event) => setBillTotal(event.target.value.replace(/\D/g, "").slice(0, 13))} placeholder="Ví dụ: 9661560" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f && f.type.startsWith("image/")) handleBillImage(f); }} />
+                        <input inputMode="numeric" value={billTotal} onChange={(event) => setBillTotal(event.target.value.replace(/\D/g, "").slice(0, 13))} placeholder="Ví dụ: 9661560" aria-invalid={Boolean(billTotal) && !/^[1-9]\d{0,12}$/.test(billTotal)} />
                         {billTotal && <small className="amount-readout">{billTotalNumber.toLocaleString("vi-VN")} ₫</small>}
                       </label>
                       <label>Số người
@@ -1125,7 +1139,7 @@ export default function Home() {
                       </label>
                     </div>
                     <label>Tên từng người <small>(không bắt buộc, ngăn cách bằng dấu phẩy)</small>
-                      <input value={billNames} onChange={(event) => setBillNames(event.target.value)} maxLength={180} placeholder="Ví dụ: An, Bình, Chi" />
+                      <textarea value={billNames} onChange={(event) => setBillNames(event.target.value)} maxLength={300} rows={2} placeholder="Ví dụ: An, Bình, Chi — hoặc mỗi người một dòng" />
                     </label>
                     <label>Nội dung chuyển khoản
                       <input value={billNote} onChange={(event) => setBillNote(event.target.value)} maxLength={36} placeholder="Ví dụ: CHIA BILL" />
@@ -1133,7 +1147,7 @@ export default function Home() {
                     <div className="bill-summary" aria-live="polite">
                       <div><b>{billIsValid ? `Chia ${billTotalFormatted} ₫ cho ${billPeopleCount} người · mỗi người chạm để lấy QR` : "Nhập tổng bill và số người"}</b><span>{billIsValid ? `Tổng khớp: ${billShares.reduce((a,b)=>a+b,0).toLocaleString("vi-VN")} ₫ · phần lẻ ${billTotalNumber % billPeopleCount} ₫ chia cho ${Math.min(billTotalNumber % billPeopleCount, billPeopleCount)} người đầu` : "Bạn cũng có thể tải ảnh bill để tự điền tổng"}</span></div>
                       {billIsValid && <div className="bill-payers">{billShares.map((share, index) => <button type="button" key={`${billNamesList[index]}-${index}`} aria-pressed={selectedBillPayer === index} className={selectedBillPayer === index ? "active" : ""} onClick={() => setBillPayer(index)}><span><i>{index + 1}</i>{billNamesList[index]}</span><b>{share.toLocaleString("vi-VN")} ₫{index < (billTotalNumber % billPeopleCount) ? " · +1₫ lẻ" : ""}</b></button>)}</div>}
-                      {billIsValid && <div className="bill-summary-foot"><span>Đang xem QR của <b>{selectedBillName}</b> — {selectedBillShare.toLocaleString("vi-VN")} ₫</span><button type="button" onClick={() => navigator.clipboard.writeText(`${selectedBillName}: ${selectedBillShare.toLocaleString("vi-VN")} ₫`)}>Sao chép</button></div>}
+                      {billIsValid && <div className="bill-summary-foot"><span>Đang xem QR của <b>{selectedBillName}</b> — {selectedBillShare.toLocaleString("vi-VN")} ₫</span><button type="button" onClick={copySelectedBillShare}>Sao chép</button></div>}
                     </div>
                     <div className="bank-warning"><b>Kiểm tra trước khi chuyển:</b> QR điền sẵn phần của người đang chọn. Mỗi đồng lẻ (nếu có) được lần lượt cộng cho những người đầu danh sách để tổng khớp tuyệt đối.</div>
                   </>
