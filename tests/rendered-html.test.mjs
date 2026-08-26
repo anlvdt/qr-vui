@@ -84,7 +84,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /su-kien\/thoi-noi\.png/);
   assert.match(page, /su-kien\/tan-gia\.png/);
   assert.match(page, /su-kien\/tat-nien\.png/);
-  assert.match(page, /Câu chuyển khoản siêu hài/);
+  assert.match(page, /Lời nhắn chuyển khoản vui vẻ/);
   assert.match(page, /transferNotePresets/);
   assert.match(page, /Bản đồ bố cục riêng cho từng mẫu/);
   assert.match(page, /Math\.max\(options\.width, 18\)/);
@@ -96,10 +96,10 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /nong-nghiep\/lua-gao\.png/);
   assert.match(page, /hang-rong\/ganh-hang\.png/);
   assert.match(page, /mien-nam-bien\/can-tho\.png/);
-  assert.match(page, /Thú lầy/);
-  assert.match(page, /Công sở lầy/);
-  assert.match(page, /Đồ ăn thành tinh/);
-  assert.match(page, /Đời thường lầy/);
+  assert.match(page, /Thú cưng vui nhộn/);
+  assert.match(page, /Công sở dí dỏm/);
+  assert.match(page, /Ẩm thực vui nhộn/);
+  assert.match(page, /Đời thường vui vẻ/);
   assert.match(page, /hai-thu\/meo-sep\.png/);
   assert.match(page, /hai-cong-so\/vat-may-in\.png/);
   assert.match(page, /hai-do-an\/nuoc-mam-sieu-nhan\.png/);
@@ -132,6 +132,8 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(frames, /"thoi-trang"/);
   assert.match(frames, /"ninh-binh"/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
+  assert.doesNotMatch(page, /QUÉT ĐI, NHÌN GÌ|SẾP BẢO QUÉT ĐI|DỪNG LẠI, QUÉT CÁI|Câu chuyển khoản siêu hài/i);
+  assert.match(page, /MỜI BẠN QUÉT MÃ!/);
   assert.doesNotMatch(page, /drawLegacyWorkshopDoodle/);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-qr-vui\.png/);
@@ -162,4 +164,13 @@ test("splits every đồng exactly once", () => {
   assert.deepEqual(shares, [1_380_223, 1_380_223, 1_380_223, 1_380_223, 1_380_223, 1_380_223, 1_380_222]);
   assert.equal(shares.reduce((sum, share) => sum + share, 0), 9_661_560);
   assert.deepEqual(splitBillEvenly(10_000, 3), [3_334, 3_333, 3_333]);
+});
+
+test("keeps illustration captions welcoming and courteous", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const library = page.slice(page.indexOf("const artLibrary"), page.indexOf("const artCategories"));
+  const captions = [...library.matchAll(/caption: "([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(captions.length, 96);
+  assert.ok(captions.every((caption) => /MỜI/.test(caption)), "Mỗi caption cần là một lời mời lịch sự");
+  assert.doesNotMatch(page, /Trả nợ để còn nhìn mặt nhau|Nhận đi, đừng hỏi nguồn|Chốt sổ, khỏi nhắc lần ba/i);
 });
