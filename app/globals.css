@@ -63,7 +63,8 @@ h1{font-family:var(--font-display),sans-serif;font-size:clamp(58px,8vw,108px);fo
   --text-label:14px;
   --text-base:16px;
 }
-body{font-size:var(--text-base);line-height:1.55}
+body{font-size:var(--text-base);line-height:1.55;font-synthesis:none;font-kerning:normal;text-rendering:optimizeLegibility}
+h1,h2,h3{text-wrap:balance}p{text-wrap:pretty}
 .ticker{font-size:var(--text-xs);line-height:1.2}
 .brand{font-size:23px}.brand-mark{font-size:15px}
 .nav-links a,.nav-note{font-size:var(--text-sm)}
@@ -73,21 +74,21 @@ h1{line-height:.92}
 .maker:before{font-size:var(--text-xs);line-height:1.2}
 .panel-heading h2{font-size:28px;line-height:1.15}.panel-heading p{font-size:var(--text-label);line-height:1.5}.step{font-size:14px}
 .mode-tabs button{font-size:var(--text-sm);line-height:1.25}.mode-tabs b{font-size:19px}
-label{font-size:var(--text-label);line-height:1.45}
+label{font-size:var(--text-label);font-weight:700;line-height:1.45}
 label small{font-size:var(--text-xs);font-weight:600;line-height:1.45}
 input,textarea,select{font-size:var(--text-base);line-height:1.45}
 .amount-readout,.bank-note-preview{font-size:var(--text-xs);line-height:1.5}
 .preset-heading{font-size:var(--text-sm)}.preset-heading button,.preset-quick button,.preset-more button,.preset-more summary{font-size:var(--text-xs);line-height:1.35}
 .bank-warning,.privacy-line,.label-row{font-size:var(--text-sm);line-height:1.55}
-.palette,.color-well{font-size:var(--text-xs);line-height:1.35}.shape-option b{font-size:var(--text-xs)}.shape-option small{font-size:var(--text-micro);line-height:1.35}
+.palette,.color-well{font-size:var(--text-xs);line-height:1.35}.shape-option b{font-size:var(--text-xs)}.shape-option small{color:#5f5b52;font-size:var(--text-micro);font-weight:500;line-height:1.35}
 .tape,.costume-caption{font-size:var(--text-xs)}.layout-switch button{font-size:var(--text-sm)}
 .empty-qr p{font-size:var(--text-sm)}.health{font-size:var(--text-xs);line-height:1.4}.scan-details summary{font-size:var(--text-xs)}.tech-badges span{font-size:var(--text-micro)}
 .upload-button{font-size:var(--text-sm)}.hint,.slider-grid label,.paper-check,.caption-grid label,.text-button,.scan-tip{font-size:var(--text-xs);line-height:1.45}.caption-grid input{font-size:var(--text-label)}
 .why-title>span,.section-kicker{font-size:var(--text-xs)}.proof-grid h3{font-size:19px;line-height:1.35}.proof-grid p{font-size:14px;line-height:1.7}
 .about-copy p{font-size:var(--text-base);line-height:1.8}.about-sign{font-size:var(--text-label)}
 .stack-grid span{font-size:var(--text-sm)}.stack-grid h3{font-size:21px}.stack-grid p{font-size:14px;line-height:1.65}.stack-footnote{font-size:var(--text-xs)}footer{font-size:var(--text-sm)}
-.library-head b{font-size:var(--text-sm)}.library-head span{font-size:var(--text-xs);line-height:1.4}.library-head em{font-size:var(--text-micro)}
-.art-card b{font-size:var(--text-xs)}.art-card small{font-size:var(--text-micro)}.art-card>span{gap:3px;padding:7px 8px}
+.library-head b{font-size:var(--text-sm)}.library-head span{color:#5f5b52;font-size:var(--text-xs);line-height:1.4}.library-head em{font-size:var(--text-micro)}
+.art-card b{font-size:var(--text-xs)}.art-card small{color:#5f5b52;font-size:var(--text-micro);font-weight:500}.art-card.active small{color:#8f1730;font-weight:700}.art-card>span{gap:3px;padding:7px 8px}
 .custom-divider{font-size:var(--text-micro)}
 .photo-guide summary{font-size:var(--text-xs);line-height:1.4}.photo-guide summary span{font-size:var(--text-micro)}.guide-body li{font-size:var(--text-xs);line-height:1.55}.guide-pictures{font-size:var(--text-micro)}
 .control-title b{font-size:var(--text-xs)}.control-title span{font-size:var(--text-micro)}

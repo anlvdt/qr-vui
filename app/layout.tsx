@@ -3,7 +3,7 @@ import { Be_Vietnam_Pro, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin", "vietnamese"] });
-const body = Be_Vietnam_Pro({ variable: "--font-body", subsets: ["latin", "vietnamese"], weight: ["400", "500", "600", "700"] });
+const body = Be_Vietnam_Pro({ variable: "--font-body", subsets: ["latin", "vietnamese"], weight: ["400", "500", "600", "700", "800"] });
 
 const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX ?? "";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://anlvdt.github.io/qr-vui";

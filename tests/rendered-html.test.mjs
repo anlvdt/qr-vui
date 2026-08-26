@@ -136,8 +136,11 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-qr-vui\.png/);
   assert.match(layout, /NEXT_PUBLIC_SITE_URL/);
+  assert.match(layout, /"700", "800"/);
   assert.match(styles, /--text-base:16px/);
   assert.match(styles, /input,textarea,select\{font-size:16px\}/);
+  assert.match(styles, /font-synthesis:none/);
+  assert.match(styles, /h1,h2,h3\{text-wrap:balance\}p\{text-wrap:pretty\}/);
   assert.match(packageJson, /"build:pages"/);
   assert.match(packageJson, /"qrcode"/);
   assert.match(packageJson, /"name": "qr-vui"/);
