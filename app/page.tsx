@@ -11,7 +11,7 @@ type Mode = "link" | "wifi" | "bank" | "bill" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
-type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
+type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien" | "hoang-dao" | "con-giap" | "van-hoa-viet";
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string; rotation?: number };
 
 const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX ?? "";
@@ -170,6 +170,42 @@ const artLibrary: LibraryArt[] = [
   { id: "giu-phong-bi", name: "Phong bì trao bằng cả tim", mood: "Ngày vui", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/giu-phong-bi.png", x: 73, y: 59, size: 44, caption: "MỜI QUÉT MÃ, GỬI LỜI CHÚC" },
   { id: "soi-cong-to", name: "Theo dõi công tơ thật kỹ", mood: "Chuyện trong nhà", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/soi-cong-to.png", x: 71, y: 63, size: 40, caption: "MỜI QUÉT MÃ, XEM THÔNG TIN" },
   { id: "selfie-dai-gia-dinh", name: "Selfie đại gia đình", mood: "Sum vầy", category: "hai-doi-thuong", src: "/art-library/hai-doi-thuong/selfie-dai-gia-dinh.png", x: 76, y: 50, size: 47, caption: "MỜI CẢ NHÀ CÙNG QUÉT MÃ" },
+  { id: "bach-duong", name: "Bạch Dương", mood: "Nhiệt thành", category: "hoang-dao", src: "/art-library/hoang-dao/bach-duong.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, TỎA SÁNG" },
+  { id: "kim-nguu", name: "Kim Ngưu", mood: "Vững vàng", category: "hoang-dao", src: "/art-library/hoang-dao/kim-nguu.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, AN NHIÊN" },
+  { id: "song-tu", name: "Song Tử", mood: "Linh hoạt", category: "hoang-dao", src: "/art-library/hoang-dao/song-tu.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, KẾT NỐI" },
+  { id: "cu-giai", name: "Cự Giải", mood: "Ấm áp", category: "hoang-dao", src: "/art-library/hoang-dao/cu-giai.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, CHUNG VUI" },
+  { id: "su-tu", name: "Sư Tử", mood: "Rạng rỡ", category: "hoang-dao", src: "/art-library/hoang-dao/su-tu.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, TỎA SÁNG" },
+  { id: "xu-nu", name: "Xử Nữ", mood: "Tinh tế", category: "hoang-dao", src: "/art-library/hoang-dao/xu-nu.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, THẬT TINH TẾ" },
+  { id: "thien-binh", name: "Thiên Bình", mood: "Hài hòa", category: "hoang-dao", src: "/art-library/hoang-dao/thien-binh.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, GIỮ HÀI HÒA" },
+  { id: "bo-cap", name: "Bọ Cạp", mood: "Sâu sắc", category: "hoang-dao", src: "/art-library/hoang-dao/bo-cap.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, KHÁM PHÁ" },
+  { id: "nhan-ma", name: "Nhân Mã", mood: "Tự do", category: "hoang-dao", src: "/art-library/hoang-dao/nhan-ma.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, CÙNG KHỞI HÀNH" },
+  { id: "ma-ket", name: "Ma Kết", mood: "Bền bỉ", category: "hoang-dao", src: "/art-library/hoang-dao/ma-ket.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, VỮNG BƯỚC" },
+  { id: "bao-binh", name: "Bảo Bình", mood: "Sáng tạo", category: "hoang-dao", src: "/art-library/hoang-dao/bao-binh.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, KHƠI Ý TƯỞNG" },
+  { id: "song-ngu", name: "Song Ngư", mood: "Mộng mơ", category: "hoang-dao", src: "/art-library/hoang-dao/song-ngu.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, THẢ HỒN VUI" },
+  { id: "ty-chuot", name: "Tý · Chuột", mood: "Nhanh trí", category: "con-giap", src: "/art-library/con-giap/ty-chuot.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN MAY MẮN" },
+  { id: "suu-trau", name: "Sửu · Trâu", mood: "Chăm chỉ", category: "con-giap", src: "/art-library/con-giap/suu-trau.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, GẶT THÀNH CÔNG" },
+  { id: "dan-ho", name: "Dần · Hổ", mood: "Mạnh mẽ", category: "con-giap", src: "/art-library/con-giap/dan-ho.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, THÊM KHÍ THẾ" },
+  { id: "mao-meo", name: "Mão · Mèo", mood: "Duyên dáng", category: "con-giap", src: "/art-library/con-giap/mao-meo.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN NIỀM VUI" },
+  { id: "thin-rong", name: "Thìn · Rồng", mood: "Cát tường", category: "con-giap", src: "/art-library/con-giap/thin-rong.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN CÁT TƯỜNG" },
+  { id: "ty-ran", name: "Tỵ · Rắn", mood: "Khéo léo", category: "con-giap", src: "/art-library/con-giap/ty-ran.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, MỌI VIỆC HANH THÔNG" },
+  { id: "ngo-ngua", name: "Ngọ · Ngựa", mood: "Phóng khoáng", category: "con-giap", src: "/art-library/con-giap/ngo-ngua.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, CÙNG TIẾN BƯỚC" },
+  { id: "mui-de", name: "Mùi · Dê", mood: "Ôn hòa", category: "con-giap", src: "/art-library/con-giap/mui-de.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, CHÚC AN LÀNH" },
+  { id: "than-khi", name: "Thân · Khỉ", mood: "Lanh lợi", category: "con-giap", src: "/art-library/con-giap/than-khi.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, CÙNG KHÁM PHÁ" },
+  { id: "dau-ga", name: "Dậu · Gà", mood: "Đúng giờ", category: "con-giap", src: "/art-library/con-giap/dau-ga.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN BÌNH MINH" },
+  { id: "tuat-cho", name: "Tuất · Chó", mood: "Chân thành", category: "con-giap", src: "/art-library/con-giap/tuat-cho.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, GỬI NIỀM TIN" },
+  { id: "hoi-heo", name: "Hợi · Heo", mood: "Sung túc", category: "con-giap", src: "/art-library/con-giap/hoi-heo.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN SUNG TÚC" },
+  { id: "hoa-sen-viet", name: "Hoa sen Việt", mood: "Thanh nhã", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/hoa-sen.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, NGẮM HOA SEN" },
+  { id: "trong-dong", name: "Trống đồng", mood: "Cội nguồn", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/trong-dong.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, GÌN GIỮ CỘI NGUỒN" },
+  { id: "non-la-viet", name: "Nón lá", mood: "Duyên Việt", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/non-la.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, NGẮM NÉT VIỆT" },
+  { id: "ao-dai-viet", name: "Áo dài", mood: "Thanh lịch", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/ao-dai.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, TÔN NÉT DUYÊN" },
+  { id: "chim-lac", name: "Chim Lạc", mood: "Di sản", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/chim-lac.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, NỐI DÒNG DI SẢN" },
+  { id: "tre-viet", name: "Tre Việt", mood: "Kiên cường", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/tre-viet.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, VỮNG NHƯ TRE" },
+  { id: "ca-chep", name: "Cá chép", mood: "Thăng tiến", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/ca-chep.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, VƯỢT VŨ MÔN" },
+  { id: "den-long-hoi-an", name: "Đèn lồng Hội An", mood: "Phố hội", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/den-long-hoi-an.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, DẠO PHỐ HỘI" },
+  { id: "banh-chung", name: "Bánh chưng", mood: "Tết sum vầy", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/banh-chung.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN TẾT SUM VẦY" },
+  { id: "mai-vang", name: "Mai vàng", mood: "Tết phương Nam", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/mai-vang.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN XUÂN VÀNG" },
+  { id: "hoa-dao", name: "Hoa đào", mood: "Tết phương Bắc", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/hoa-dao.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, ĐÓN XUÂN HỒNG" },
+  { id: "gom-bat-trang", name: "Gốm Bát Tràng", mood: "Làng nghề", category: "van-hoa-viet", src: "/art-library/van-hoa-viet/gom-bat-trang.svg", x: 69.5, y: 66.7, size: 52, caption: "MỜI BẠN QUÉT MÃ, NGẮM GỐM VIỆT" },
 ];
 
 const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
@@ -188,6 +224,9 @@ const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
   { id: "du-lich", label: "Du lịch", icon: "↗" },
   { id: "bac-trung", label: "Miền Bắc & miền Trung", icon: "△" },
   { id: "nam-bien", label: "Miền Nam & biển đảo", icon: "◉" },
+  { id: "hoang-dao", label: "Cung hoàng đạo", icon: "✦" },
+  { id: "con-giap", label: "12 con giáp Việt", icon: "◆" },
+  { id: "van-hoa-viet", label: "Văn hóa Việt", icon: "❋" },
 ];
 
 const fallbackBanks: Bank[] = [
@@ -1314,7 +1353,7 @@ export default function Home() {
         <div className="about-grid">
           <div><h2>Một mã QR vui vẻ,<br />hài hước và <em>dễ quét.</em></h2></div>
           <div className="about-copy">
-            <p><b>QR Vui</b> cung cấp {artLibrary.length} mẫu minh họa theo nghề nghiệp, món ăn, đời sống, sự kiện, du lịch và các tình huống hài hước. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
+            <p><b>QR Vui</b> cung cấp {artLibrary.length} mẫu minh họa theo nghề nghiệp, món ăn, đời sống, sự kiện, du lịch, 12 cung hoàng đạo, 12 con giáp và những biểu tượng gần gũi trong văn hóa Việt. Bạn cũng có thể tải ảnh riêng, thay câu chữ và căn QR theo bố cục mong muốn.</p>
             <p>Phần minh họa và phần kỹ thuật được xử lý riêng. Vùng QR luôn có nền tương phản, viền an toàn và các ô định vị nguyên vẹn; vì vậy thiết kế có thể vui hơn mà không bỏ qua khả năng quét.</p>
             <div className="about-sign">Tạo nội dung → Chọn thiết kế → Quét thử → Tải xuống ↗</div>
           </div>

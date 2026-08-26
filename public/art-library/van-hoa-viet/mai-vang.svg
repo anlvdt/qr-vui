@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="496" height="496" viewBox="0 0 496 496">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#075e54"/><stop offset="1" stop-color="#159179"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#f9e5a1" stop-opacity=".95"/><stop offset="1" stop-color="#f0bd4f" stop-opacity=".3"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="4" dy="7" stdDeviation="5" flood-color="#17221f" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="496" height="496" fill="url(#bg)"/>
+  <path d="M0 405C72 370 124 400 191 377C261 354 313 374 377 351C425 334 463 341 496 357V496H0Z" fill="#06372f" opacity=".55"/>
+  <g fill="#f9e5a1" opacity=".9" font-family="Georgia,serif" font-size="22"><text x="32" y="54">❋</text><text x="182" y="72">❋</text><text x="428" y="46">❋</text></g>
+  <g transform="translate(126 204) rotate(-2)" filter="url(#shadow)">
+    <circle r="104" fill="url(#halo)" stroke="#17221f" stroke-width="5"/>
+    <circle r="88" fill="#fff7dc" fill-opacity=".18" stroke="#f9e5a1" stroke-width="3" stroke-dasharray="5 9"/>
+    <text x="0" y="25" text-anchor="middle" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif" font-size="104">🌼</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="217" y="202" width="255" height="258" rx="24" fill="#fffdf5" stroke="#17221f" stroke-width="5"/>
+    <path d="M240 221H449" stroke="#f0bd4f" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+  </g>
+  <g fill="#f9e5a1" opacity=".75"><circle cx="45" cy="322" r="4"/><circle cx="72" cy="347" r="7"/><circle cx="187" cy="334" r="5"/></g>
+</svg>

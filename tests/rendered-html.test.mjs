@@ -104,6 +104,12 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /hai-cong-so\/vat-may-in\.png/);
   assert.match(page, /hai-do-an\/nuoc-mam-sieu-nhan\.png/);
   assert.match(page, /hai-doi-thuong\/san-wifi\.png/);
+  assert.match(page, /Cung hoàng đạo/);
+  assert.match(page, /12 con giáp Việt/);
+  assert.match(page, /Văn hóa Việt/);
+  assert.match(page, /hoang-dao\/bach-duong\.svg/);
+  assert.match(page, /con-giap\/mao-meo\.svg/);
+  assert.match(page, /van-hoa-viet\/trong-dong\.svg/);
   assert.match(page, /Góc xoay/);
   assert.match(page, /rotation: -2/);
   assert.match(page, /context\.transform\(1, skewY, skewX, 1, 0, 0\)/);
@@ -170,7 +176,11 @@ test("keeps illustration captions welcoming and courteous", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const library = page.slice(page.indexOf("const artLibrary"), page.indexOf("const artCategories"));
   const captions = [...library.matchAll(/caption: "([^"]+)"/g)].map((match) => match[1]);
-  assert.equal(captions.length, 96);
+  const sources = [...library.matchAll(/src: "([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(captions.length, 132);
+  assert.equal(sources.length, 132);
   assert.ok(captions.every((caption) => /MỜI/.test(caption)), "Mỗi caption cần là một lời mời lịch sự");
+  assert.ok(captions.every((caption) => caption.length <= 36), "Caption mặc định phải vừa giới hạn ô nhập");
+  await Promise.all(sources.map((source) => readFile(new URL(`../public${source}`, import.meta.url))));
   assert.doesNotMatch(page, /Trả nợ để còn nhìn mặt nhau|Nhận đi, đừng hỏi nguồn|Chốt sổ, khỏi nhắc lần ba/i);
 });
