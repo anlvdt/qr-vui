@@ -42,6 +42,11 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /QRCode\.create\(payload, \{ errorCorrectionLevel: "H" \}\)/);
   assert.match(page, /function escapeSvgText/);
   assert.match(page, /window\.setTimeout\(\(\) => URL\.revokeObjectURL/);
+  assert.match(page, /const pasteFromClipboard = async/);
+  assert.match(page, /autoCapitalize="none"/);
+  assert.match(page, /disabled=\{artworkLoading\}/);
+  assert.match(page, /export const dynamic = "force-static"/);
+  assert.match(page, /NEXT_PUBLIC_ASSET_PREFIX/);
   assert.match(page, /const quiet = 4/);
   assert.match(page, /canvas\.width = 1400/);
   assert.match(page, /WIFI:T:/);
@@ -123,6 +128,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.doesNotMatch(page, /drawLegacyWorkshopDoodle/);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-qr-vui\.png/);
+  assert.match(layout, /NEXT_PUBLIC_SITE_URL/);
   assert.match(packageJson, /"qrcode"/);
   assert.match(packageJson, /"name": "qr-vui"/);
   assert.doesNotMatch(page, /QRồi Xong|qroi-xong/);

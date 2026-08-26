@@ -30,3 +30,6 @@ h1{font-family:var(--font-display),sans-serif;font-size:clamp(58px,8vw,108px);fo
 .why-title h2{font-size:47px}.about h2{font-size:clamp(40px,5vw,66px);line-height:.98}.stack-grid h3{font-size:19px}
 @media(max-width:580px){h1{font-size:53px}.why-title h2{font-size:38px}.about h2{font-size:40px}.layout-editor .slider-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+.content-meter{display:flex;justify-content:space-between;gap:10px;margin-top:9px;padding:7px 8px;border:1px dashed #b3ad9f;background:#f7f3e8;color:#686258;font-size:8px;line-height:1.35}.content-meter span{font-weight:800;color:var(--ink);white-space:nowrap}.content-meter.caution{border-color:#d98400;background:#fff3d7;color:#795006}.download-row .downloaded{background:#15764b;color:#fff;box-shadow:3px 3px 0 #0e5535}
+.field-actions{display:flex;align-items:center;gap:9px;margin:-5px 0 13px}.field-actions button{padding:0;border:0;background:transparent;color:var(--blue);font-size:9px;font-weight:800;text-decoration:underline;text-underline-offset:2px;cursor:pointer}.field-actions button+button{color:#686258}.upload-button.loading{cursor:progress;opacity:.72}
+@media(max-width:580px){.content-meter{align-items:flex-start;flex-direction:column;gap:3px}}

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-static";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { artFrames, type ArtFrame, type ArtPoint, type ArtQuad } from "./art-frames";
@@ -10,6 +12,9 @@ type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
 type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien";
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string; rotation?: number };
+
+const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX ?? "";
+const publicAsset = (path: string) => `${assetPrefix}${path}`;
 
 const customArtFrame: ArtFrame = {
   x: 50, y: 50, width: 45, height: 52, rotation: 0, skewX: 0, skewY: 0,
@@ -618,6 +623,7 @@ function downloadArtPNG(payload: string, ink: string, accent: string, style: QRS
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const artCanvasRef = useRef<HTMLCanvasElement>(null);
+  const downloadResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [mode, setMode] = useState<Mode>("link");
   const [value, setValue] = useState("qr.denso-wave.com");
   const [wifiName, setWifiName] = useState("");
@@ -656,6 +662,8 @@ export default function Home() {
   const [artCaption, setArtCaption] = useState("QUÉT ĐI, NGẠI GÌ");
   const [artSubcaption, setArtSubcaption] = useState("");
   const [notice, setNotice] = useState("Mã QR đã sẵn sàng để tải xuống");
+  const [artworkLoading, setArtworkLoading] = useState(false);
+  const [downloadedFormat, setDownloadedFormat] = useState<"png" | "svg" | null>(null);
 
   const applyArtFrame = useCallback((frame: ArtFrame) => {
     setArtX(frame.x);
@@ -697,7 +705,7 @@ export default function Home() {
       setNotice(`Mẫu ${item.name} đã sẵn sàng.`);
     };
     image.onerror = () => setNotice(`Không thể tải mẫu ${item.name}. Hãy chọn mẫu khác.`);
-    image.src = item.src;
+    image.src = publicAsset(item.src);
   }, [applyArtFrame]);
 
   const resetArtLayout = () => {
@@ -711,6 +719,10 @@ export default function Home() {
   useEffect(() => {
     chooseLibraryArt(artLibrary[0]);
   }, [chooseLibraryArt]);
+
+  useEffect(() => () => {
+    if (downloadResetRef.current) clearTimeout(downloadResetRef.current);
+  }, []);
 
   useEffect(() => {
     fetch("https://api.vietqr.io/v2/banks")
@@ -745,6 +757,16 @@ export default function Home() {
 
   const payloadBytes = useMemo(() => new TextEncoder().encode(payload).length, [payload]);
 
+  const contentCanBeEncoded = useMemo(() => {
+    if (!payload || payloadBytes > 1200) return false;
+    try {
+      QRCode.create(payload, { errorCorrectionLevel: "H" });
+      return true;
+    } catch {
+      return false;
+    }
+  }, [payload, payloadBytes]);
+
   const inputIsValid = useMemo(() => {
     if (!payload || payloadBytes > 1200) return false;
     if (mode === "link") {
@@ -760,13 +782,8 @@ export default function Home() {
       const amountOk = !bankAmount || (/^[1-9]\d{0,12}$/.test(bankAmount) && Number(bankAmount) <= 9_999_999_999_999);
       if (!accountOk || !amountOk) return false;
     }
-    try {
-      QRCode.create(payload, { errorCorrectionLevel: "H" });
-      return true;
-    } catch {
-      return false;
-    }
-  }, [payload, payloadBytes, mode, value, bankAccount, bankAmount]);
+    return contentCanBeEncoded;
+  }, [payload, payloadBytes, mode, value, bankAccount, bankAmount, contentCanBeEncoded]);
 
   const colorIsSafe = contrastOnWhite(palette.value) >= 4.5;
 
@@ -808,6 +825,8 @@ export default function Home() {
       ? "Hãy nhập nội dung để tạo mã QR"
       : payloadBytes > 1200
         ? "Nội dung quá dài. Hãy rút gọn để mã dễ quét."
+        : !contentCanBeEncoded
+          ? "Nội dung này quá phức tạp để tạo mã QR dễ quét. Hãy rút gọn hoặc bỏ bớt ký tự đặc biệt."
         : !inputIsValid
           ? "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
           : payloadBytes > 700
@@ -818,12 +837,15 @@ export default function Home() {
     const file = event.target.files?.[0];
     if (!file) return;
     event.target.value = "";
+    setArtworkLoading(true);
     const supportedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
     if (!supportedTypes.has(file.type)) {
+      setArtworkLoading(false);
       setNotice("Định dạng ảnh chưa được hỗ trợ. Hãy chọn tệp JPG, PNG hoặc WEBP.");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
+      setArtworkLoading(false);
       setNotice("Ảnh vượt quá 10 MB. Hãy chọn ảnh có dung lượng nhỏ hơn.");
       return;
     }
@@ -838,16 +860,23 @@ export default function Home() {
         setArtPaper(true);
         setArtCaption("QUÉT ĐỂ XEM");
         setArtSubcaption("");
+        setArtworkLoading(false);
         setNotice("Ảnh đã được tải lên. Bạn có thể điều chỉnh vị trí mã QR.");
       };
-      image.onerror = () => setNotice("Không thể đọc ảnh này. Hãy thử một ảnh JPG, PNG hoặc WEBP khác.");
+      image.onerror = () => {
+        setArtworkLoading(false);
+        setNotice("Không thể đọc ảnh này. Hãy thử một ảnh JPG, PNG hoặc WEBP khác.");
+      };
       image.src = String(reader.result);
     };
-    reader.onerror = () => setNotice("Không thể mở tệp ảnh. Hãy thử chọn lại.");
+    reader.onerror = () => {
+      setArtworkLoading(false);
+      setNotice("Không thể mở tệp ảnh. Hãy thử chọn lại.");
+    };
     reader.readAsDataURL(file);
   };
 
-  const download = async (format: "png" | "svg") => {
+  const download = (format: "png" | "svg") => {
     if (!inputIsValid || !colorIsSafe) return;
     const filename = `qr-vui-${Date.now()}`;
     const selectedStyle = qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0];
@@ -864,12 +893,29 @@ export default function Home() {
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
     }
     setNotice(`Đã tải tệp ${format.toUpperCase()} xuống thiết bị.`);
+    setDownloadedFormat(format);
+    if (downloadResetRef.current) clearTimeout(downloadResetRef.current);
+    downloadResetRef.current = setTimeout(() => setDownloadedFormat(null), 2600);
   };
 
   const switchMode = (nextMode: Mode) => {
     setMode(nextMode);
     setValue("");
     setEmailSubject("");
+  };
+
+  const pasteFromClipboard = async () => {
+    try {
+      const clipboardValue = await navigator.clipboard.readText();
+      if (!clipboardValue) {
+        setNotice("Clipboard đang trống. Hãy sao chép nội dung trước nhé.");
+        return;
+      }
+      setValue(clipboardValue);
+      setNotice("Đã dán nội dung từ clipboard.");
+    } catch {
+      setNotice("Không thể đọc clipboard. Hãy dán bằng Ctrl/Cmd + V.");
+    }
   };
 
   return (
@@ -960,13 +1006,18 @@ export default function Home() {
                   {mode === "text" ? (
                     <textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Nhập nội dung bạn muốn lưu trong mã QR" rows={4} />
                   ) : (
-                    <input type={mode === "email" ? "email" : "text"} value={value} onChange={(e) => setValue(e.target.value)} placeholder={mode === "email" ? "hello@congty.vn" : "tenmien.vn/mon-ngon"} />
+                    <input type={mode === "email" ? "email" : "text"} value={value} onChange={(e) => setValue(e.target.value)} placeholder={mode === "email" ? "hello@congty.vn" : "tenmien.vn/mon-ngon"} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
                   )}
                 </label>
+                <div className="field-actions">
+                  <button type="button" onClick={pasteFromClipboard}>Dán từ clipboard</button>
+                  {value && <button type="button" onClick={() => setValue("")}>Xóa nội dung</button>}
+                </div>
                 {mode === "email" && <label>Tiêu đề email (không bắt buộc)<input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Ví dụ: Yêu cầu báo giá" /></label>}
               </>
             )}
             <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Thông tin VietQR được tạo trực tiếp trên thiết bị của bạn." : "Nội dung được xử lý trực tiếp trong trình duyệt và không gửi lên máy chủ."}</div>
+            {mode !== "bank" && <div className={`content-meter ${payloadBytes > 700 ? "caution" : ""}`} aria-live="polite"><span>{payloadBytes} / 1.200 byte</span>{payloadBytes > 700 ? "Nội dung dài: hãy quét thử trước khi in." : "Khoảng trống còn rộng cho mã dễ quét."}</div>}
           </div>
 
           <div className="palette-section">
@@ -1002,9 +1053,9 @@ export default function Home() {
             <button type="button" aria-pressed={layoutMode === "art"} className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>Mã QR trong tranh</button>
           </div>
           {layoutMode === "art" ? (
-            <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để xem trước thiết kế</p></div>}</div>
+            <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" role="img" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để xem trước thiết kế</p></div>}</div>
           ) : (
-            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
+            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} role="img" aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`} role="status" aria-live="polite"><span>●</span>{displayNotice}</div>
           <details className="scan-details">
@@ -1021,13 +1072,13 @@ export default function Home() {
             <div className="art-library" aria-label="Kho tranh có sẵn">
               {visibleArt.map((item) => <button key={item.id} type="button" aria-pressed={selectedArt === item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.src} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
+                <img src={publicAsset(item.src)} alt="" /><span><b>{item.name}</b><small>{item.mood}</small></span>
               </button>)}
             </div>
             <p className="safe-note"><b>◎ Bản đồ bố cục riêng cho từng mẫu:</b> khung ngang tự dùng bố cục hai cột để QR lớn và cân đối; khung dọc giữ chữ bên dưới.</p>
             <div className="custom-divider"><span>HOẶC SỬ DỤNG ẢNH CỦA BẠN</span></div>
-            <label className={selectedArt === "custom" ? "upload-button selected" : "upload-button"}>+ Tải ảnh lên<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} /></label>
-            <p className="hint">JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn</p>
+            <label className={`upload-button${selectedArt === "custom" ? " selected" : ""}${artworkLoading ? " loading" : ""}`} aria-busy={artworkLoading}>{artworkLoading ? "Đang đọc ảnh…" : "+ Tải ảnh lên"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} aria-describedby="upload-hint" disabled={artworkLoading} /></label>
+            <p className="hint" id="upload-hint">{artworkLoading ? "Đang chuẩn bị bản xem trước…" : "JPG, PNG, WEBP · dưới 10 MB · ảnh chỉ nằm trên máy bạn"}</p>
             <details className="photo-guide">
               <summary>Cách chọn ảnh phù hợp <span>Xem hướng dẫn ↓</span></summary>
               <div className="guide-body">
@@ -1064,8 +1115,8 @@ export default function Home() {
             {selectedArt === "custom" && <button type="button" className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
           </div>}
           <div className="download-row">
-            <button type="button" className="primary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
-            <button type="button" className="secondary" disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>Tải mã QR SVG</button>
+            <button type="button" className={downloadedFormat === "png" ? "primary downloaded" : "primary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{downloadedFormat === "png" ? "Đã tải PNG ✓" : layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
+            <button type="button" className={downloadedFormat === "svg" ? "secondary downloaded" : "secondary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>{downloadedFormat === "svg" ? "Đã tải SVG ✓" : "Tải mã QR SVG"}</button>
           </div>
           <p className="scan-tip">Hãy quét thử bằng ít nhất một điện thoại trước khi in số lượng lớn.</p>
         </aside>
