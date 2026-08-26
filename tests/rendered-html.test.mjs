@@ -23,6 +23,9 @@ test("server-renders the QR Vui product", async () => {
   assert.match(html, /Mã QR không nhất thiết/);
   assert.match(html, /phải đơn điệu/);
   assert.match(html, /Tạo mã QR/);
+  assert.match(html, /Chọn nội dung/);
+  assert.match(html, /Cá nhân hóa/);
+  assert.match(html, /Tải thiết kế/);
   assert.match(html, /Ngân hàng/);
   assert.match(html, /Chia bill/);
   assert.match(html, /Công nghệ/);
@@ -145,6 +148,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(frames, /"thoi-trang"/);
   assert.match(frames, /"ninh-binh"/);
   assert.doesNotMatch(page, /Chọn một chiếc vibe|Server không|app ngân hàng|Tech stack|không drama/i);
+  assert.doesNotMatch(page, /className="doodle"|Chọn một mẫu\.<br \/>Tùy chỉnh\. Tải xuống\./);
   assert.doesNotMatch(page, /QUÉT ĐI, NHÌN GÌ|SẾP BẢO QUÉT ĐI|DỪNG LẠI, QUÉT CÁI|Câu chuyển khoản siêu hài/i);
   assert.match(page, /MỜI BẠN QUÉT MÃ!/);
   assert.doesNotMatch(page, /drawLegacyWorkshopDoodle/);

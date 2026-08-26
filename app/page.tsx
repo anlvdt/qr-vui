@@ -1193,14 +1193,15 @@ export default function Home() {
           <h1>Mã QR không nhất thiết<br /><em>phải đơn điệu.</em></h1>
           <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QR Vui giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
           <small>{artLibrary.length} mẫu minh họa · Tải ảnh riêng · Tự chia bill · Hỗ trợ VietQR kèm số tiền.</small>
-        </div>
-        <div className="doodle" aria-hidden="true">
-          <span className="arrow">↳</span>
-          <span className="doodle-copy">Chọn một mẫu.<br />Tùy chỉnh. Tải xuống.</span>
+          <div className="hero-flow" aria-label="Quy trình tạo mã QR gồm ba bước">
+            <div><b>01</b><span><strong>Chọn nội dung</strong><small>Đường dẫn, Wi‑Fi, VietQR, chia bill hoặc văn bản.</small></span></div>
+            <div><b>02</b><span><strong>Cá nhân hóa</strong><small>Màu thương hiệu, logo, tranh hoặc ấn phẩm riêng.</small></span></div>
+            <div><b>03</b><span><strong>Tải thiết kế</strong><small>Xuất PNG hoặc SVG với vùng quét được bảo vệ.</small></span></div>
+          </div>
         </div>
       </section>
 
-      <section className="maker wrap" aria-label="Công cụ tạo mã QR">
+      <section className="maker wrap" id="maker" aria-label="Công cụ tạo mã QR">
         <div className="panel form-panel">
           <div className="panel-heading">
             <span className="step">01</span>
