@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { artFrames, type ArtFrame, type ArtPoint, type ArtQuad } from "./art-frames";
 
-type Mode = "link" | "wifi" | "bank" | "text" | "email";
+type Mode = "link" | "wifi" | "bank" | "bill" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
 type LayoutMode = "stamp" | "art";
@@ -34,6 +34,7 @@ const modes: { id: Mode; label: string; icon: string }[] = [
   { id: "link", label: "Đường dẫn", icon: "↗" },
   { id: "wifi", label: "Wi-Fi", icon: "⌁" },
   { id: "bank", label: "Ngân hàng", icon: "₫" },
+  { id: "bill", label: "Chia bill", icon: "÷" },
   { id: "text", label: "Văn bản", icon: "✎" },
   { id: "email", label: "Email", icon: "@" },
 ];
@@ -635,6 +636,11 @@ export default function Home() {
   const [bankAccount, setBankAccount] = useState("");
   const [bankAmount, setBankAmount] = useState("");
   const [bankNote, setBankNote] = useState("");
+  const [billTotal, setBillTotal] = useState("");
+  const [billPeople, setBillPeople] = useState("3");
+  const [billNames, setBillNames] = useState("");
+  const [billNote, setBillNote] = useState("CHIA BILL");
+  const [billPayer, setBillPayer] = useState(0);
   const [palette, setPalette] = useState(palettes[0]);
   const [qrStyle, setQrStyle] = useState<QRStyle>("round");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("stamp");
@@ -737,6 +743,29 @@ export default function Home() {
       .catch(() => undefined);
   }, []);
 
+  const billPeopleCount = useMemo(() => Number(billPeople), [billPeople]);
+  const billTotalNumber = useMemo(() => Number(billTotal), [billTotal]);
+  const billIsValid = useMemo(() => (
+    /^[1-9]\d{0,12}$/.test(billTotal)
+    && billTotalNumber <= 9_999_999_999_999
+    && Number.isInteger(billPeopleCount)
+    && billPeopleCount >= 2
+    && billPeopleCount <= 30
+  ), [billPeopleCount, billTotal, billTotalNumber]);
+  const billNamesList = useMemo(() => {
+    const enteredNames = billNames.split(",").map((name) => name.trim()).filter(Boolean);
+    return Array.from({ length: Math.max(0, billPeopleCount) }, (_, index) => enteredNames[index] || `Người ${index + 1}`);
+  }, [billNames, billPeopleCount]);
+  const billShares = useMemo(() => {
+    if (!billIsValid) return [];
+    const baseShare = Math.floor(billTotalNumber / billPeopleCount);
+    const remainder = billTotalNumber % billPeopleCount;
+    return Array.from({ length: billPeopleCount }, (_, index) => baseShare + (index < remainder ? 1 : 0));
+  }, [billIsValid, billPeopleCount, billTotalNumber]);
+  const selectedBillPayer = Math.min(billPayer, Math.max(0, billPeopleCount - 1));
+  const selectedBillShare = billShares[selectedBillPayer] ?? 0;
+  const selectedBillName = billNamesList[selectedBillPayer] ?? `Người ${selectedBillPayer + 1}`;
+
   const payload = useMemo(() => {
     if (mode === "link") return normalizeUrl(value);
     if (mode === "wifi") {
@@ -748,12 +777,14 @@ export default function Home() {
       if (!value.trim()) return "";
       return `mailto:${value.trim()}${emailSubject ? `?subject=${encodeURIComponent(emailSubject)}` : ""}`;
     }
-    if (mode === "bank") {
+    if (mode === "bank" || mode === "bill") {
       if (!bankId || !bankAccount) return "";
-      return makeVietQRContent(bankId, bankAccount.trim().toUpperCase(), bankAmount, cleanTransferNote(bankNote));
+      const amount = mode === "bill" ? String(selectedBillShare || "") : bankAmount;
+      const note = mode === "bill" ? cleanTransferNote(`${billNote} ${selectedBillName}`) : cleanTransferNote(bankNote);
+      return makeVietQRContent(bankId, bankAccount.trim().toUpperCase(), amount, note);
     }
     return value.trim();
-  }, [mode, value, wifiName, wifiPassword, wifiSecurity, emailSubject, bankId, bankAccount, bankAmount, bankNote]);
+  }, [mode, value, wifiName, wifiPassword, wifiSecurity, emailSubject, bankId, bankAccount, bankAmount, bankNote, billNote, selectedBillName, selectedBillShare]);
 
   const payloadBytes = useMemo(() => new TextEncoder().encode(payload).length, [payload]);
 
@@ -777,13 +808,17 @@ export default function Home() {
       }
     }
     if (mode === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return false;
-    if (mode === "bank") {
+    if (mode === "bank" || mode === "bill") {
       const accountOk = /^[A-Za-z0-9]{6,19}$/.test(bankAccount.trim());
-      const amountOk = !bankAmount || (/^[1-9]\d{0,12}$/.test(bankAmount) && Number(bankAmount) <= 9_999_999_999_999);
+      const amount = mode === "bill" ? String(selectedBillShare || "") : bankAmount;
+      const amountOk = mode === "bill"
+        ? /^[1-9]\d{0,12}$/.test(amount) && Number(amount) <= 9_999_999_999_999
+        : !bankAmount || (/^[1-9]\d{0,12}$/.test(bankAmount) && Number(bankAmount) <= 9_999_999_999_999);
       if (!accountOk || !amountOk) return false;
+      if (mode === "bill" && !billIsValid) return false;
     }
     return contentCanBeEncoded;
-  }, [payload, payloadBytes, mode, value, bankAccount, bankAmount, contentCanBeEncoded]);
+  }, [payload, payloadBytes, mode, value, bankAccount, bankAmount, billIsValid, contentCanBeEncoded, selectedBillShare]);
 
   const colorIsSafe = contrastOnWhite(palette.value) >= 4.5;
 
@@ -828,7 +863,9 @@ export default function Home() {
         : !contentCanBeEncoded
           ? "Nội dung này quá phức tạp để tạo mã QR dễ quét. Hãy rút gọn hoặc bỏ bớt ký tự đặc biệt."
         : !inputIsValid
-          ? "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
+          ? mode === "bill" && !billIsValid
+            ? "Nhập tổng bill và từ 2 đến 30 người để chia tự động."
+            : "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
           : payloadBytes > 700
             ? "Nội dung khá dài; nên quét thử ở khoảng cách sử dụng thực tế."
             : notice;
@@ -878,7 +915,7 @@ export default function Home() {
 
   const download = (format: "png" | "svg") => {
     if (!inputIsValid || !colorIsSafe) return;
-    const filename = `qr-vui-${Date.now()}`;
+    const filename = `qr-vui${mode === "bill" ? `-chia-bill-${selectedBillPayer + 1}` : ""}-${Date.now()}`;
     const selectedStyle = qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0];
     if (format === "png") {
       if (layoutMode === "art") downloadArtPNG(payload, palette.value, palette.accent, qrStyle, artOptions, filename);
@@ -892,7 +929,7 @@ export default function Home() {
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
     }
-    setNotice(`Đã tải tệp ${format.toUpperCase()} xuống thiết bị.`);
+    setNotice(mode === "bill" ? `Đã tải QR phần của ${selectedBillName}.` : `Đã tải tệp ${format.toUpperCase()} xuống thiết bị.`);
     setDownloadedFormat(format);
     if (downloadResetRef.current) clearTimeout(downloadResetRef.current);
     downloadResetRef.current = setTimeout(() => setDownloadedFormat(null), 2600);
@@ -902,6 +939,7 @@ export default function Home() {
     setMode(nextMode);
     setValue("");
     setEmailSubject("");
+    setDownloadedFormat(null);
   };
 
   const pasteFromClipboard = async () => {
@@ -920,7 +958,7 @@ export default function Home() {
 
   return (
     <main>
-      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR CÓ SỐ TIỀN · VĂN BẢN · EMAIL · {artLibrary.length} MẪU MINH HỌA</div>
+      <div className="ticker" aria-hidden="true">LIÊN KẾT · WI-FI · VIETQR · CHIA BILL · VĂN BẢN · EMAIL · {artLibrary.length} MẪU MINH HỌA</div>
       <nav className="nav wrap" aria-label="Điều hướng chính">
         <a className="brand" href="#top" aria-label="QR Vui - trang chủ">
           <span className="brand-mark">QR!</span>
@@ -935,7 +973,7 @@ export default function Home() {
           <div className="eyebrow">TẠO MÃ QR VUI HƠN · DỄ TÙY BIẾN · VẪN DỄ QUÉT</div>
           <h1>Mã QR không nhất thiết<br /><em>phải đơn điệu.</em></h1>
           <p>Phần lớn mã QR trông khô khan và khó tùy biến theo nội dung muốn chia sẻ. QR Vui giúp bạn biến mã QR thành một thiết kế vui vẻ, hài hước và phù hợp với bối cảnh.</p>
-          <small>96 mẫu minh họa · Tải ảnh riêng · Tùy chỉnh vị trí và câu chữ · Hỗ trợ VietQR kèm số tiền.</small>
+          <small>{artLibrary.length} mẫu minh họa · Tải ảnh riêng · Tự chia bill · Hỗ trợ VietQR kèm số tiền.</small>
         </div>
         <div className="doodle" aria-hidden="true">
           <span className="arrow">↳</span>
@@ -947,7 +985,7 @@ export default function Home() {
         <div className="panel form-panel">
           <div className="panel-heading">
             <span className="step">01</span>
-            <div><h2>Chọn nội dung cần mã hóa</h2><p>Hỗ trợ liên kết, Wi-Fi, VietQR, văn bản và email.</p></div>
+            <div><h2>Chọn nội dung cần mã hóa</h2><p>Hỗ trợ liên kết, Wi-Fi, VietQR, chia bill, văn bản và email.</p></div>
           </div>
 
           <div className="mode-tabs" role="group" aria-label="Loại nội dung QR">
@@ -967,37 +1005,66 @@ export default function Home() {
                   <label>Bảo mật<select value={wifiSecurity} onChange={(e) => setWifiSecurity(e.target.value)}><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Không mật khẩu</option></select></label>
                 </div>
               </>
-            ) : mode === "bank" ? (
+            ) : mode === "bank" || mode === "bill" ? (
               <>
-                <label>Ngân hàng nhận
+                <label>{mode === "bill" ? "Ngân hàng nhận tiền chia bill" : "Ngân hàng nhận"}
                   <select value={bankId} onChange={(event) => setBankId(event.target.value)}>
                     {banks.map((bank) => <option value={bank.bin} key={bank.bin}>{bank.shortName} · {bank.bin}</option>)}
                   </select>
                 </label>
-                <label>Số tài khoản
+                <label>{mode === "bill" ? "Số tài khoản nhận tiền" : "Số tài khoản"}
                   <input value={bankAccount} onChange={(event) => setBankAccount(event.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 19))} placeholder="Nhập 6–19 chữ hoặc số" autoComplete="off" />
                 </label>
-                <div className="two-fields bank-fields">
-                  <label>Số tiền (không bắt buộc)
-                    <input inputMode="numeric" value={bankAmount} onChange={(event) => setBankAmount(event.target.value.replace(/\D/g, "").slice(0, 13))} placeholder="Ví dụ: 150000" />
-                    {bankAmount && <small className="amount-readout">{Number(bankAmount).toLocaleString("vi-VN")} ₫</small>}
-                  </label>
-                  <label>Nội dung chuyển khoản
-                    <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CA PHE" />
-                    {bankNote && <small className="bank-note-preview">Ngân hàng sẽ nhận: {cleanTransferNote(bankNote)}</small>}
-                  </label>
-                </div>
-                <div className="transfer-presets">
-                  <div className="preset-heading"><b>Câu chuyển khoản siêu hài</b><button type="button" onClick={() => setBankNote(transferNotePresets[Math.floor(Math.random() * transferNotePresets.length)])}>Chọn giúp tôi ↻</button></div>
-                  <div className="preset-quick" aria-label="Gợi ý nội dung chuyển khoản">
-                    {transferNotePresets.slice(0, 6).map((note) => <button type="button" key={note} aria-pressed={bankNote === note} className={bankNote === note ? "active" : ""} onClick={() => setBankNote(note)}>{note}</button>)}
-                  </div>
-                  <details className="preset-more">
-                    <summary>Xem đủ {transferNotePresets.length} câu vui</summary>
-                    <div>{transferNotePresets.slice(6).map((note) => <button type="button" key={note} aria-pressed={bankNote === note} className={bankNote === note ? "active" : ""} onClick={() => setBankNote(note)}>{note}</button>)}</div>
-                  </details>
-                </div>
-                <div className="bank-warning"><b>Lưu ý:</b> Mã chỉ điền sẵn thông tin chuyển khoản. Hãy kiểm tra người nhận, số tiền và nội dung trong ứng dụng ngân hàng trước khi xác nhận.</div>
+                {mode === "bill" ? (
+                  <>
+                    <div className="bill-guide"><b>Chia hóa đơn trong vài giây</b><span>Nhìn dòng “Tổng thanh toán” trên bill như ảnh, nhập tổng và số người. QR sẽ tự mang đúng phần tiền của từng người.</span></div>
+                    <div className="two-fields bill-fields">
+                      <label>Tổng bill
+                        <input inputMode="numeric" value={billTotal} onChange={(event) => setBillTotal(event.target.value.replace(/\D/g, "").slice(0, 13))} placeholder="Ví dụ: 9661560" />
+                        {billTotal && <small className="amount-readout">{billTotalNumber.toLocaleString("vi-VN")} ₫</small>}
+                      </label>
+                      <label>Số người
+                        <input inputMode="numeric" value={billPeople} onChange={(event) => setBillPeople(event.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="Ví dụ: 3" />
+                        <small className="bank-note-preview">Từ 2 đến 30 người</small>
+                      </label>
+                    </div>
+                    <label>Tên từng người <small>(không bắt buộc, ngăn cách bằng dấu phẩy)</small>
+                      <input value={billNames} onChange={(event) => setBillNames(event.target.value)} maxLength={180} placeholder="Ví dụ: An, Bình, Chi" />
+                    </label>
+                    <label>Nội dung chuyển khoản
+                      <input value={billNote} onChange={(event) => setBillNote(event.target.value)} maxLength={36} placeholder="Ví dụ: CHIA BILL" />
+                    </label>
+                    <div className="bill-summary" aria-live="polite">
+                      <div><b>{billIsValid ? `Chia ${billTotalNumber.toLocaleString("vi-VN")} ₫ cho ${billPeopleCount} người` : "Nhập tổng bill và số người"}</b><span>{billIsValid ? "Chọn người để đổi QR tương ứng" : "Mỗi người sẽ nhận một QR đúng phần tiền"}</span></div>
+                      {billIsValid && <div className="bill-payers">{billShares.map((share, index) => <button type="button" key={`${billNamesList[index]}-${index}`} aria-pressed={selectedBillPayer === index} className={selectedBillPayer === index ? "active" : ""} onClick={() => setBillPayer(index)}><span>{billNamesList[index]}</span><b>{share.toLocaleString("vi-VN")} ₫</b></button>)}</div>}
+                    </div>
+                    <div className="bank-warning"><b>Kiểm tra trước khi chuyển:</b> QR điền sẵn phần của người đang chọn. Mỗi đồng lẻ (nếu có) được lần lượt cộng cho những người đầu danh sách để tổng khớp tuyệt đối.</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="two-fields bank-fields">
+                      <label>Số tiền (không bắt buộc)
+                        <input inputMode="numeric" value={bankAmount} onChange={(event) => setBankAmount(event.target.value.replace(/\D/g, "").slice(0, 13))} placeholder="Ví dụ: 150000" />
+                        {bankAmount && <small className="amount-readout">{Number(bankAmount).toLocaleString("vi-VN")} ₫</small>}
+                      </label>
+                      <label>Nội dung chuyển khoản
+                        <input value={bankNote} onChange={(event) => setBankNote(event.target.value)} maxLength={50} placeholder="Ví dụ: TIEN CA PHE" />
+                        {bankNote && <small className="bank-note-preview">Ngân hàng sẽ nhận: {cleanTransferNote(bankNote)}</small>}
+                      </label>
+                    </div>
+                    <div className="transfer-presets">
+                      <div className="preset-heading"><b>Câu chuyển khoản siêu hài</b><button type="button" onClick={() => setBankNote(transferNotePresets[Math.floor(Math.random() * transferNotePresets.length)])}>Chọn giúp tôi ↻</button></div>
+                      <div className="preset-quick" aria-label="Gợi ý nội dung chuyển khoản">
+                        {transferNotePresets.slice(0, 6).map((note) => <button type="button" key={note} aria-pressed={bankNote === note} className={bankNote === note ? "active" : ""} onClick={() => setBankNote(note)}>{note}</button>)}
+                      </div>
+                      <details className="preset-more">
+                        <summary>Xem đủ {transferNotePresets.length} câu vui</summary>
+                        <div>{transferNotePresets.slice(6).map((note) => <button type="button" key={note} aria-pressed={bankNote === note} className={bankNote === note ? "active" : ""} onClick={() => setBankNote(note)}>{note}</button>)}</div>
+                      </details>
+                    </div>
+                    <div className="bank-warning"><b>Lưu ý:</b> Mã chỉ điền sẵn thông tin chuyển khoản. Hãy kiểm tra người nhận, số tiền và nội dung trong ứng dụng ngân hàng trước khi xác nhận.</div>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -1016,8 +1083,8 @@ export default function Home() {
                 {mode === "email" && <label>Tiêu đề email (không bắt buộc)<input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Ví dụ: Yêu cầu báo giá" /></label>}
               </>
             )}
-            <div className="privacy-line"><span>◉</span> {mode === "bank" ? "Thông tin VietQR được tạo trực tiếp trên thiết bị của bạn." : "Nội dung được xử lý trực tiếp trong trình duyệt và không gửi lên máy chủ."}</div>
-            {mode !== "bank" && <div className={`content-meter ${payloadBytes > 700 ? "caution" : ""}`} aria-live="polite"><span>{payloadBytes} / 1.200 byte</span>{payloadBytes > 700 ? "Nội dung dài: hãy quét thử trước khi in." : "Khoảng trống còn rộng cho mã dễ quét."}</div>}
+            <div className="privacy-line"><span>◉</span> {mode === "bank" || mode === "bill" ? "Thông tin VietQR được tạo trực tiếp trên thiết bị của bạn." : "Nội dung được xử lý trực tiếp trong trình duyệt và không gửi lên máy chủ."}</div>
+            {mode !== "bank" && mode !== "bill" && <div className={`content-meter ${payloadBytes > 700 ? "caution" : ""}`} aria-live="polite"><span>{payloadBytes} / 1.200 byte</span>{payloadBytes > 700 ? "Nội dung dài: hãy quét thử trước khi in." : "Khoảng trống còn rộng cho mã dễ quét."}</div>}
           </div>
 
           <div className="palette-section">
@@ -1055,13 +1122,13 @@ export default function Home() {
           {layoutMode === "art" ? (
             <div className="art-stage">{inputIsValid && colorIsSafe ? <canvas ref={artCanvasRef} className="art-canvas" role="img" aria-label="Tranh ghép mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để xem trước thiết kế</p></div>}</div>
           ) : (
-            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} role="img" aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{(qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
+            <div className={`qr-costume ${qrStyle}`}><div className="qr-shell">{inputIsValid && colorIsSafe ? <canvas ref={canvasRef} role="img" aria-label="Mã QR xem trước" /> : <div className="empty-qr"><span>?</span><p>Nhập nội dung hợp lệ<br />để tạo mã QR</p></div>}</div><div className="costume-caption">{mode === "bill" && billIsValid ? `QR PHẦN CỦA ${selectedBillName.toUpperCase()}` : (qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption}</div></div>
           )}
           <div className={`health ${inputIsValid && colorIsSafe ? "good" : "wait"}`} role="status" aria-live="polite"><span>●</span>{displayNotice}</div>
           <details className="scan-details">
             <summary>Thông số bảo đảm khả năng quét</summary>
             <div className="tech-badges">
-              <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? "Phối cảnh 4 góc" : mode === "bank" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
+              <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span><span>{layoutMode === "art" ? "Phối cảnh 4 góc" : mode === "bank" || mode === "bill" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
             </div>
           </details>
           {layoutMode === "art" && <div className="art-controls">
@@ -1115,7 +1182,7 @@ export default function Home() {
             {selectedArt === "custom" && <button type="button" className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
           </div>}
           <div className="download-row">
-            <button type="button" className={downloadedFormat === "png" ? "primary downloaded" : "primary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{downloadedFormat === "png" ? "Đã tải PNG ✓" : layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
+            <button type="button" className={downloadedFormat === "png" ? "primary downloaded" : "primary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{downloadedFormat === "png" ? "Đã tải PNG ✓" : mode === "bill" ? `Tải QR của ${selectedBillName}` : layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
             <button type="button" className={downloadedFormat === "svg" ? "secondary downloaded" : "secondary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>{downloadedFormat === "svg" ? "Đã tải SVG ✓" : "Tải mã QR SVG"}</button>
           </div>
           <p className="scan-tip">Hãy quét thử bằng ít nhất một điện thoại trước khi in số lượng lớn.</p>

@@ -23,6 +23,7 @@ test("server-renders the QR Vui product", async () => {
   assert.match(html, /phải đơn điệu/);
   assert.match(html, /Tạo mã QR/);
   assert.match(html, /Ngân hàng/);
+  assert.match(html, /Chia bill/);
   assert.match(html, /Công nghệ/);
   assert.match(html, /Ô bo góc/);
   assert.match(html, /Đơn điệu và khó tạo ấn tượng/);
@@ -54,6 +55,11 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /crc16/);
   assert.match(page, /9_999_999_999_999/);
   assert.match(page, /const initiationMethod = amount \? "12" : "11"/);
+  assert.match(page, /const billShares = useMemo/);
+  assert.match(page, /Math\.floor\(billTotalNumber \/ billPeopleCount\)/);
+  assert.match(page, /billTotalNumber % billPeopleCount/);
+  assert.match(page, /Chia hóa đơn trong vài giây/);
+  assert.match(page, /Mỗi đồng lẻ/);
   assert.match(page, /const passwordField = wifiSecurity === "nopass"/);
   assert.match(page, /modules\.isReserved/);
   assert.match(page, /styledSVG/);

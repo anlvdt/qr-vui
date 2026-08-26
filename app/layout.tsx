@@ -8,7 +8,7 @@ const body = Be_Vietnam_Pro({ variable: "--font-body", subsets: ["latin", "vietn
 const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX ?? "";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://anlvdt.github.io/qr-vui";
 const title = "QR Vui — Tạo mã QR vui hơn, vẫn dễ quét";
-const description = "Tạo mã QR cho liên kết, Wi-Fi, VietQR, văn bản và email; tùy biến với 96 mẫu minh họa hoặc ảnh riêng ngay trên thiết bị của bạn.";
+const description = "Tạo mã QR cho liên kết, Wi-Fi, VietQR, chia bill, văn bản và email; tùy biến với 96 mẫu minh họa hoặc ảnh riêng ngay trên thiết bị của bạn.";
 
 export const metadata: Metadata = {
   title,

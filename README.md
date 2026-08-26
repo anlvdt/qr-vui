@@ -1,11 +1,12 @@
 # QR Vui
 
-QR Vui là công cụ tạo mã QR trực tiếp trong trình duyệt. Bạn có thể tạo mã cho liên kết, Wi-Fi, VietQR, văn bản hoặc email; sau đó tùy biến màu sắc, kiểu ô mã, minh họa và tải xuống PNG/SVG.
+QR Vui là công cụ tạo mã QR trực tiếp trong trình duyệt. Bạn có thể tạo mã cho liên kết, Wi-Fi, VietQR, tự chia bill, văn bản hoặc email; sau đó tùy biến màu sắc, kiểu ô mã, minh họa và tải xuống PNG/SVG.
 
 ## Điểm chính
 
 - 96 mẫu minh họa theo chủ đề, kèm khả năng tải ảnh riêng.
 - VietQR có số tiền và nội dung chuyển khoản.
+- Tự chia tổng bill cho 2–30 người, xử lý phần dư chính xác và tạo VietQR riêng cho từng người.
 - Mã được tạo tại thiết bị; nội dung QR không được gửi tới máy chủ.
 - Mức sửa lỗi QR H, viền trắng 4 ô và kiểm tra độ tương phản trước khi tải.
 - Kiểm tra khả năng mã hóa QR trước khi hiển thị hoặc tải tệp, tránh xuất mã không hợp lệ.
