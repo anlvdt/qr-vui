@@ -950,6 +950,69 @@ function downloadArtPNG(payload: string, ink: string, accent: string, style: QRS
   link.click();
 }
 
+type FloatingToolbarProps = {
+  modeLabel: string;
+  isReady: boolean;
+  layoutMode: LayoutMode;
+  hasBrand: boolean;
+  downloaded: boolean;
+  onPrimaryAction: () => void;
+  onMakeItFun: () => void;
+  onBrand: () => void;
+  onToggleLayout: () => void;
+};
+
+// Interaction model inspired by OpenClip's contextual action bar. This is an
+// original web implementation for QR Vui; attribution lives in CREDITS.md.
+function FloatingToolbar({
+  modeLabel,
+  isReady,
+  layoutMode,
+  hasBrand,
+  downloaded,
+  onPrimaryAction,
+  onMakeItFun,
+  onBrand,
+  onToggleLayout,
+}: FloatingToolbarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <div className="floating-toolbar-shell">
+      <nav className={`floating-toolbar${collapsed ? " collapsed" : ""}`} aria-label="Thanh công cụ nhanh">
+        {collapsed ? (
+          <button type="button" className="toolbar-restore" onClick={() => setCollapsed(false)} aria-label="Mở thanh công cụ nhanh">
+            <span aria-hidden="true">QR!</span><b>{modeLabel}</b><i aria-hidden="true">↑</i>
+          </button>
+        ) : (
+          <>
+            <div className="toolbar-context" aria-live="polite">
+              <span className={isReady ? "ready" : "waiting"} aria-hidden="true">●</span>
+              <span><small>ĐANG TẠO</small><b>{modeLabel}</b></span>
+            </div>
+            <div className="toolbar-actions">
+              <button type="button" className={isReady ? "toolbar-primary ready" : "toolbar-primary"} onClick={onPrimaryAction}>
+                <span aria-hidden="true">{downloaded ? "✓" : isReady ? "↓" : "✎"}</span>
+                <b>{downloaded ? "Đã tải" : isReady ? "Tải PNG" : "Nhập nội dung"}</b>
+              </button>
+              <button type="button" disabled={!isReady} onClick={onMakeItFun}>
+                <span aria-hidden="true">✦</span><b>Làm vui</b>
+              </button>
+              <button type="button" className={hasBrand ? "active" : ""} onClick={onBrand}>
+                <span aria-hidden="true">◇</span><b>Thương hiệu</b>
+              </button>
+              <button type="button" disabled={!isReady} onClick={onToggleLayout}>
+                <span aria-hidden="true">▣</span><b>{layoutMode === "art" ? "Chỉ mã QR" : "Ghép tranh"}</b>
+              </button>
+            </div>
+            <button type="button" className="toolbar-collapse" onClick={() => setCollapsed(true)} aria-label="Thu gọn thanh công cụ nhanh">↓</button>
+          </>
+        )}
+      </nav>
+    </div>
+  );
+}
+
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const artCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -1291,6 +1354,17 @@ export default function Home() {
     chooseLibraryArt(nextArt, playful, visualProfile);
   }, [mode, selectedArt, chooseLibraryArt]);
 
+  const goToControl = useCallback((id: "qr-content" | "brand-controls") => {
+    const element = document.getElementById(id);
+    if (!element) return;
+    if (element instanceof HTMLDetailsElement) element.open = true;
+    element.scrollIntoView({ block: "center" });
+    window.requestAnimationFrame(() => {
+      const focusTarget = element.querySelector<HTMLElement>(id === "brand-controls" ? "summary" : "input, textarea, select, button");
+      focusTarget?.focus({ preventScroll: true });
+    });
+  }, []);
+
   useEffect(() => {
     if (!inputIsValid || !colorIsSafe) return;
     if (layoutMode === "art" && artCanvasRef.current) renderArtPreview(artCanvasRef.current, payload, palette.value, palette.accent, qrStyle, artOptions);
@@ -1460,7 +1534,7 @@ export default function Home() {
       </section>
 
       <section className="maker wrap" id="maker" aria-label="Công cụ tạo mã QR">
-        <div className="panel form-panel">
+        <div className="panel form-panel" id="qr-content">
           <div className="panel-heading">
             <span className="step">01</span>
             <div><h2>Chọn nội dung cần mã hóa</h2><p>Hỗ trợ liên kết, Wi-Fi, VietQR, chia bill, văn bản và email.</p></div>
@@ -1604,7 +1678,7 @@ export default function Home() {
             <span aria-hidden="true">🎲</span><b>{funRolls ? "Làm vui thêm vòng nữa ↻" : "Làm vui cho tôi"}</b><small>App tự chọn tranh, màu và kiểu QR an toàn</small>
           </button>
 
-          <details className="advanced-customizer">
+          <details className="advanced-customizer" id="brand-controls">
             <summary><span><b>Tùy chỉnh thêm</b><small>Màu, thương hiệu, logo và kiểu ô QR</small></span><em>Tùy chọn</em></summary>
             <div className="advanced-customizer-body">
               <div className="palette-section">
@@ -1651,7 +1725,7 @@ export default function Home() {
           </details>
         </div>
 
-        <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
+        <aside className="panel preview-panel" id="qr-preview" style={{ "--accent": palette.accent } as React.CSSProperties}>
           <div className="tape">XEM TRƯỚC</div>
           <button type="button" className="make-it-fun" disabled={!inputIsValid} onClick={makeItFun}>
             <span aria-hidden="true">🎲</span><b>{funRolls ? "Quay thêm vòng nữa ↻" : "Làm vui cho tôi"}</b><small>Đổi tranh, màu và kiểu QR an toàn</small>
@@ -1775,9 +1849,24 @@ export default function Home() {
 
       <footer className="wrap">
         <div className="brand"><span className="brand-mark">QR!</span><span>QR Vui</span></div>
-        <p>Tạo mã QR dễ sử dụng, dễ tùy biến và dễ quét.</p>
+        <div className="footer-copy">
+          <p>Tạo mã QR dễ sử dụng, dễ tùy biến và dễ quét.</p>
+          <p className="inspiration-credit">Thanh công cụ nổi lấy cảm hứng từ <a href="https://github.com/ganeshmshetty/openclip" target="_blank" rel="noreferrer">OpenClip của Ganesh M và cộng đồng</a> · MIT.</p>
+        </div>
         <a href="#top">Quay lại đầu trang ↑</a>
       </footer>
+
+      <FloatingToolbar
+        modeLabel={(modes.find((item) => item.id === mode) ?? modes[0]).label}
+        isReady={inputIsValid && colorIsSafe}
+        layoutMode={layoutMode}
+        hasBrand={Boolean(brandName.trim() || brandLogo)}
+        downloaded={downloadedFormat === "png"}
+        onPrimaryAction={() => inputIsValid && colorIsSafe ? download("png") : goToControl("qr-content")}
+        onMakeItFun={makeItFun}
+        onBrand={() => goToControl("brand-controls")}
+        onToggleLayout={() => setLayoutMode((current) => current === "art" ? "stamp" : "art")}
+      />
     </main>
   );
 }

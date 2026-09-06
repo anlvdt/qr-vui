@@ -28,6 +28,9 @@ test("server-renders the QR Vui product", async () => {
   assert.match(html, /Tải thiết kế/);
   assert.match(html, /Ngân hàng/);
   assert.match(html, /Chia bill/);
+  assert.match(html, /Thanh công cụ nhanh/);
+  assert.match(html, /Tải PNG/);
+  assert.match(html, /OpenClip của Ganesh M và cộng đồng/);
   assert.match(html, /Công nghệ/);
   assert.match(html, /Ô bo góc/);
   assert.match(html, /Đơn điệu và khó tạo ấn tượng/);
@@ -39,7 +42,7 @@ test("server-renders the QR Vui product", async () => {
 });
 
 test("keeps QR reliability guardrails in source", async () => {
-  const [page, frames, layout, styles, packageJson, sitesPlugin, pwaRegister, manifest, serviceWorker] = await Promise.all([
+  const [page, frames, layout, styles, packageJson, sitesPlugin, pwaRegister, manifest, serviceWorker, credits] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/art-frames.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
@@ -49,6 +52,7 @@ test("keeps QR reliability guardrails in source", async () => {
     readFile(new URL("../app/pwa-register.tsx", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
+    readFile(new URL("../CREDITS.md", import.meta.url), "utf8"),
   ]);
   assert.match(page, /errorCorrectionLevel:\s*"H"/);
   assert.match(page, /QRCode\.create\(payload, \{ errorCorrectionLevel: "H" \}\)/);
@@ -179,6 +183,10 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.doesNotMatch(page, /className="doodle"|Chọn một mẫu\.<br \/>Tùy chỉnh\. Tải xuống\./);
   assert.doesNotMatch(page, /QUÉT ĐI, NHÌN GÌ|SẾP BẢO QUÉT ĐI|DỪNG LẠI, QUÉT CÁI|Câu chuyển khoản siêu hài/i);
   assert.match(page, /MỜI BẠN QUÉT MÃ!/);
+  assert.match(page, /function FloatingToolbar/);
+  assert.match(page, /aria-label="Thanh công cụ nhanh"/);
+  assert.match(page, /goToControl\("brand-controls"\)/);
+  assert.match(page, /github\.com\/ganeshmshetty\/openclip/);
   assert.doesNotMatch(page, /drawLegacyWorkshopDoodle/);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-qr-vui\.png/);
@@ -195,12 +203,17 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(styles, /--text-base:16px/);
   assert.match(styles, /input,textarea,select\{font-size:16px\}/);
   assert.match(styles, /font-synthesis:none/);
+  assert.match(styles, /safe-area-inset-bottom/);
+  assert.match(styles, /--z-floating-toolbar:30/);
   assert.match(styles, /h1,h2,h3\{text-wrap:balance\}p\{text-wrap:pretty\}/);
   assert.match(packageJson, /"build:pages"/);
   assert.match(packageJson, /"qrcode"/);
   assert.match(packageJson, /"name": "qr-vui"/);
   assert.doesNotMatch(page, /QRồi Xong|qroi-xong/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
+  assert.match(credits, /OpenClip/);
+  assert.match(credits, /License: MIT/);
+  assert.match(credits, /No Swift or AppKit source code/);
   assert.match(sitesPlugin, /let packaging = Promise\.resolve\(\)/);
   assert.match(sitesPlugin, /packaging = packaging\.then/);
 });
