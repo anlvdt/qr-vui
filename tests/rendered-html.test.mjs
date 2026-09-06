@@ -24,7 +24,7 @@ test("server-renders the QR Vui product", async () => {
   assert.match(html, /phải đơn điệu/);
   assert.match(html, /Tạo mã QR/);
   assert.match(html, /Chọn nội dung/);
-  assert.match(html, /Cá nhân hóa/);
+  assert.match(html, /Làm vui/);
   assert.match(html, /Tải thiết kế/);
   assert.match(html, /Ngân hàng/);
   assert.match(html, /Chia bill/);
@@ -32,17 +32,23 @@ test("server-renders the QR Vui product", async () => {
   assert.match(html, /Ô bo góc/);
   assert.match(html, /Đơn điệu và khó tạo ấn tượng/);
   assert.match(html, /Một mã QR vui vẻ/);
+  assert.match(html, /rel="manifest" href="\/manifest\.webmanifest"/);
+  assert.match(html, /name="theme-color" content="#EEE7D6"/);
+  assert.match(html, /rel="apple-touch-icon" href="\/pwa-180\.png"/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape/);
 });
 
 test("keeps QR reliability guardrails in source", async () => {
-  const [page, frames, layout, styles, packageJson, sitesPlugin] = await Promise.all([
+  const [page, frames, layout, styles, packageJson, sitesPlugin, pwaRegister, manifest, serviceWorker] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/art-frames.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../build/sites-vite-plugin.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/pwa-register.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
+    readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
   ]);
   assert.match(page, /errorCorrectionLevel:\s*"H"/);
   assert.match(page, /QRCode\.create\(payload, \{ errorCorrectionLevel: "H" \}\)/);
@@ -76,6 +82,28 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /THƯ VIỆN MINH HỌA/);
   assert.match(page, /artLibrary/);
   assert.match(page, /Cách chọn ảnh phù hợp/);
+  assert.match(page, /Làm vui cho tôi/);
+  assert.match(page, /Quay thêm vòng nữa/);
+  assert.match(page, /Hợp với QR này/);
+  assert.match(page, /Xem tất cả/);
+  assert.match(page, /const contextArtIds: Record<Mode, string\[]>/);
+  assert.match(page, /type ArtVisualProfile = \{ paletteIndex: 0 \| 1 \| 2 \| 3; style: QRStyle \}/);
+  assert.match(page, /const categoryVisualProfiles: Record<ArtCategory, ArtVisualProfile>/);
+  assert.match(page, /const artVisualProfiles: Partial<Record<string, ArtVisualProfile>>/);
+  assert.match(page, /function getProfilePalette\(profile: ArtVisualProfile\)/);
+  assert.match(page, /function getImageMatchedPalette\(image: HTMLImageElement, profile: ArtVisualProfile\)/);
+  assert.match(page, /function safeArtInk\(color: \[number, number, number\]\)/);
+  assert.match(page, /contrastOnWhite\(value\) >= 4\.5/);
+  assert.match(page, /name: "Theo tranh"/);
+  const artChooser = page.slice(page.indexOf("const chooseLibraryArt"), page.indexOf("const resetArtLayout", page.indexOf("const chooseLibraryArt")));
+  assert.match(artChooser, /visualProfile = getArtVisualProfile\(item\)/);
+  assert.match(artChooser, /setPalette\(getImageMatchedPalette\(image, visualProfile\)\)/);
+  assert.match(artChooser, /setQrStyle\(visualProfile\.style\)/);
+  const funMechanic = page.slice(page.indexOf("const makeItFun"), page.indexOf("useEffect(() => {", page.indexOf("const makeItFun")));
+  assert.match(funMechanic, /const visualProfile = getArtVisualProfile\(nextArt\)/);
+  assert.match(funMechanic, /chooseLibraryArt\(nextArt, playful, visualProfile\)/);
+  assert.doesNotMatch(funMechanic, /palettePool|stylePool|Math\.random\(\).*palettes|Math\.random\(\).*qrStyles/);
+  assert.doesNotMatch(funMechanic, /setValue|setBankAccount|setBankAmount|setBillTotal|setBillPeople|setWifiName|setWifiPassword|buildVietQrPayload|splitBillEvenly/);
   assert.match(page, /meo-mat-lanh\.png/);
   assert.match(page, /artLibrary\.length/);
   assert.match(page, /Ngành nghề/);
@@ -156,6 +184,14 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(layout, /og-qr-vui\.png/);
   assert.match(layout, /NEXT_PUBLIC_SITE_URL/);
   assert.match(layout, /"700", "800"/);
+  assert.match(layout, /manifest\.webmanifest/);
+  assert.match(layout, /PwaRegister/);
+  assert.match(pwaRegister, /navigator\.serviceWorker\.register/);
+  assert.match(pwaRegister, /NEXT_PUBLIC_ASSET_PREFIX/);
+  assert.match(manifest, /"display": "standalone"/);
+  assert.match(manifest, /"start_url": "\.\/"/);
+  assert.match(serviceWorker, /request\.mode === "navigate"/);
+  assert.match(serviceWorker, /scopeUrl\.pathname/);
   assert.match(styles, /--text-base:16px/);
   assert.match(styles, /input,textarea,select\{font-size:16px\}/);
   assert.match(styles, /font-synthesis:none/);
@@ -173,6 +209,8 @@ test("extracts the payable total instead of an item or invoice number", () => {
   const receipt = `Mã HĐ: 20260824-0011\nBudweiser 330ml 1 26.000 26.000\nRượu Em Mơ 15 299.000 4.485.000\nTổng: 8.851.000 đ\nThuế đồ ăn 708.080 đ\nTổng thanh toán: 9.661.560 đ`;
   assert.equal(extractReceiptTotal(receipt), "9661560");
   assert.equal(extractReceiptTotal("GRAND TOTAL\n1,250,000 VND"), "1250000");
+  assert.equal(extractReceiptTotal("Tổng thanh toán: 100.000 đ\nTiền khách đưa: 500.000 đ"), "100000");
+  assert.equal(extractReceiptTotal("TỔNG PHẢI TRẢ\n100.000 đ\nTiền thối: 20.000 đ"), "100000");
   assert.equal(extractReceiptTotal("Mã hóa đơn 202608240011\nBàn B2.14"), null);
 });
 

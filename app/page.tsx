@@ -10,8 +10,11 @@ import { extractReceiptTotal, splitBillEvenly } from "./bill-utils";
 type Mode = "link" | "wifi" | "bank" | "bill" | "text" | "email";
 type Bank = { bin: string; shortName: string; name: string; transferSupported?: number };
 type QRStyle = "square" | "round" | "dots";
+type QRPalette = { name: string; value: string; accent: string };
+type ArtVisualProfile = { paletteIndex: 0 | 1 | 2 | 3; style: QRStyle };
 type LayoutMode = "stamp" | "art";
 type ArtCategory = "hai" | "hai-thu" | "hai-cong-so" | "hai-do-an" | "hai-doi-thuong" | "nghe" | "giai-tri" | "kinh-doanh" | "su-kien" | "nong-nghiep" | "hang-rong" | "phong-canh" | "du-lich" | "bac-trung" | "nam-bien" | "hoang-dao" | "con-giap" | "van-hoa-viet";
+type FunMood = "context" | "cute" | "chaotic" | "vietnam" | "office" | "food" | "occasion";
 type LibraryArt = { id: string; name: string; mood: string; category: ArtCategory; src: string; x: number; y: number; size: number; caption: string; rotation?: number };
 
 const assetPrefix = process.env.NEXT_PUBLIC_ASSET_PREFIX ?? "";
@@ -24,7 +27,7 @@ const customArtFrame: ArtFrame = {
   copy: { x: 50, y: 90, width: 76, titleScale: 6.1, subtitleScale: 2.25, showSubtitle: false },
 };
 
-const palettes = [
+const palettes: QRPalette[] = [
   { name: "Đen", value: "#171717", accent: "#FFD338" },
   { name: "Đỏ đậm", value: "#9F1239", accent: "#FDA4AF" },
   { name: "Xanh lá đậm", value: "#075E54", accent: "#6EE7B7" },
@@ -228,6 +231,230 @@ const artCategories: { id: ArtCategory; label: string; icon: string }[] = [
   { id: "con-giap", label: "12 con giáp Việt", icon: "◆" },
   { id: "van-hoa-viet", label: "Văn hóa Việt", icon: "❋" },
 ];
+
+const funMoods: { id: Exclude<FunMood, "context">; label: string; icon: string; artIds: string[] }[] = [
+  { id: "cute", label: "Dễ thương", icon: "♡", artIds: ["ech", "cun", "capy-tron-bao-thuc", "cho-bao-ve", "mao-meo", "thoi-noi", "selfie-dai-gia-dinh", "gia-dinh-bien", "hoa-sen-viet", "xe-hoa", "tiem-hoa", "hoi-heo"] },
+  { id: "chaotic", label: "Hài lầy", icon: "☻", artIds: ["capy", "meo-sep", "vit-dieu-phoi", "ech-karaoke", "ga-influencer", "vat-may-in", "hop-om-goi", "mi-yoga", "sau-rieng-diva", "nuoc-mam-sieu-nhan", "noi-com-het-hon", "mua-to"] },
+  { id: "vietnam", label: "Việt Nam", icon: "❋", artIds: ["non-la-viet", "ao-dai-viet", "trong-dong", "banh-chung", "ha-noi", "hue", "hoi-an", "tp-hcm", "can-tho", "ganh-hang", "tra-da", "ruong-bac-thang"] },
+  { id: "office", label: "Công sở", icon: "⌘", artIds: ["meo-sep", "ca-phe-cuu-roi", "hop-robot", "vat-may-in", "hop-om-goi", "lam-viec-o-nha", "vi-rong", "van-phong", "giao-hang", "vit", "ca-phe-mat-mo", "soi-cong-to"] },
+  { id: "food", label: "Ăn uống", icon: "♨", artIds: ["banh-mi", "quan-mi", "ca-phe", "tra-da", "bap-nuong", "xe-mi", "banh-mi-dao-dien", "mi-yoga", "ca-phe-mat-mo", "sau-rieng-diva", "nuoc-mam-sieu-nhan", "noi-com-het-hon"] },
+  { id: "occasion", label: "Dịp vui", icon: "★", artIds: ["dam-cuoi", "sinh-nhat", "tot-nghiep", "le-an-hoi", "thoi-noi", "tan-gia", "ky-niem-cuoi", "tat-nien", "lien-hoan-ban-be", "giu-phong-bi", "selfie-dai-gia-dinh", "mai-vang"] },
+];
+
+const contextArtIds: Record<Mode, string[]> = {
+  link: ["capy", "meo-sep", "ga-influencer", "check-in", "tro-choi", "san-khau", "non-la-viet", "tp-hcm", "hoa-sen-viet", "ech"],
+  wifi: ["san-wifi", "capy", "ech", "lam-viec-o-nha", "hop-robot", "ca-phe-cuu-roi", "meo-sep", "tra-da", "mua-to", "cun"],
+  bank: ["vi-rong", "giu-phong-bi", "meo-sep", "ca-phe-cuu-roi", "nuoc-mam-sieu-nhan", "banh-mi-dao-dien", "sinh-nhat", "tan-gia", "banh-chung", "thin-rong"],
+  bill: ["lien-hoan-ban-be", "mi-yoga", "noi-com-het-hon", "banh-mi-dao-dien", "ca-phe-mat-mo", "nuoc-mam-sieu-nhan", "tra-da", "bap-nuong", "selfie-dai-gia-dinh", "vi-rong"],
+  text: ["meo", "capy", "cun", "meo-sep", "vit-dieu-phoi", "ao-dai-viet", "trong-dong", "sinh-nhat", "check-in", "hoa-sen-viet"],
+  email: ["meo-sep", "ca-phe-cuu-roi", "hop-robot", "vat-may-in", "van-phong", "giao-vien", "ga-influencer", "hop-om-goi", "lam-viec-o-nha", "capy"],
+};
+
+const funnyCaptions: Partial<Record<string, string>> = {
+  meo: "QUÉT ĐI. MÈO ĐANG GIÁM SÁT.",
+  capy: "QUÉT XONG RỒI TAN CA!",
+  ech: "QUÉT XONG, TRÀ ĐÁ ĐANG CHỜ.",
+  cun: "CÚN DUYỆT. MỜI QUÉT!",
+  vit: "QUÉT NHANH, VỊT CÒN CHẠY ĐƠN.",
+  noi: "QUÉT ĐI. CƠM CHÍN RỒI!",
+  "meo-sep": "MÈO SẾP DUYỆT. QUÉT THÔI!",
+  "capy-tron-bao-thuc": "QUÉT NHẸ. CAPY CHƯA TỈNH.",
+  "vit-dieu-phoi": "VỊT RA HIỆU: QUÉT Ở ĐÂY!",
+  "cho-bao-ve": "BẢO VỆ NGHỈ CA. QR VẪN TRỰC.",
+  "ech-karaoke": "QUÉT XONG ẾCH HÁT TIẾP!",
+  "ga-influencer": "QUÉT ĐI, GÀ ĐANG LÊN HÌNH.",
+  "ca-phe-cuu-roi": "QUÉT TRƯỚC. TỈNH SAU ☕",
+  "hop-robot": "ROBOT VÀO HỌP. BẠN QUÉT MÃ.",
+  "vat-may-in": "MÁY IN KẸT. QR THÌ KHÔNG.",
+  "hop-om-goi": "HỌP CĂNG? ÔM GỐI RỒI QUÉT.",
+  "lam-viec-o-nha": "CAM TẮT. QR VẪN BẬT.",
+  "vi-rong": "ĐẦU THÁNG VÍ CÒN THỞ 😌",
+  "banh-mi-dao-dien": "BÁNH MÌ HÔ: QUÉT! CẮT!",
+  "mi-yoga": "MÌ DẺO RỒI. BẠN QUÉT ĐI.",
+  "ca-phe-mat-mo": "QUÉT XONG MỚI ĐƯỢC NGÁP.",
+  "sau-rieng-diva": "DIVA LÊN SÓNG. QUÉT NÀO!",
+  "nuoc-mam-sieu-nhan": "SIÊU NHÂN MẮM ĐÃ TỚI!",
+  "noi-com-het-hon": "NỒI CƠM GIẬT MÌNH. QUÉT ĐI!",
+  "san-wifi": "SÓNG Ở ĐÂU? QUÉT Ở ĐÂY!",
+  "mua-to": "MƯA TO. QR VẪN BÌNH TĨNH.",
+  "nui-quan-ao": "NÚI ĐỒ CAO. TINH THẦN CAO HƠN.",
+  "giu-phong-bi": "PHONG BÌ ĐÃ SẴN. TIM CŨNG VẬY.",
+  "soi-cong-to": "CÔNG TƠ CHẠY. MẮT CŨNG CHẠY.",
+  "selfie-dai-gia-dinh": "ĐỦ MẶT RỒI. THIẾU MỖI LƯỢT QUÉT!",
+};
+
+const funRollArtIds: Record<Mode, string[]> = {
+  link: ["ga-influencer", "meo-sep", "capy", "vit-dieu-phoi", "hop-robot", "ech-karaoke", "vat-may-in", "meo", "san-wifi", "banh-mi-dao-dien"],
+  wifi: ["san-wifi", "capy", "meo-sep", "hop-robot", "ca-phe-cuu-roi", "mua-to", "vat-may-in", "ech", "cun", "lam-viec-o-nha"],
+  bank: ["vi-rong", "giu-phong-bi", "meo-sep", "nuoc-mam-sieu-nhan", "banh-mi-dao-dien", "ca-phe-cuu-roi", "noi-com-het-hon", "vit-dieu-phoi", "capy", "sau-rieng-diva"],
+  bill: ["mi-yoga", "noi-com-het-hon", "banh-mi-dao-dien", "ca-phe-mat-mo", "nuoc-mam-sieu-nhan", "sau-rieng-diva", "vi-rong", "selfie-dai-gia-dinh", "capy", "giu-phong-bi"],
+  text: ["meo", "capy", "vit-dieu-phoi", "meo-sep", "ga-influencer", "ech-karaoke", "nui-quan-ao", "mua-to", "cun", "noi"],
+  email: ["meo-sep", "vat-may-in", "ca-phe-cuu-roi", "hop-robot", "hop-om-goi", "lam-viec-o-nha", "ga-influencer", "capy", "vit-dieu-phoi", "ca-phe-mat-mo"],
+};
+
+const categoryVisualProfiles: Record<ArtCategory, ArtVisualProfile> = {
+  hai: { paletteIndex: 3, style: "dots" },
+  "hai-thu": { paletteIndex: 3, style: "dots" },
+  "hai-cong-so": { paletteIndex: 3, style: "round" },
+  "hai-do-an": { paletteIndex: 1, style: "round" },
+  "hai-doi-thuong": { paletteIndex: 2, style: "round" },
+  nghe: { paletteIndex: 0, style: "round" },
+  "giai-tri": { paletteIndex: 3, style: "dots" },
+  "kinh-doanh": { paletteIndex: 1, style: "round" },
+  "su-kien": { paletteIndex: 1, style: "round" },
+  "nong-nghiep": { paletteIndex: 2, style: "round" },
+  "hang-rong": { paletteIndex: 2, style: "round" },
+  "phong-canh": { paletteIndex: 2, style: "round" },
+  "du-lich": { paletteIndex: 2, style: "round" },
+  "bac-trung": { paletteIndex: 1, style: "square" },
+  "nam-bien": { paletteIndex: 2, style: "round" },
+  "hoang-dao": { paletteIndex: 3, style: "dots" },
+  "con-giap": { paletteIndex: 1, style: "round" },
+  "van-hoa-viet": { paletteIndex: 1, style: "square" },
+};
+
+const artVisualProfiles: Partial<Record<string, ArtVisualProfile>> = {
+  meo: { paletteIndex: 3, style: "dots" },
+  capy: { paletteIndex: 0, style: "round" },
+  ech: { paletteIndex: 2, style: "dots" },
+  cun: { paletteIndex: 3, style: "round" },
+  vit: { paletteIndex: 0, style: "round" },
+  noi: { paletteIndex: 1, style: "round" },
+  "meo-sep": { paletteIndex: 3, style: "round" },
+  "capy-tron-bao-thuc": { paletteIndex: 0, style: "round" },
+  "vit-dieu-phoi": { paletteIndex: 0, style: "square" },
+  "cho-bao-ve": { paletteIndex: 2, style: "round" },
+  "ech-karaoke": { paletteIndex: 3, style: "dots" },
+  "ga-influencer": { paletteIndex: 3, style: "dots" },
+  "ca-phe-cuu-roi": { paletteIndex: 1, style: "round" },
+  "hop-robot": { paletteIndex: 3, style: "square" },
+  "vat-may-in": { paletteIndex: 0, style: "square" },
+  "hop-om-goi": { paletteIndex: 3, style: "round" },
+  "lam-viec-o-nha": { paletteIndex: 2, style: "round" },
+  "vi-rong": { paletteIndex: 2, style: "square" },
+  "banh-mi-dao-dien": { paletteIndex: 1, style: "round" },
+  "mi-yoga": { paletteIndex: 1, style: "round" },
+  "ca-phe-mat-mo": { paletteIndex: 1, style: "round" },
+  "sau-rieng-diva": { paletteIndex: 2, style: "dots" },
+  "nuoc-mam-sieu-nhan": { paletteIndex: 1, style: "square" },
+  "noi-com-het-hon": { paletteIndex: 1, style: "round" },
+  "san-wifi": { paletteIndex: 3, style: "round" },
+  "mua-to": { paletteIndex: 2, style: "round" },
+  "nui-quan-ao": { paletteIndex: 3, style: "dots" },
+  "giu-phong-bi": { paletteIndex: 1, style: "round" },
+  "soi-cong-to": { paletteIndex: 0, style: "square" },
+  "selfie-dai-gia-dinh": { paletteIndex: 1, style: "round" },
+  "banh-chung": { paletteIndex: 2, style: "square" },
+  "hoa-sen-viet": { paletteIndex: 1, style: "round" },
+  "non-la-viet": { paletteIndex: 2, style: "round" },
+  "trong-dong": { paletteIndex: 0, style: "square" },
+};
+
+function getArtVisualProfile(item: LibraryArt) {
+  return artVisualProfiles[item.id] ?? categoryVisualProfiles[item.category];
+}
+
+function getProfilePalette(profile: ArtVisualProfile) {
+  const candidate = palettes[profile.paletteIndex] ?? palettes[0];
+  return contrastOnWhite(candidate.value) >= 4.5 ? candidate : palettes[0];
+}
+
+function rgbToHsl(red: number, green: number, blue: number) {
+  const r = red / 255;
+  const g = green / 255;
+  const b = blue / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  const lightness = (max + min) / 2;
+  if (delta === 0) return { hue: 0, saturation: 0, lightness };
+  const saturation = delta / (1 - Math.abs(2 * lightness - 1));
+  let hue = max === r ? ((g - b) / delta) % 6 : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+  hue = (hue * 60 + 360) % 360;
+  return { hue, saturation, lightness };
+}
+
+function rgbToHex(red: number, green: number, blue: number) {
+  const channel = (value: number) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0").toUpperCase();
+  return `#${channel(red)}${channel(green)}${channel(blue)}`;
+}
+
+function mixRgb(color: [number, number, number], target: [number, number, number], amount: number): [number, number, number] {
+  return color.map((channel, index) => channel * (1 - amount) + target[index] * amount) as [number, number, number];
+}
+
+function safeArtInk(color: [number, number, number]) {
+  let candidate = color;
+  for (let step = 0; step <= 12; step += 1) {
+    const value = rgbToHex(candidate[0], candidate[1], candidate[2]);
+    if (contrastOnWhite(value) >= 4.5) return value;
+    candidate = mixRgb(color, [0, 0, 0], (step + 1) / 13);
+  }
+  return palettes[0].value;
+}
+
+function getImageMatchedPalette(image: HTMLImageElement, profile: ArtVisualProfile) {
+  const fallback = getProfilePalette(profile);
+  try {
+    const sample = document.createElement("canvas");
+    sample.width = 40;
+    sample.height = 40;
+    const context = sample.getContext("2d", { willReadFrequently: true });
+    if (!context) return fallback;
+    context.clearRect(0, 0, sample.width, sample.height);
+    context.drawImage(image, 0, 0, sample.width, sample.height);
+    const pixels = context.getImageData(0, 0, sample.width, sample.height).data;
+    const hueBins = Array.from({ length: 24 }, () => ({ weight: 0, red: 0, green: 0, blue: 0 }));
+    let colorWeight = 0;
+    let neutralWeight = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const alpha = pixels[index + 3] / 255;
+      if (alpha < 0.2) continue;
+      const { hue, saturation, lightness } = rgbToHsl(pixels[index], pixels[index + 1], pixels[index + 2]);
+      if (lightness > 0.94) continue;
+      const visibility = alpha * (1.15 - Math.abs(lightness - 0.5));
+      neutralWeight += visibility * (1 - saturation);
+      if (saturation < 0.18) continue;
+      const weight = visibility * saturation * saturation;
+      const bin = Math.round(hue / 15) % hueBins.length;
+      hueBins[bin].weight += weight;
+      hueBins[bin].red += pixels[index] * weight;
+      hueBins[bin].green += pixels[index + 1] * weight;
+      hueBins[bin].blue += pixels[index + 2] * weight;
+      colorWeight += weight;
+    }
+    if (colorWeight < 4 || colorWeight < neutralWeight * 0.45) return palettes[0];
+    const dominant = hueBins.reduce((best, item) => item.weight > best.weight ? item : best, hueBins[0]);
+    if (dominant.weight <= 0) return fallback;
+    const artColor: [number, number, number] = [
+      dominant.red / dominant.weight,
+      dominant.green / dominant.weight,
+      dominant.blue / dominant.weight,
+    ];
+    const value = safeArtInk(artColor);
+    const accentRgb = mixRgb(artColor, [255, 255, 255], 0.62);
+    return { name: "Theo tranh", value, accent: rgbToHex(accentRgb[0], accentRgb[1], accentRgb[2]) };
+  } catch {
+    return fallback;
+  }
+}
+
+function playfulArtNotice(item: LibraryArt) {
+  const special: Partial<Record<string, string>> = {
+    capy: "Capy duyệt. Hôm nay được phép thong thả 😌",
+    "meo-sep": "Mèo sếp duyệt. Không cần họp thêm.",
+    "vit-dieu-phoi": "Vịt đã phân luồng QR. Mời đi thẳng 🦆",
+    "ga-influencer": "Gà lên hình. QR cũng có góc đẹp.",
+    "vat-may-in": "Máy in đang suy nghĩ. QR thì xong rồi.",
+    "mi-yoga": "Tô mì đã giãn cơ. QR cũng sẵn sàng.",
+    "sau-rieng-diva": "Diva sầu riêng đã bước lên thảm đỏ.",
+    "nuoc-mam-sieu-nhan": "Siêu nhân nước mắm đã vào vị trí.",
+    "noi-com-het-hon": "Nồi cơm hết hồn, QR vẫn bình tĩnh.",
+    "san-wifi": "Bắt được Wi‑Fi rồi. Vui lên thôi 📶",
+    "nui-quan-ao": "Núi đồ chưa gấp. QR đã gọn rồi.",
+  };
+  return special[item.id];
+}
 
 const fallbackBanks: Bank[] = [
   { bin: "970436", shortName: "Vietcombank", name: "Ngân hàng TMCP Ngoại thương Việt Nam" },
@@ -760,6 +987,10 @@ export default function Home() {
   const [artImage, setArtImage] = useState<HTMLImageElement | null>(null);
   const [selectedArt, setSelectedArt] = useState(artLibrary[0].id);
   const [artCategory, setArtCategory] = useState<ArtCategory>("hai");
+  const [funMood, setFunMood] = useState<FunMood>("context");
+  const [showAllArt, setShowAllArt] = useState(false);
+  const [funRolls, setFunRolls] = useState(0);
+  const funHistoryRef = useRef<string[]>([]);
   const [artX, setArtX] = useState(65);
   const [artY, setArtY] = useState(38);
   const [artWidth, setArtWidth] = useState(45);
@@ -804,7 +1035,7 @@ export default function Home() {
     setArtShowSubtitle(frame.copy.showSubtitle);
   }, []);
 
-  const chooseLibraryArt = useCallback((item: LibraryArt) => {
+  const chooseLibraryArt = useCallback((item: LibraryArt, readyNotice?: string, visualProfile = getArtVisualProfile(item)) => {
     const image = new Image();
     image.onload = () => {
       const frame = artFrames[item.id] ?? {
@@ -813,15 +1044,17 @@ export default function Home() {
         qr: { x: 50, y: 40, size: 78 },
         copy: { x: 50, y: 90, width: 76, titleScale: 6.1, subtitleScale: 2.25, showSubtitle: false },
       };
+      setPalette(getImageMatchedPalette(image, visualProfile));
+      setQrStyle(visualProfile.style);
       setArtImage(image);
       setSelectedArt(item.id);
       setArtCategory(item.category);
       applyArtFrame(frame);
       setArtPaper(false);
-      setArtCaption(item.caption);
+      setArtCaption(funnyCaptions[item.id] ?? item.caption);
       setArtSubcaption("");
       setLayoutMode("art");
-      setNotice(`Mẫu ${item.name} đã sẵn sàng.`);
+      setNotice(readyNotice ?? playfulArtNotice(item) ?? `Mẫu ${item.name} đã sẵn sàng.`);
     };
     image.onerror = () => setNotice(`Không thể tải mẫu ${item.name}. Hãy chọn mẫu khác.`);
     image.src = publicAsset(item.src);
@@ -883,9 +1116,11 @@ export default function Home() {
   const billTotalFormatted = useMemo(() => billIsValid ? billTotalNumber.toLocaleString("vi-VN") : "", [billIsValid, billTotalNumber]);
 
   const handleBillImage = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
+    const supportedType = ["image/jpeg", "image/png", "image/webp"].includes(file.type)
+      || (!file.type && /\.(jpe?g|png|webp)$/i.test(file.name));
+    if (!supportedType) {
       setBillOcrStatus("error");
-      setBillOcrMessage("Tệp này không phải ảnh. Hãy chọn JPG, PNG hoặc HEIC.");
+      setBillOcrMessage("Định dạng chưa được hỗ trợ. Hãy chọn JPG, PNG hoặc WebP.");
       return;
     }
     if (file.size > 12 * 1024 * 1024) {
@@ -942,7 +1177,7 @@ export default function Home() {
   const copySelectedBillShare = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(`${selectedBillName}: ${selectedBillShare.toLocaleString("vi-VN")} ₫`);
-      setNotice(`Đã sao chép phần của ${selectedBillName}.`);
+      setNotice(`Xong. Tình bạn vẫn còn nguyên 😌 Đã sao chép phần của ${selectedBillName}.`);
     } catch {
       setNotice("Không thể sao chép. Hãy giữ và chọn nội dung thủ công.");
     }
@@ -1030,8 +1265,31 @@ export default function Home() {
     subcaption: artSubcaption,
   }), [artImage, brandLogo, brandLogoScale, artX, artY, artWidth, artHeight, artRotation, artSkewX, artSkewY, artQuad, artQrX, artQrY, artQrScale, artCopyX, artCopyY, artCopyWidth, artTitleScale, artSubtitleScale, artShowSubtitle, artPaper, artCaption, artSubcaption]);
 
-  const visibleArt = artLibrary.filter((item) => item.category === artCategory);
+  const moodArtIds = funMood === "context"
+    ? contextArtIds[mode]
+    : funMoods.find((item) => item.id === funMood)?.artIds ?? contextArtIds[mode];
+  const visibleArt = showAllArt
+    ? artLibrary.filter((item) => item.category === artCategory)
+    : moodArtIds.map((id) => artLibrary.find((item) => item.id === id)).filter((item): item is LibraryArt => Boolean(item));
   const stampCaption = brandName.trim().toUpperCase() || (qrStyles.find((item) => item.id === qrStyle) ?? qrStyles[0]).caption;
+
+  const makeItFun = useCallback(() => {
+    const candidates = funRollArtIds[mode]
+      .map((id) => artLibrary.find((item) => item.id === id))
+      .filter((item): item is LibraryArt => Boolean(item));
+    const recent = new Set([selectedArt, ...funHistoryRef.current]);
+    const freshCandidates = candidates.filter((item) => !recent.has(item.id));
+    const artPool = freshCandidates.length ? freshCandidates : candidates.filter((item) => item.id !== selectedArt);
+    const nextArt = (artPool.length ? artPool : candidates)[Math.floor(Math.random() * (artPool.length || candidates.length))];
+    const visualProfile = getArtVisualProfile(nextArt);
+    const playful = playfulArtNotice(nextArt) ?? `${nextArt.name} vào sân. Hợp lý một cách khó hiểu 😎`;
+
+    funHistoryRef.current = [nextArt.id, ...funHistoryRef.current.filter((id) => id !== nextArt.id)].slice(0, 4);
+    setFunMood("context");
+    setShowAllArt(false);
+    setFunRolls((count) => count + 1);
+    chooseLibraryArt(nextArt, playful, visualProfile);
+  }, [mode, selectedArt, chooseLibraryArt]);
 
   useEffect(() => {
     if (!inputIsValid || !colorIsSafe) return;
@@ -1148,7 +1406,7 @@ export default function Home() {
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
     }
-    setNotice(mode === "bill" ? `Đã tải QR phần của ${selectedBillName}.` : `Đã tải tệp ${format.toUpperCase()} xuống thiết bị.`);
+    setNotice(mode === "bill" ? `QR phần của ${selectedBillName} đã xuống máy. Tình bạn vẫn còn nguyên 😌` : "QR đã xuống máy. Đi khoe thôi ↗");
     setDownloadedFormat(format);
     if (downloadResetRef.current) clearTimeout(downloadResetRef.current);
     downloadResetRef.current = setTimeout(() => setDownloadedFormat(null), 2600);
@@ -1195,7 +1453,7 @@ export default function Home() {
           <small>{artLibrary.length} mẫu minh họa · Tải ảnh riêng · Tự chia bill · Hỗ trợ VietQR kèm số tiền.</small>
           <div className="hero-flow" aria-label="Quy trình tạo mã QR gồm ba bước">
             <div><b>01</b><span><strong>Chọn nội dung</strong><small>Đường dẫn, Wi‑Fi, VietQR, chia bill hoặc văn bản.</small></span></div>
-            <div><b>02</b><span><strong>Cá nhân hóa</strong><small>Màu thương hiệu, logo, tranh hoặc ấn phẩm riêng.</small></span></div>
+            <div><b>02</b><span><strong>Làm vui</strong><small>Bấm một lần để app tự phối tranh, màu và kiểu QR an toàn.</small></span></div>
             <div><b>03</b><span><strong>Tải thiết kế</strong><small>Xuất PNG hoặc SVG với vùng quét được bảo vệ.</small></span></div>
           </div>
         </div>
@@ -1239,12 +1497,12 @@ export default function Home() {
                   <>
                     <div className="bill-guide"><b>Tự chia bill như ảnh — chụp hoặc thả ảnh hóa đơn</b><span>Nhìn dòng “<b>Tổng thanh toán</b>” trên bill (như ảnh bạn gửi), app sẽ tự đọc tổng tiền. Bạn chỉ cần chọn số người, QR của từng người sẽ mang đúng phần tiền, phần lẻ chia đều cho người đầu.</span></div>
                     <div className={`bill-upload ${billOcrStatus}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files?.[0]; if (file) handleBillImage(file); }}>
-                      <input ref={billFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) handleBillImage(file); event.currentTarget.value = ""; }} />
+                      <input ref={billFileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) handleBillImage(file); event.currentTarget.value = ""; }} />
                       <button type="button" className="bill-upload-btn" onClick={() => billFileRef.current?.click()} aria-describedby="bill-upload-status">
                         <span className="bill-upload-icon">▣</span>
                         <span>
                           <b>{billImage ? "Đổi ảnh bill" : "Tải ảnh bill lên"}</b>
-                          <small>JPG, PNG, WebP, HEIC · tối đa 12 MB</small>
+                          <small>JPG, PNG, WebP · tối đa 12 MB</small>
                         </span>
                       </button>
                       <div className="bill-upload-hint" id="bill-upload-status" role="status" aria-live="polite">
@@ -1278,7 +1536,7 @@ export default function Home() {
                         {billTotal && <small className="amount-readout">{billTotalNumber.toLocaleString("vi-VN")} ₫</small>}
                       </label>
                       <label>Số người
-                        <input inputMode="numeric" value={billPeople} onChange={(event) => setBillPeople(event.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="Ví dụ: 3" />
+                        <input inputMode="numeric" value={billPeople} onChange={(event) => { const next = event.target.value.replace(/\D/g, "").slice(0, 2); setBillPeople(next); const count = Number(next); setBillPayer((current) => next && count >= 1 ? Math.min(current, count - 1) : 0); }} placeholder="Ví dụ: 3" />
                         <small className="bank-note-preview">Từ 2 đến 30 người</small>
                       </label>
                     </div>
@@ -1342,50 +1600,62 @@ export default function Home() {
             {mode !== "bank" && mode !== "bill" && <div className={`content-meter ${payloadBytes > 700 ? "caution" : ""}`} aria-live="polite"><span>{payloadBytes} / 1.200 byte</span>{payloadBytes > 700 ? "Nội dung dài: hãy quét thử trước khi in." : "Khoảng trống còn rộng cho mã dễ quét."}</div>}
           </div>
 
-          <div className="palette-section">
-            <div className="label-row"><span>Chọn màu mã QR</span><span>Độ tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đạt ✓" : "· Chưa đạt ✕"}</span></div>
-            <div className="palettes">
-              {palettes.map((item) => (
-                <button key={item.name} type="button" aria-pressed={palette.name === item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
-                  <i style={{ background: item.value }} /><span>{item.name}</span>
-                </button>
-              ))}
-            </div>
-            <div className="brand-customizer">
-              <div className="brand-heading"><div><b>NHẬN DIỆN THƯƠNG HIỆU</b><span>Nhập đúng mã màu brand, thêm logo và tên hiển thị trên ấn phẩm.</span></div><em>Riêng tư · xử lý trên máy</em></div>
-              <div className="brand-color-grid">
-                <HexColorInput label="Màu mã QR" value={palette.value} onApply={(value) => setPalette({ name: "Tùy chọn", value, accent: palette.accent })} />
-                <HexColorInput label="Màu nền ấn phẩm" value={palette.accent} onApply={(accent) => setPalette({ name: "Tùy chọn", value: palette.value, accent })} />
-              </div>
-              <label className="brand-name-field">Tên thương hiệu hoặc thông điệp ngắn<input value={brandName} onChange={(event) => setBrandName(event.target.value.slice(0, 32))} placeholder="Ví dụ: CÀ PHÊ NHÀ MÌNH" /><small>{brandName.length}/32 · dùng trên ấn phẩm QR độc lập</small></label>
-              <div className={`brand-logo-control${brandLogo ? " has-logo" : ""}`}>
-                <label className="brand-logo-upload"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadBrandLogo} /><span>{brandLogo ? "Đổi logo" : "+ Tải logo lên"}</span><small>PNG nền trong suốt được khuyên dùng · tối đa 3 MB</small></label>
-                {brandLogo && <div className="brand-logo-summary">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={brandLogoDataUrl} alt="Logo thương hiệu vừa tải" />
-                  <div><b>{brandLogoName}</b><button type="button" onClick={clearBrandLogo}>Gỡ logo</button></div>
-                </div>}
-              </div>
-              <label className="brand-art-upload"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} disabled={artworkLoading} /><span>{artworkLoading ? "Đang chuẩn bị ấn phẩm…" : "+ Tải menu, poster hoặc bao bì"}</span><small>Ứng dụng sẽ chuyển sang chế độ “Mã QR trong tranh” để bạn đặt QR trực tiếp lên ấn phẩm.</small></label>
-              {brandLogo && <label className="brand-logo-size">Kích thước logo <output>{brandLogoScale}%</output><input type="range" min="8" max="18" step="1" value={brandLogoScale} onChange={(event) => setBrandLogoScale(Number(event.target.value))} /><small>Giới hạn 8–18% để giữ khả năng quét; logo luôn có nền trắng bảo vệ.</small></label>}
-            </div>
-          </div>
+          <button type="button" className="make-it-fun mobile-fun-cta" disabled={!inputIsValid} onClick={makeItFun}>
+            <span aria-hidden="true">🎲</span><b>{funRolls ? "Làm vui thêm vòng nữa ↻" : "Làm vui cho tôi"}</b><small>App tự chọn tranh, màu và kiểu QR an toàn</small>
+          </button>
 
-          <div className="shape-section">
-            <div className="label-row"><span>Chọn kiểu ô QR</span><span>Ba ô định vị luôn được giữ nguyên ✓</span></div>
-            <div className="shape-options">
-              {qrStyles.map((item) => (
-                <button key={item.id} type="button" aria-pressed={qrStyle === item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
-                  <i aria-hidden="true"><span /><span /><span /><span /></i>
-                  <b>{item.name}</b><small>{item.note}</small>
-                </button>
-              ))}
+          <details className="advanced-customizer">
+            <summary><span><b>Tùy chỉnh thêm</b><small>Màu, thương hiệu, logo và kiểu ô QR</small></span><em>Tùy chọn</em></summary>
+            <div className="advanced-customizer-body">
+              <div className="palette-section">
+                <div className="label-row"><span>Chọn màu mã QR</span><span>Độ tương phản {contrastOnWhite(palette.value).toFixed(1)}:1 {colorIsSafe ? "· Đạt ✓" : "· Chưa đạt ✕"}</span></div>
+                <div className="palettes">
+                  {palettes.map((item) => (
+                    <button key={item.name} type="button" aria-pressed={palette.name === item.name} className={palette.name === item.name ? "palette active" : "palette"} onClick={() => setPalette(item)} aria-label={`Chọn màu ${item.name}`}>
+                      <i style={{ background: item.value }} /><span>{item.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="brand-customizer">
+                  <div className="brand-heading"><div><b>NHẬN DIỆN THƯƠNG HIỆU</b><span>Nhập đúng mã màu brand, thêm logo và tên hiển thị trên ấn phẩm.</span></div><em>Riêng tư · xử lý trên máy</em></div>
+                  <div className="brand-color-grid">
+                    <HexColorInput label="Màu mã QR" value={palette.value} onApply={(value) => setPalette({ name: "Tùy chọn", value, accent: palette.accent })} />
+                    <HexColorInput label="Màu nền ấn phẩm" value={palette.accent} onApply={(accent) => setPalette({ name: "Tùy chọn", value: palette.value, accent })} />
+                  </div>
+                  <label className="brand-name-field">Tên thương hiệu hoặc thông điệp ngắn<input value={brandName} onChange={(event) => setBrandName(event.target.value.slice(0, 32))} placeholder="Ví dụ: CÀ PHÊ NHÀ MÌNH" /><small>{brandName.length}/32 · dùng trên ấn phẩm QR độc lập</small></label>
+                  <div className={`brand-logo-control${brandLogo ? " has-logo" : ""}`}>
+                    <label className="brand-logo-upload"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadBrandLogo} /><span>{brandLogo ? "Đổi logo" : "+ Tải logo lên"}</span><small>PNG nền trong suốt được khuyên dùng · tối đa 3 MB</small></label>
+                    {brandLogo && <div className="brand-logo-summary">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={brandLogoDataUrl} alt="Logo thương hiệu vừa tải" />
+                      <div><b>{brandLogoName}</b><button type="button" onClick={clearBrandLogo}>Gỡ logo</button></div>
+                    </div>}
+                  </div>
+                  <label className="brand-art-upload"><input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadArtwork} disabled={artworkLoading} /><span>{artworkLoading ? "Đang chuẩn bị ấn phẩm…" : "+ Tải menu, poster hoặc bao bì"}</span><small>Ứng dụng sẽ chuyển sang chế độ “Mã QR trong tranh” để bạn đặt QR trực tiếp lên ấn phẩm.</small></label>
+                  {brandLogo && <label className="brand-logo-size">Kích thước logo <output>{brandLogoScale}%</output><input type="range" min="8" max="18" step="1" value={brandLogoScale} onChange={(event) => setBrandLogoScale(Number(event.target.value))} /><small>Giới hạn 8–18% để giữ khả năng quét; logo luôn có nền trắng bảo vệ.</small></label>}
+                </div>
+              </div>
+
+              <div className="shape-section">
+                <div className="label-row"><span>Chọn kiểu ô QR</span><span>Ba ô định vị luôn được giữ nguyên ✓</span></div>
+                <div className="shape-options">
+                  {qrStyles.map((item) => (
+                    <button key={item.id} type="button" aria-pressed={qrStyle === item.id} className={qrStyle === item.id ? `shape-option active ${item.id}` : `shape-option ${item.id}`} onClick={() => setQrStyle(item.id)}>
+                      <i aria-hidden="true"><span /><span /><span /><span /></i>
+                      <b>{item.name}</b><small>{item.note}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          </details>
         </div>
 
         <aside className="panel preview-panel" style={{ "--accent": palette.accent } as React.CSSProperties}>
           <div className="tape">XEM TRƯỚC</div>
+          <button type="button" className="make-it-fun" disabled={!inputIsValid} onClick={makeItFun}>
+            <span aria-hidden="true">🎲</span><b>{funRolls ? "Quay thêm vòng nữa ↻" : "Làm vui cho tôi"}</b><small>Đổi tranh, màu và kiểu QR an toàn</small>
+          </button>
           <div className="layout-switch" role="group" aria-label="Kiểu xuất mã">
             <button type="button" aria-pressed={layoutMode === "stamp"} className={layoutMode === "stamp" ? "active" : ""} onClick={() => setLayoutMode("stamp")}>Chỉ mã QR</button>
             <button type="button" aria-pressed={layoutMode === "art"} className={layoutMode === "art" ? "active" : ""} onClick={() => setLayoutMode("art")}>Mã QR trong tranh</button>
@@ -1402,11 +1672,23 @@ export default function Home() {
               <span>Sửa lỗi mức H</span><span>Viền trắng 4 ô</span>{brandLogo && <span>Logo an toàn {brandLogoScale}%</span>}<span>{layoutMode === "art" ? "Phối cảnh 4 góc" : mode === "bank" || mode === "bill" ? "VietQR · CRC16" : "QR tĩnh · Không chuyển hướng"}</span>
             </div>
           </details>
-          {layoutMode === "art" && <div className="art-controls">
-            <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn chủ đề và mẫu phù hợp với mục đích sử dụng.</span></div><em>{artLibrary.length} mẫu</em></div>
-            <div className="category-tabs" role="group" aria-label="Chủ đề tranh">
-              {artCategories.map((item) => <button key={item.id} type="button" aria-pressed={artCategory === item.id} className={artCategory === item.id ? "active" : ""} onClick={() => setArtCategory(item.id)}><b>{item.icon}</b>{item.label}<small>{artLibrary.filter((art) => art.category === item.id).length}</small></button>)}
+          <div className="download-row">
+            <button type="button" className={downloadedFormat === "png" ? "primary downloaded" : "primary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{downloadedFormat === "png" ? "Đã tải PNG ✓" : mode === "bill" ? `Tải QR của ${selectedBillName}` : layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
+            <button type="button" className={downloadedFormat === "svg" ? "secondary downloaded" : "secondary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>{downloadedFormat === "svg" ? "Đã tải SVG ✓" : "Tải mã QR SVG"}</button>
+          </div>
+          <p className="scan-tip">Hãy quét thử bằng ít nhất một điện thoại trước khi in số lượng lớn.</p>
+          {layoutMode === "art" && inputIsValid && colorIsSafe && <details className="art-controls">
+            <summary className="art-controls-summary"><span><b>Đổi tranh hoặc chỉnh thêm</b><small>Thư viện, ảnh riêng, câu chữ và bố cục</small></span><em>{artLibrary.length} mẫu</em></summary>
+            <div className="art-controls-body">
+            <div className="library-head"><div><b>THƯ VIỆN MINH HỌA</b><span>Chọn cảm giác trước, tinh chỉnh chủ đề sau nếu muốn.</span></div><em>{artLibrary.length} mẫu</em></div>
+            <div className="fun-mood-tabs" role="group" aria-label="Cảm giác minh họa">
+              <button type="button" aria-pressed={funMood === "context" && !showAllArt} className={funMood === "context" && !showAllArt ? "active context" : "context"} onClick={() => { setFunMood("context"); setShowAllArt(false); }}><b>✦</b>Hợp với QR này<small>{contextArtIds[mode].length}</small></button>
+              {funMoods.map((item) => <button key={item.id} type="button" aria-pressed={funMood === item.id && !showAllArt} className={funMood === item.id && !showAllArt ? "active" : ""} onClick={() => { setFunMood(item.id); setShowAllArt(false); }}><b>{item.icon}</b>{item.label}<small>{item.artIds.length}</small></button>)}
             </div>
+            <button type="button" className="all-art-toggle" aria-expanded={showAllArt} onClick={() => setShowAllArt((open) => !open)}>{showAllArt ? "Thu gọn về nhóm cảm giác ↑" : `Xem tất cả ${artLibrary.length} mẫu · 18 chủ đề ↓`}</button>
+            {showAllArt && <div className="category-tabs" role="group" aria-label="Tất cả chủ đề tranh">
+              {artCategories.map((item) => <button key={item.id} type="button" aria-pressed={artCategory === item.id} className={artCategory === item.id ? "active" : ""} onClick={() => setArtCategory(item.id)}><b>{item.icon}</b>{item.label}<small>{artLibrary.filter((art) => art.category === item.id).length}</small></button>)}
+            </div>}
             <div className="art-library" aria-label="Kho tranh có sẵn">
               {visibleArt.map((item) => <button key={item.id} type="button" aria-pressed={selectedArt === item.id} className={selectedArt === item.id ? "art-card active" : "art-card"} onClick={() => chooseLibraryArt(item)} aria-label={`Chọn tranh ${item.name}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1451,12 +1733,8 @@ export default function Home() {
               <label className="paper-check"><input type="checkbox" checked={artShowSubtitle} onChange={(e) => setArtShowSubtitle(e.target.checked)} /> Hiện dòng mô tả nhỏ</label>
             </details>
             {selectedArt === "custom" && <button type="button" className="text-button" onClick={() => chooseLibraryArt(artLibrary[0])}>Bỏ ảnh đã tải lên và trở lại thư viện ↺</button>}
-          </div>}
-          <div className="download-row">
-            <button type="button" className={downloadedFormat === "png" ? "primary downloaded" : "primary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("png")}>{downloadedFormat === "png" ? "Đã tải PNG ✓" : mode === "bill" ? `Tải QR của ${selectedBillName}` : layoutMode === "art" ? "Tải thiết kế PNG" : "Tải mã QR PNG"} <span>↓</span></button>
-            <button type="button" className={downloadedFormat === "svg" ? "secondary downloaded" : "secondary"} disabled={!inputIsValid || !colorIsSafe} onClick={() => download("svg")}>{downloadedFormat === "svg" ? "Đã tải SVG ✓" : "Tải mã QR SVG"}</button>
-          </div>
-          <p className="scan-tip">Hãy quét thử bằng ít nhất một điện thoại trước khi in số lượng lớn.</p>
+            </div>
+          </details>}
         </aside>
       </section>
 
