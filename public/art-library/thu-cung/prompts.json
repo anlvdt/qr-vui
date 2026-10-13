@@ -1,0 +1,50 @@
+[
+  {
+    "id": "corgi-buu-thiep",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A cheerful corgi lounging beside an oversized blank postcard lying flat facing the viewer, surrounded by travel stickers and a tiny suitcase. Bold pop-art screenprint illustration, cobalt and orange palette. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/corgi-buu-thiep.png"
+  },
+  {
+    "id": "shiba-ca-phe",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A smiling shiba inu sitting at a cozy cafe table, a large blank upright cafe menu resting on the table to the right, NOT held by the dog. Warm watercolor illustration, terracotta and sage palette. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/shiba-ca-phe.png"
+  },
+  {
+    "id": "golden-picnic",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A happy golden retriever on a picnic blanket with fruit and basket, a large open sketchbook on the blanket with its right page entirely blank and facing viewer. Soft storybook gouache illustration, sunny yellow and forest green. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/golden-picnic.png"
+  },
+  {
+    "id": "husky-vu-tru",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A playful husky astronaut floating in a spaceship, a large blank white square display integrated in the spaceship console on the right. Polished cute clay-like 3D illustration, midnight blue and violet, starry window. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/husky-vu-tru.png"
+  },
+  {
+    "id": "poodle-salon",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A stylish poodle in a pet grooming salon, fluffy freshly groomed coat, beside a large square wall mirror with a pure blank matte white face on the right (no reflections). Chic paper-cut collage illustration, pink and mint. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/poodle-salon.png"
+  },
+  {
+    "id": "pug-choi-game",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A cute pug gamer wearing headphones sitting at a desk, large open laptop to the right with a blank white screen facing viewer. Expressive comic book illustration with black outlines, purple and neon lime. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/pug-choi-game.png"
+  },
+  {
+    "id": "meo-sofa",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A sleepy orange tabby cat curled on a cozy sofa, beside a large square cream cushion on the right with a completely plain flat white central surface. Soft textured pastel crayon illustration, lavender and peach. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/meo-sofa.png"
+  },
+  {
+    "id": "tho-lam-vuon",
+    "prompt": "Use case: illustration-story. Asset type: square illustration for a Vietnamese QR art library. A sweet white rabbit watering flowers in a small garden, a large square blank white ceramic tile integrated into the front face of a planter on the right. Clean Scandinavian flat illustration, leafy green and coral. Full scene, charming expressive pet, polished composition, 1024x1024 square. Reserve one clearly visible EMPTY WHITE SQUARE SURFACE occupying approximately x=50% to 90%, y=40% to 80% of canvas, front-facing flat with no perspective distortion. Keep this surface pure white, no drawing, no text, no QR code, unobstructed, no paws over it. It is part of the scene's described object, never a handheld sign. Pet at left, full body or natural seated pose. No lettering, watermark, logos or QR code anywhere. Distinct visual medium as specified.",
+    "tool": "built-in image_gen",
+    "asset": "/art-library/thu-cung/tho-lam-vuon.png"
+  }
+]
