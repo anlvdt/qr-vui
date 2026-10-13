@@ -20,6 +20,14 @@ export type ArtFrame = ArtFrameGeometry & {
 // Khung trắng trong từng tranh được đo riêng theo phần trăm khổ ảnh.
 // QR, tiêu đề và mô tả cùng dùng một phép biến đổi nên luôn đi theo khung.
 const rawArtFrames: Record<string, ArtFrameGeometry> = {
+  "corgi-buu-thiep": { x: 72, y: 56, width: 32, height: 32, rotation: 0 },
+  "shiba-ca-phe": { x: 75, y: 48, width: 30, height: 36, rotation: 0 },
+  "golden-picnic": { x: 71, y: 59, width: 36, height: 32, rotation: 0 },
+  "husky-vu-tru": { x: 74, y: 53, width: 37, height: 37, rotation: 0 },
+  "poodle-salon": { x: 73, y: 39, width: 40, height: 44, rotation: 0 },
+  "pug-choi-game": { x: 74, y: 47, width: 42, height: 28, rotation: 0 },
+  "meo-sofa": { x: 72, y: 49, width: 36, height: 32, rotation: 0 },
+  "tho-lam-vuon": { x: 69, y: 68.5, width: 36, height: 36, rotation: 0 },
   meo: { x: 55.4, y: 68.8, width: 49.4, height: 41.6, rotation: -3.5 },
   capy: { x: 73.6, y: 38.8, width: 38.4, height: 49, rotation: 0 },
   ech: { x: 75.9, y: 33.1, width: 29.3, height: 39.9, rotation: 0.5 },
@@ -57,7 +65,7 @@ const rawArtFrames: Record<string, ArtFrameGeometry> = {
   "tat-nien": { x: 70.5, y: 67.5, width: 52.5, height: 57, rotation: 0 },
   "lien-hoan-ban-be": { x: 69.5, y: 70.5, width: 54, height: 46, rotation: 0 },
   "lua-gao": { x: 72.2, y: 62.8, width: 41.7, height: 51, rotation: 0.8 },
-  "ca-phe": { x: 72.7, y: 64.3, width: 41.3, height: 51.5, rotation: 1 },
+  "ca-phe": { x: 72.7, y: 66.5, width: 41.3, height: 47.5, rotation: 1 },
   "vuon-trai-cay": { x: 69, y: 64.5, width: 47.1, height: 51.4, rotation: -1 },
   "danh-ca": { x: 76.4, y: 61, width: 36.7, height: 48.8, rotation: 0 },
   "dam-sen": { x: 70.1, y: 61.7, width: 45.8, height: 49.9, rotation: 0 },

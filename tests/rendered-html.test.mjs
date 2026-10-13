@@ -28,9 +28,6 @@ test("server-renders the QR Vui product", async () => {
   assert.match(html, /Tải thiết kế/);
   assert.match(html, /Ngân hàng/);
   assert.match(html, /Chia bill/);
-  assert.match(html, /Thanh công cụ nhanh/);
-  assert.match(html, /Tải PNG/);
-  assert.match(html, /OpenClip của Ganesh M và cộng đồng/);
   assert.match(html, /Công nghệ/);
   assert.match(html, /Ô bo góc/);
   assert.match(html, /Đơn điệu và khó tạo ấn tượng/);
@@ -42,7 +39,7 @@ test("server-renders the QR Vui product", async () => {
 });
 
 test("keeps QR reliability guardrails in source", async () => {
-  const [page, frames, layout, styles, packageJson, sitesPlugin, pwaRegister, manifest, serviceWorker, credits] = await Promise.all([
+  const [page, frames, layout, styles, packageJson, sitesPlugin, pwaRegister, manifest, serviceWorker] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/art-frames.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
@@ -52,7 +49,6 @@ test("keeps QR reliability guardrails in source", async () => {
     readFile(new URL("../app/pwa-register.tsx", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
-    readFile(new URL("../CREDITS.md", import.meta.url), "utf8"),
   ]);
   assert.match(page, /errorCorrectionLevel:\s*"H"/);
   assert.match(page, /QRCode\.create\(payload, \{ errorCorrectionLevel: "H" \}\)/);
@@ -97,7 +93,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /function getProfilePalette\(profile: ArtVisualProfile\)/);
   assert.match(page, /function getImageMatchedPalette\(image: HTMLImageElement, profile: ArtVisualProfile\)/);
   assert.match(page, /function safeArtInk\(color: \[number, number, number\]\)/);
-  assert.match(page, /contrastOnWhite\(value\) >= 4\.5/);
+  assert.match(page, /return darkArtInk\(color\)/);
   assert.match(page, /name: "Theo tranh"/);
   const artChooser = page.slice(page.indexOf("const chooseLibraryArt"), page.indexOf("const resetArtLayout", page.indexOf("const chooseLibraryArt")));
   assert.match(artChooser, /visualProfile = getArtVisualProfile\(item\)/);
@@ -112,13 +108,13 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /artLibrary\.length/);
   assert.match(page, /Ngành nghề/);
   assert.match(page, /Phim ảnh & giải trí/);
-  assert.match(page, /kinh-doanh\/banh-mi\.png/);
+  assert.match(page, /kinh-doanh\/simple\/banh-mi\.webp/);
   assert.match(page, /giai-tri\/rap-chieu\.png/);
   assert.match(page, /su-kien\/dam-cuoi\.png/);
-  assert.match(page, /su-kien\/le-an-hoi\.png/);
-  assert.match(page, /su-kien\/thoi-noi\.png/);
-  assert.match(page, /su-kien\/tan-gia\.png/);
-  assert.match(page, /su-kien\/tat-nien\.png/);
+  assert.match(page, /su-kien\/simple\/le-an-hoi\.webp/);
+  assert.match(page, /su-kien\/simple\/thoi-noi\.webp/);
+  assert.match(page, /su-kien\/simple\/tan-gia\.webp/);
+  assert.match(page, /su-kien\/simple\/tat-nien\.webp/);
   assert.match(page, /Lời nhắn chuyển khoản vui vẻ/);
   assert.match(page, /transferNotePresets/);
   assert.match(page, /Bản đồ bố cục riêng cho từng mẫu/);
@@ -128,9 +124,9 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /Hàng rong/);
   assert.match(page, /Phong cảnh/);
   assert.match(page, /Miền Bắc & miền Trung/);
-  assert.match(page, /nong-nghiep\/lua-gao\.png/);
-  assert.match(page, /hang-rong\/ganh-hang\.png/);
-  assert.match(page, /mien-nam-bien\/can-tho\.png/);
+  assert.match(page, /nong-nghiep\/simple\/lua-gao\.webp/);
+  assert.match(page, /hang-rong\/simple\/ganh-hang\.webp/);
+  assert.match(page, /mien-nam-bien\/simple\/can-tho\.webp/);
   assert.match(page, /Thú cưng vui nhộn/);
   assert.match(page, /Công sở dí dỏm/);
   assert.match(page, /Ẩm thực vui nhộn/);
@@ -138,7 +134,7 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(page, /hai-thu\/meo-sep\.png/);
   assert.match(page, /hai-cong-so\/vat-may-in\.png/);
   assert.match(page, /hai-do-an\/nuoc-mam-sieu-nhan\.png/);
-  assert.match(page, /hai-doi-thuong\/san-wifi\.png/);
+  assert.match(page, /hai-doi-thuong\/simple\/san-wifi\.webp/);
   assert.match(page, /Cung hoàng đạo/);
   assert.match(page, /12 con giáp Việt/);
   assert.match(page, /Văn hóa Việt/);
@@ -183,10 +179,6 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.doesNotMatch(page, /className="doodle"|Chọn một mẫu\.<br \/>Tùy chỉnh\. Tải xuống\./);
   assert.doesNotMatch(page, /QUÉT ĐI, NHÌN GÌ|SẾP BẢO QUÉT ĐI|DỪNG LẠI, QUÉT CÁI|Câu chuyển khoản siêu hài/i);
   assert.match(page, /MỜI BẠN QUÉT MÃ!/);
-  assert.match(page, /function FloatingToolbar/);
-  assert.match(page, /aria-label="Thanh công cụ nhanh"/);
-  assert.match(page, /goToControl\("brand-controls"\)/);
-  assert.match(page, /github\.com\/ganeshmshetty\/openclip/);
   assert.doesNotMatch(page, /drawLegacyWorkshopDoodle/);
   assert.match(layout, /lang="vi"/);
   assert.match(layout, /og-qr-vui\.png/);
@@ -203,17 +195,12 @@ test("keeps QR reliability guardrails in source", async () => {
   assert.match(styles, /--text-base:16px/);
   assert.match(styles, /input,textarea,select\{font-size:16px\}/);
   assert.match(styles, /font-synthesis:none/);
-  assert.match(styles, /safe-area-inset-bottom/);
-  assert.match(styles, /--z-floating-toolbar:30/);
   assert.match(styles, /h1,h2,h3\{text-wrap:balance\}p\{text-wrap:pretty\}/);
   assert.match(packageJson, /"build:pages"/);
   assert.match(packageJson, /"qrcode"/);
   assert.match(packageJson, /"name": "qr-vui"/);
   assert.doesNotMatch(page, /QRồi Xong|qroi-xong/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-  assert.match(credits, /OpenClip/);
-  assert.match(credits, /License: MIT/);
-  assert.match(credits, /No Swift or AppKit source code/);
   assert.match(sitesPlugin, /let packaging = Promise\.resolve\(\)/);
   assert.match(sitesPlugin, /packaging = packaging\.then/);
 });
@@ -239,8 +226,8 @@ test("keeps illustration captions welcoming and courteous", async () => {
   const library = page.slice(page.indexOf("const artLibrary"), page.indexOf("const artCategories"));
   const captions = [...library.matchAll(/caption: "([^"]+)"/g)].map((match) => match[1]);
   const sources = [...library.matchAll(/src: "([^"]+)"/g)].map((match) => match[1]);
-  assert.equal(captions.length, 132);
-  assert.equal(sources.length, 132);
+  assert.equal(captions.length, 140);
+  assert.equal(sources.length, 140);
   assert.ok(captions.every((caption) => /MỜI/.test(caption)), "Mỗi caption cần là một lời mời lịch sự");
   assert.ok(captions.every((caption) => caption.length <= 36), "Caption mặc định phải vừa giới hạn ô nhập");
   await Promise.all(sources.map((source) => readFile(new URL(`../public${source}`, import.meta.url))));

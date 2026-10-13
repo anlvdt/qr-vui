@@ -1,0 +1,66 @@
+[
+  {
+    "id": "corgi-buu-thiep",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/corgi-buu-thiep.png",
+    "asset": "/art-library/thu-cung/corgi-buu-thiep-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep corgi and blank postcard only. Remove mountains, coastal town, flowers, suitcase, scattered postcards, compass and ALL stamps/stickers decorating the main postcard. Simple solid warm cream background with one cobalt ground patch. Keep pop art, but coarse clean shapes, no dense stippling. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "shiba-ca-phe",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/shiba-ca-phe.png",
+    "asset": "/art-library/thu-cung/shiba-ca-phe-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep shiba, its chair, a minimal cafe tabletop, one cup and the blank cafe menu only. Remove plants, vines, flowers, croissant, elaborate furniture, windows, lamps, walls and background cafe. Soft solid pale sage background. Keep watercolor with gentle broad washes rather than fine texture. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "golden-picnic",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/golden-picnic.png",
+    "asset": "/art-library/thu-cung/golden-picnic-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep golden retriever, a minimal patch of picnic blanket and blank sketchbook only. Remove mountains, lake, foliage, basket, fruits, flowers, hat and dense fabric checks. Solid soft buttery yellow backdrop. Keep gouache with broad shapes and simplified fur. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "husky-vu-tru",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/husky-vu-tru.png",
+    "asset": "/art-library/thu-cung/husky-vu-tru-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep husky astronaut and the blank spaceship console display only. Remove starfield, planets, spacecraft interior, cables, foreground controls and neon clutter. Solid pale lavender background, one small moon shape allowed. Keep soft 3D character but simplify the suit, use matte materials and minimal hardware around the white screen. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "poodle-salon",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/poodle-salon.png",
+    "asset": "/art-library/thu-cung/poodle-salon-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep poodle and the large blank wall mirror only. Remove shelves, cosmetics, hanging brushes, rugs, stools, lamps, plants and flowers. Replace ornate mirror frame with a slim simple pink frame preserving white interior. Solid pastel mint background. Keep cut-paper style but use fewer large shapes and minimal fur detailing. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "pug-choi-game",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/pug-choi-game.png",
+    "asset": "/art-library/thu-cung/pug-choi-game-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep pug, headphones, minimal tabletop and blank laptop only. Remove posters, windows, plants, shelf ornaments, mouse, game controller and all desk clutter. Solid light lilac backdrop. Keep comic style with simple clean black outlines and flat fills, no hatchwork. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "meo-sofa",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/meo-sofa.png",
+    "asset": "/art-library/thu-cung/meo-sofa-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep sleepy orange cat, minimal sofa seat and blank cream pillow only. Remove window, lamp, plants, flowers, furniture, extra cushions, fringe and knitted texture. Solid pastel peach background. Keep pastel-crayon style with quiet broad strokes, simplified blanket and fur. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  },
+  {
+    "id": "tho-lam-vuon",
+    "tool": "built-in image_gen",
+    "mode": "edit",
+    "reference": "/art-library/thu-cung/tho-lam-vuon.png",
+    "asset": "/art-library/thu-cung/tho-lam-vuon-simple.png",
+    "prompt": "Edit the supplied QR art illustration to make it much simpler and less visually busy. Primary request: Keep rabbit, watering can and blank ceramic planter front only. Remove fences, tree canopy, trailing vines, dense flowers, extra pots, detailed ground and all background architecture. One simple small leafy sprout may remain above planter. Solid pale green background. Use genuinely clean flat illustration with large shapes and minimal texture. Invariants: preserve square canvas, pet identity, general pose and position. CRITICAL: preserve the exact position, size, orientation and completely blank white interior of the main QR placement surface from the original image. Its interior must not move or shrink at all. Remove decorative surface ornaments without changing its geometry. No text, logos, QR codes or watermark. The pet and the quiet white QR surface are the only focal points. Max 3-4 colors besides the pet's natural colors, generous empty background, no scenery, no tiny repeated detail. Preserve the stated medium so this collection stays varied."
+  }
+]
